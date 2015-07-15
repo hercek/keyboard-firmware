@@ -55,6 +55,8 @@
 #include "leds.h"
 
 #include "serial_eeprom.h"
+#include "serial_eeprom_spi.h"
+#include "printing.h"
 #include "interpreter.h"
 #include "macro_index.h"
 #include "macro.h"
@@ -223,6 +225,28 @@ static void handle_state_normal(void){
 					current_state = STATE_WAITING;
 					next_state = STATE_NORMAL;
 					break;
+
+				case SPECIAL_LKEY_READ_EEPROM:
+					buzzer_start_f(100, 200);
+					serial_eeprom_test_read();
+					current_state = STATE_PRINTING;
+					next_state = STATE_NORMAL;
+					break;
+
+				case SPECIAL_LKEY_WRITE_EEPROM:
+					buzzer_start_f(100, 100);
+					serial_eeprom_test_write();
+					current_state = STATE_PRINTING;
+					next_state = STATE_NORMAL;
+					break;
+
+				case SPECIAL_LKEY_TEST_LEDS:
+					buzzer_start_f(100, 100);
+					test_leds();
+					current_state = STATE_WAITING;
+					next_state = STATE_NORMAL;
+					break;
+
 				default:
 					break;
 				}
@@ -498,6 +522,7 @@ void Process_KeyboardLEDReport(uint8_t report){
 
 static void ledstate_update(void){
 	uint8_t LEDMask = 0;
+	bool fillFromUsbReport = false;
 
 #ifdef KEYPAD_LAYER
 		if(keypad_mode)
@@ -507,28 +532,33 @@ static void ledstate_update(void){
 	switch(current_state){
 	case STATE_PROGRAMMING_SRC:
 		// flash quickly - change every 128ms
-		if(uptimems() & 128){
+		if(HARDWARE_VARIANT==KATY || uptimems() & 128){
 			LEDMask |= LEDMASK_PROGRAMMING_SRC;
 		}
 		break;
 	case STATE_PROGRAMMING_DST:
 		// flash slowly - change every 256ms
-		if(uptimems() & 256){
+		if(HARDWARE_VARIANT==KATY || uptimems() & 256){
 			LEDMask |= LEDMASK_PROGRAMMING_DST;
 		}
 		break;
 	case STATE_MACRO_RECORD_TRIGGER:
-		if(uptimems() & 128){
+		if(HARDWARE_VARIANT==KATY || uptimems() & 128){
 			LEDMask |= LEDMASK_MACRO_TRIGGER;
 		}
 		break;
 	case STATE_MACRO_RECORD:
-		if(uptimems() & 128){
+		if(HARDWARE_VARIANT==KATY || uptimems() & 128){
 			LEDMask |= LEDMASK_MACRO_RECORD;
 		}
 		break;
 	case STATE_NORMAL:
 	default:
+		fillFromUsbReport = true;
+		break;
+	}
+
+	if (HARDWARE_VARIANT==KATY || fillFromUsbReport) {
 		// populate from USB LED report
 		if (USB_LEDReport & HID_KEYBOARD_LED_NUMLOCK)
 			LEDMask |= LEDMASK_NUMLOCK;
@@ -540,8 +570,6 @@ static void ledstate_update(void){
 		if (USB_LEDReport & HID_KEYBOARD_LED_SCROLLLOCK)
 			LEDMask |= LEDMASK_SCROLLLOCK;
 #endif
-
-		break;
 	}
 
 	set_all_leds(LEDMask);

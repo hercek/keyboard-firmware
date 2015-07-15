@@ -47,47 +47,92 @@
 #include "hardware.h"
 
 #if USE_BUZZER
+
+#define TIMER4_RESOLUTION 1023UL
+#define PLL_FREQ 48000000UL
+
+unsigned long hfPwmPeriod = 0;
+
+static void initHfPwm(void) {
+	// Init the internal PLL (ATMega32U4.pdf:40)
+	// However, since LUFA sets the PLL to 96MHz due to USB, just properly set up
+	// the PLLTM0:1 prescaler bits.
+	//  PLLFRQ = _BV(PDIV2);           // 48MHz PLL
+	//  PLLCSR = _BV(PLLE);            // enable PLL
+	//  while(!(PLLCSR & _BV(PLOCK))); // wait till PLL is stable
+	//  PLLFRQ |= _BV(PLLTM0);         // 48MHz PCK
+	PLLFRQ |= (_BV(PLLTM0)|_BV(PLLTM1)); // 96MHz/2 = 48MHz PCK
+
+	DDRD |= _BV(PD6); // set PD6 (NOT(OC4D)) as output
+
+	// Init timer counter 4 (ATMega32U4.pdf:166)
+	TCCR4C &= _BV(COM4D1); // keep original value for positive output (OC4D)
+	TCCR4C |= _BV(PWM4D);  // enable PWM mode based on comparator OCR4D
+	TCCR4E = _BV(ENHC4);   // set to enhanced compare/PWM mode (10 bit mode)
+	TCCR4D = _BV(WGM40);   // use phase and frequency correct mode
+	                       // ATMeta32u4.pdf:152
+}
+
+static void hfPwmStart(void) {
+	TCCR4C |= _BV(COM4D0); // enable NOT(OC4D) pin
+}
+static void hfPwmStop(void)  {
+	TCCR4C &= ~(_BV(COM4D0)); // disable NOT(OC4D) pin
+}
+
+static void hfPwmSetDuty(unsigned int duty) {
+	unsigned long dutyCycle = hfPwmPeriod;
+	dutyCycle *= duty;
+	dutyCycle >>= 9;
+	TC4H = (dutyCycle) >> 8;   // high 2 bits of duty cycle (comparator OCR4D)
+	OCR4D = (dutyCycle) & 255; // low 8 bits of duty cycle (comparator OCR4D)
+}
+
+static void hfPwmSetPeriod(unsigned long freq)  {
+	unsigned long cycles = PLL_FREQ / 2 / freq; // ATMega32U4.pdf:153
+	unsigned char clockSelectBits = 0;
+
+	// Check first 14 bits
+	for (int i = 0; i < 15; ++i) {
+		if (cycles < TIMER4_RESOLUTION * _BV(i)) {
+			hfPwmPeriod = cycles / _BV(i);
+			// CS40-3 map to first LSB of TCCR4B
+			clockSelectBits = i + 1;
+			break;
+		}
+	}
+
+	TCCR4B = clockSelectBits;
+	TC4H = hfPwmPeriod >> 8;// high 2 bits of Timer/Counter TOP value
+	OCR4C = hfPwmPeriod;    // low 8 bits of Timer/Counter TOP value
+							// (ATMega32U4.pdf:{140,152})
+	hfPwmSetDuty((TIMER4_RESOLUTION+1)/2); // hardcoded 50% duty cycle
+}
+
+// Remaining time to keep buzzer on
 static uint16_t buzzer_ms;
 
-// cs00 | cs01 : clk/64
-// cs22 | cs20 : clk/64
+void buzzer_init()
+{
+	initHfPwm();
+}
 
-// CLK/64: 4us per tick, enable CTC mode (WGM21)
-// buzzer is connected to OC2 pin: toggle OC2 on compare match ((COM20)
-static const int TIMER_MODE = ((1<<WGM21) | (1<<COM20) | (1<<CS22) | (1<<CS20));
-
-void buzzer_start(uint16_t ms){
+void buzzer_start(uint16_t ms) {
 	buzzer_start_f(ms, BUZZER_DEFAULT_TONE);
 }
 
-void buzzer_start_f(uint16_t ms, uint8_t freq){
-	if(!buzzer_ms){
-		// timer stopped, so turn on the buzzer and start the timer
-		BUZZER_PORT |= BUZZER;
-		TCNT2  = 0;
-		TCCR2 |= TIMER_MODE;
-	}
-	// always update the frequency
-	OCR2 = freq;
-
-	// and reset if we've gone below
-	if(TCNT2 > OCR2) TCNT2=0;
-
-	// and update the time remaining (allow it to be cut short)
+void buzzer_start_f(uint16_t ms, uint8_t freq) {
 	buzzer_ms = ms;
+	hfPwmSetPeriod(freq);
+	hfPwmStart();
 }
-
-void buzzer_update(uint8_t increment){
-	if(buzzer_ms){
+void buzzer_update(uint8_t increment) {
+	if(buzzer_ms) {
 		buzzer_ms = (increment >= buzzer_ms) ? 0 : buzzer_ms - increment;
 		if(buzzer_ms == 0){
-			// Stop the timer and turn off the buzzer
-			TCCR2       &= ~TIMER_MODE;
-			BUZZER_PORT &= ~BUZZER;
-			TCNT2       =  0;
+			hfPwmStop();
 		}
 	}
 }
-
 
 #endif

@@ -48,11 +48,11 @@
 
 #include "hardware.h"
 
-#include "twi.h"
+//#include "twi.h"
 
 #define EEEXT __attribute__((section(".eeexternal")))
 
-#define EEEXT_PAGE_SIZE 16
+#define EEEXT_PAGE_SIZE 32
 
 typedef enum _serial_eeprom_err {
 	SUCCESS = 0,
@@ -65,8 +65,8 @@ typedef enum _serial_eeprom_err {
 extern serial_eeprom_err serial_eeprom_errno;
 
 serial_eeprom_err serial_eeprom_start_write(uint8_t* addr);
-int8_t serial_eeprom_continue_write(const uint8_t* buf, uint8_t len);
-static inline void serial_eeprom_end_write(void){ twi_stop(NOWAIT); }
+//int8_t serial_eeprom_continue_write(const uint8_t* buf, uint8_t len);
+//static inline void serial_eeprom_end_write(void);
 
 /**
  * Write len bytes within an eeprom page. The caller is responsible

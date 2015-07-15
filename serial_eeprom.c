@@ -58,6 +58,11 @@ serial_eeprom_err serial_eeprom_errno = SUCCESS;
 
 #define SERIAL_EEPROM_WRITE_TIME_MS 10
 
+
+static inline void serial_eeprom_end_write(void){
+	twi_stop(NOWAIT);
+}
+
 // communicate with AT24C164 serial eeprom(s)
 
 /**
@@ -105,7 +110,7 @@ serial_eeprom_err serial_eeprom_start_write(uint8_t* addr){
  * Continues writing an eeprom page-write transaction. Returns bytes
  * written: if < len, an error occurred.
  */
-int8_t serial_eeprom_continue_write(const uint8_t* buf, uint8_t len){
+static int8_t serial_eeprom_continue_write(const uint8_t* buf, uint8_t len){
 	int i = 0;
 	for(; i < len; ++i){
 		if(twi_write_byte(buf[i]) != ACK){
