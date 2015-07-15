@@ -268,49 +268,19 @@ void keystate_Fill_KeyboardReport(KeyboardReport_Data_t* KeyboardReport){
 	 }
 }
 
-static inline uint8_t ilog2_16(uint16_t n){
-	// calculate floor(log2(n))
-
-	int leading_zeroes = 0;
-	if((0xFF00 & n) == 0){
-		leading_zeroes += 8;
-		n <<= 8;
-	}
-	if((0xF000 & n) == 0){
-		leading_zeroes += 4;
-		n <<= 4;
-	}
-	if((0xC000 & n) == 0){
-		leading_zeroes += 2;
-		n <<= 2;
-	}
-	if((0x8000 & n) == 0){
-		++leading_zeroes;
-		n <<= 1;
-	}
-	if((0x8000 & n) == 0){
-		++leading_zeroes;
-		n <<= 1;
-	}
-
-	return 16 - leading_zeroes;
-}
-
 static uint8_t mouse_accel(uint16_t time){
-	if(time < 0x2f){
-		return ilog2_16(time >> 2) + 1;
-	}
-	else{
-		return 2 * ilog2_16(time >> 3);
-	}
+	uint16_t rv = time/20;
+	if (rv < 0) return 1;
+	if (rv > 255) return 255;
+	return rv;
 }
 
 void keystate_Fill_MouseReport(MouseReport_Data_t* MouseReport){
 	static uint16_t mousedown_time = 1;
 
 	// check key state
-	int moving = 0;
-	for(int i = 0; i < KEYSTATE_COUNT; ++i){
+	bool moving = false;
+	for(uint8_t i = 0; i < KEYSTATE_COUNT; ++i){
 		if(key_states[i].state){
 			logical_keycode l_key = key_states[i].l_key;
 			hid_keycode h_key = config_get_definition(l_key);
@@ -333,19 +303,19 @@ void keystate_Fill_MouseReport(MouseReport_Data_t* MouseReport){
 					break;
 
 				case SPECIAL_HID_KEY_MOUSE_FWD:
-					moving = 1;
+					moving = true;
 					MouseReport->Y -= mouse_accel(mousedown_time);
 					break;
 				case SPECIAL_HID_KEY_MOUSE_BACK:
-					moving = 1;
+					moving = true;
 					MouseReport->Y += mouse_accel(mousedown_time);
 					break;
 				case SPECIAL_HID_KEY_MOUSE_LEFT:
-					moving = 1;
+					moving = true;
 					MouseReport->X -= mouse_accel(mousedown_time);
 					break;
 				case SPECIAL_HID_KEY_MOUSE_RIGHT:
-					moving = 1;
+					moving = true;
 					MouseReport->X += mouse_accel(mousedown_time);
 					break;
 				default:
