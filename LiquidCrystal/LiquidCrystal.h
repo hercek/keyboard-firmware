@@ -43,24 +43,15 @@
 #define LCD_5x8DOTS 0x00
 
 class Pin;
+class Bus;
 
 class LiquidCrystal : public Print {
 public:
-  LiquidCrystal(Pin* rs, Pin* enable,
-		Pin* d0, Pin* d1, Pin* d2, Pin* d3,
-		Pin* d4, Pin* d5, Pin* d6, Pin* d7);
-  LiquidCrystal(Pin* rs, Pin* rw, Pin* enable,
-		Pin* d0, Pin* d1, Pin* d2, Pin* d3,
-		Pin* d4, Pin* d5, Pin* d6, Pin* d7);
-  LiquidCrystal(Pin* rs, Pin* rw, Pin* enable,
-		Pin* d0, Pin* d1, Pin* d2, Pin* d3);
-  LiquidCrystal(Pin* rs, Pin* enable,
-		Pin* d0, Pin* d1, Pin* d2, Pin* d3);
+  LiquidCrystal(Pin* rs, Pin* cs, Bus* data) { init(rs, 0, cs, data); }
+  LiquidCrystal(Pin* rs, Pin* rw, Pin* cs, Bus* data) { init(rs, rw, cs, data); };
 
-  void init(uint8_t fourbitmode, Pin* rs, Pin* rw, Pin* enable,
-	    Pin* d0, Pin* d1, Pin* d2, Pin* d3,
-	    Pin* d4, Pin* d5, Pin* d6, Pin* d7);
-    
+  void init(Pin* rs, Pin* rw, Pin* cs, Bus* data);
+
   void begin(uint8_t cols, uint8_t rows, uint8_t charsize = LCD_5x8DOTS);
 
   void clear();
@@ -83,18 +74,16 @@ public:
   void setCursor(uint8_t, uint8_t); 
   virtual size_t write(uint8_t);
   void command(uint8_t);
-  
+
   using Print::write;
 private:
   void send(uint8_t, uint8_t);
-  void write4bits(uint8_t);
-  void write8bits(uint8_t);
   void pulseEnable();
 
   Pin* _rs_pin; // LOW: command.  HIGH: character.
   Pin* _rw_pin; // LOW: write to LCD.  HIGH: read from LCD.
-  Pin* _enable_pin; // activated by a HIGH pulse.
-  Pin* _data_pins[8];
+  Pin* _cs_pin; // activated by a HIGH pulse.
+  Bus* _data_bus; // 4 or 8 bit bus (distinguished by isFullSize())
 
   uint8_t _displayfunction;
   uint8_t _displaycontrol;

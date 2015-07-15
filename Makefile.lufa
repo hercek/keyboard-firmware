@@ -271,7 +271,9 @@ CFLAGS += $(CSTANDARD)
 #  -Wall...:     warning level
 #  -Wa,...:      tell GCC to pass this to the assembler.
 #    -adhlns...: create assembler listing
-CPPFLAGS = -g$(DEBUG)
+CPPFLAGS = -std=c++11
+CPPFLAGS += -Wc++0x-compat
+CPPFLAGS += -g$(DEBUG)
 CPPFLAGS += $(CPPDEFS)
 CPPFLAGS += -O$(OPT)
 CPPFLAGS += -funsigned-char

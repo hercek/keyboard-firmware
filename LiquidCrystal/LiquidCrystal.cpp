@@ -5,6 +5,7 @@
 #include <inttypes.h>
 #include <util/delay.h>
 #include "Pin.h"
+#include "Bus.h"
 
 // When the display powers up, it is configured as follows:
 //
@@ -25,62 +26,30 @@
 // can't assume that its in that state when a sketch starts (and the
 // LiquidCrystal constructor is called).
 
-LiquidCrystal::LiquidCrystal(Pin* rs, Pin* rw, Pin* enable,
-			     Pin* d0, Pin* d1, Pin* d2, Pin* d3,
-			     Pin* d4, Pin* d5, Pin* d6, Pin* d7)
-{
-  init(0, rs, rw, enable, d0, d1, d2, d3, d4, d5, d6, d7);
-}
 
-LiquidCrystal::LiquidCrystal(Pin* rs, Pin* enable,
-			     Pin* d0, Pin* d1, Pin* d2, Pin* d3,
-			     Pin* d4, Pin* d5, Pin* d6, Pin* d7)
-{
-  init(0, rs, (Pin*)0, enable, d0, d1, d2, d3, d4, d5, d6, d7);
-}
-
-LiquidCrystal::LiquidCrystal(Pin* rs, Pin* rw, Pin* enable,
-			     Pin* d0, Pin* d1, Pin* d2, Pin* d3)
-{
-  init(1, rs, rw, enable, d0, d1, d2, d3, (Pin*)0, (Pin*)0, (Pin*)0, (Pin*)0);
-}
-
-LiquidCrystal::LiquidCrystal(Pin* rs,  Pin* enable,
-			     Pin* d0, Pin* d1, Pin* d2, Pin* d3)
-{
-  init(1, rs, (Pin*)0, enable, d0, d1, d2, d3, (Pin*)0, (Pin*)0, (Pin*)0, (Pin*)0);
-}
-
-void LiquidCrystal::init(uint8_t fourbitmode, Pin* rs, Pin* rw, Pin* enable,
-			 Pin* d0, Pin* d1, Pin* d2, Pin* d3,
-			 Pin* d4, Pin* d5, Pin* d6, Pin* d7)
+// rs - register select (0 - command, 1 - data)
+// rw - read / write
+// cs - chip select (enable pin)
+void LiquidCrystal::init(Pin* rs, Pin* rw, Pin* cs, Bus* data)
 {
   _rs_pin = rs;
   _rw_pin = rw;
-  _enable_pin = enable;
-  
-  _data_pins[0] = d0;
-  _data_pins[1] = d1;
-  _data_pins[2] = d2;
-  _data_pins[3] = d3; 
-  _data_pins[4] = d4;
-  _data_pins[5] = d5;
-  _data_pins[6] = d6;
-  _data_pins[7] = d7; 
+  _cs_pin = cs;
+  _data_bus = data;
 
   _rs_pin->setOutput();
   // we can save 1 pin by not using RW. Indicate by passing 0 instead of pin*
   if (_rw_pin != 0) {
     _rw_pin->setOutput();
   }
-  _enable_pin->setOutput();
-  
-  if (fourbitmode)
-    _displayfunction = LCD_4BITMODE | LCD_1LINE | LCD_5x8DOTS;
-  else 
+  _cs_pin->setOutput();
+
+  if (data->isFullSize())
     _displayfunction = LCD_8BITMODE | LCD_1LINE | LCD_5x8DOTS;
-  
-  begin(16, 1);
+  else
+    _displayfunction = LCD_4BITMODE | LCD_1LINE | LCD_5x8DOTS;
+
+  begin(8, 2);
 }
 
 void LiquidCrystal::begin(uint8_t cols, uint8_t lines, uint8_t dotsize) {
@@ -101,30 +70,30 @@ void LiquidCrystal::begin(uint8_t cols, uint8_t lines, uint8_t dotsize) {
   _delay_us(50000);
   // Now we pull both RS and R/W low to begin commands
   _rs_pin->setLow();
-  _enable_pin->setLow();
+  _cs_pin->setLow();
   if (_rw_pin != 0) {
     _rw_pin->setLow();
   }
-  
+
   //put the LCD into 4 bit or 8 bit mode
-  if (! (_displayfunction & LCD_8BITMODE)) {
+  if (! (_displayfunction & LCD_8BITMODE) ) {
     // this is according to the hitachi HD44780 datasheet
     // figure 24, pg 46
 
     // we start in 8bit mode, try to set 4 bit mode
-    write4bits(0x03);
+    _data_bus->write(0x03); // 4 bit write
     _delay_us(4500); // wait min 4.1ms
 
     // second try
-    write4bits(0x03);
+    _data_bus->write(0x03); // 4 bit write
     _delay_us(4500); // wait min 4.1ms
-    
+
     // third go!
-    write4bits(0x03);
+    _data_bus->write(0x03); // 4 bit write
     _delay_us(150);
 
     // finally, set to 4-bit interface
-    write4bits(0x02);
+    _data_bus->write(0x02); // 4 bit write
   } else {
     // this is according to the hitachi HD44780 datasheet
     // page 45 figure 23
@@ -145,7 +114,7 @@ void LiquidCrystal::begin(uint8_t cols, uint8_t lines, uint8_t dotsize) {
   command(LCD_FUNCTIONSET | _displayfunction);  
 
   // turn the display on with no cursor or blinking default
-  _displaycontrol = LCD_DISPLAYON | LCD_CURSOROFF | LCD_BLINKOFF;  
+  _displaycontrol = LCD_DISPLAYON | LCD_CURSOROFF | LCD_BLINKOFF;
   display();
 
   // clear it off
@@ -177,7 +146,7 @@ void LiquidCrystal::setCursor(uint8_t col, uint8_t row)
   if ( row >= _numlines ) {
     row = _numlines-1;    // we count rows starting w/0
   }
-  
+
   command(LCD_SETDDRAMADDR | (col + row_offsets[row]));
 }
 
@@ -268,44 +237,27 @@ inline size_t LiquidCrystal::write(uint8_t value) {
 
 // write either command or data, with automatic 4/8-bit selection
 void LiquidCrystal::send(uint8_t value, uint8_t mode) {
-  mode ? _rs_pin->setHigh() : _rs_pin->setLow();
+  if (mode) _rs_pin->setHigh(); else _rs_pin->setLow();
 
   // if there is a RW pin indicated, set it low to Write
-  if (_rw_pin != 0) {
-    _rw_pin->setLow();
+  if (_rw_pin != 0) _rw_pin->setLow();
+
+  _data_bus->setOutput();
+  if ( !(_displayfunction & LCD_8BITMODE) ) {
+    uint8_t highNyble = value;
+    asm volatile("swap %0" : "=r" (highNyble) : "0" (highNyble));
+    _data_bus->write(highNyble);
   }
-  
-  if (_displayfunction & LCD_8BITMODE) {
-    write8bits(value); 
-  } else {
-    write4bits(value>>4);
-    write4bits(value);
-  }
+  _data_bus->write(value);
+  pulseEnable();
 }
 
 void LiquidCrystal::pulseEnable(void) {
-  _enable_pin->setLow();
+  _cs_pin->setLow();
   _delay_us(1);
-  _enable_pin->setHigh();
-  _delay_us(1);    // enable pulse must be >450ns
-  _enable_pin->setLow();
+  _cs_pin->setHigh();
+  _delay_us(1);    // chip select pulse must be >450ns
+  _cs_pin->setLow();
   _delay_us(100);   // commands need > 37us to settle
 }
 
-void LiquidCrystal::write4bits(uint8_t value) {
-  for (int i = 0; i < 4; i++) {
-    _data_pins[i]->setOutput();
-    (value >> i) & 0x01 ? _data_pins[i]->setHigh() : _data_pins[i]->setLow();
-  }
-
-  pulseEnable();
-}
-
-void LiquidCrystal::write8bits(uint8_t value) {
-  for (int i = 0; i < 8; i++) {
-    _data_pins[i]->setOutput();
-    (value >> i) & 0x01 ? _data_pins[i]->setHigh() : _data_pins[i]->setLow();
-  }
-  
-  pulseEnable();
-}
