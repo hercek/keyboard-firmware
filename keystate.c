@@ -125,7 +125,7 @@ void keystate_update(void){
 							if(keystate_change_hook_fn) keystate_change_hook_fn(l_key, true);
 							#if USE_BUZZER
 							if(config_get_flags().key_sound_enabled)
-								buzzer_start(3);
+								buzzer_start((1001+BUZZER_DEFAULT_TONE/2)/BUZZER_DEFAULT_TONE);
 							#endif
 						}
 					}
