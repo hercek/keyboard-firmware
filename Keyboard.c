@@ -52,7 +52,6 @@
 #include "config.h"
 #include "printing.h"
 #include "buzzer.h"
-#include "leds.h"
 
 #include "serial_eeprom.h"
 #include "serial_eeprom_spi.h"

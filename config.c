@@ -50,7 +50,6 @@
 #include "Keyboard.h"
 #include "printing.h"
 #include "keystate.h"
-#include "leds.h"
 #include "serial_eeprom.h"
 #include "interpreter.h"
 #include "buzzer.h"

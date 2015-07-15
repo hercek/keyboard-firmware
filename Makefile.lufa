@@ -145,7 +145,6 @@ SRC = $(TARGET).c                                                 \
 	  config.c													  \
 	  serial_eeprom_spi.o										  \
 	  buzzer.c													  \
-	  leds.c													  \
 	  hardware.c												  \
 	  interpreter.c												  \
 	  macro_index.c												  \
