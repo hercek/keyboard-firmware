@@ -28,7 +28,7 @@ static PIN(LcdD7,D,3);
 
 static LiquidCrystal
 	 lcd( &LcdRS, /*&LcdRW,*/ &LcdEn
-//		, &LcdD0, &LcdD1, &LcdD2, &LcdD3
+		, &LcdD0, &LcdD1, &LcdD2, &LcdD3
 		, &LcdD4, &LcdD5, &LcdD6, &LcdD7
 		);
 

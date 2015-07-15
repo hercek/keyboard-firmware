@@ -180,7 +180,7 @@ const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] PROGMEM = {
 	HID_KEYBOARD_SC_KEYPAD_5,						   //	LOGICAL_KEY_K ***
 	HID_KEYBOARD_SC_KEYPAD_6_AND_RIGHT_ARROW,		   //	LOGICAL_KEY_L ***
 	HID_KEYBOARD_SC_KEYPAD_1_AND_END,				   //	LOGICAL_KEY_M ***
-	HID_KEYBOARD_SC_KEYPAD_EQUAL_SIGN,				   //	LOGICAL_KEY_N ***
+	HID_KEYBOARD_SC_EQUAL_SIGN,						   //	LOGICAL_KEY_N ***
 	HID_KEYBOARD_SC_KEYPAD_9_AND_PAGE_UP,			   //	LOGICAL_KEY_O ***
 	HID_KEYBOARD_SC_KEYPAD_MINUS,					   //	LOGICAL_KEY_P ***
 	HID_KEYBOARD_SC_Q,								   //	LOGICAL_KEY_Q
@@ -282,7 +282,7 @@ void ports_init(void){
 	LEFT_CLK1_DDR |= LEFT_CLK1_MASK;  //CLK1 is output pin
 	LEFT_CLK0_LOW;
 	LEFT_CLK1_LOW;
-	for (int i = 0; i <= 7; ++i) {
+	for (int8_t i = 0; i <= 7; ++i) {
 		LEFT_CLK0_HIGH;
 		LEFT_CLK0_LOW;
 	}
@@ -346,7 +346,7 @@ uint8_t matrix_read_column(uint8_t matrix_column){
 			// read 7th bit of register 165
 			register_165_state = (LEFT_I_DATA_PIN & LEFT_I_DATA_MASK) ? 1 : 0;
 			// 0, 1, 2 bits of register 165 are not used
-			for (int i = 6; i > 2; --i) {
+			for (int8_t i = 6; i > 2; --i) {
 				LEFT_CLK1_HIGH;
 				LEFT_CLK1_LOW;
 				register_165_state <<= 1;
@@ -433,7 +433,7 @@ void set_all_leds(uint8_t led_mask){
 }
 
 void test_leds(void){
-	for(int i = 0; i < 2; ++i){
+	for(int8_t i = 0; i < 2; ++i){
 		set_all_leds(0); _delay_ms(1000);
 		set_all_leds(LEDMASK_USB_NOTREADY); _delay_ms(1000);
 		set_all_leds(LEDMASK_USB_ENUMERATING); _delay_ms(1000);
