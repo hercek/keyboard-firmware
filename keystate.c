@@ -89,7 +89,11 @@ void keystate_update(void){
 			if(l_key == NO_KEY) goto next_matrix; // empty space in the sparse matrix
 
 #ifdef KEYPAD_LAYER // keyboard uses a "keypad layer" - duplicate mappings for many of its keys
-			if(keypad_mode && l_key >= KEYPAD_LAYER_START){
+			uint8_t keypad_shift =
+				keystate_check_key(LOGICAL_KEY_LEFT_LAYER_SHIFT, PHYSICAL) ||
+				keystate_check_key(LOGICAL_KEY_RIGHT_LAYER_SHIFT, PHYSICAL);
+			if(keypad_mode) keypad_mode = 1; // make sure keypad_mode is 0 or 1 (and nothing else)
+			if((keypad_mode != keypad_shift) && l_key >= KEYPAD_LAYER_START){
 				l_key += KEYPAD_LAYER_SIZE;
 			}
 #endif

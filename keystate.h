@@ -95,8 +95,10 @@ enum SPECIAL_HID_KEYS{
 	SPECIAL_HID_KEY_MOUSE_LEFT,
 	SPECIAL_HID_KEY_MOUSE_RIGHT,
 	// And the extra-special non-remappable program and keypad keys
-	SPECIAL_HID_KEY_PROGRAM = 0xFD,
+	SPECIAL_HID_KEY_PROGRAM = 0xFC,
 	SPECIAL_HID_KEY_KEYPAD,
+	SPECIAL_HID_KEY_LAYER_SHIFT
+	// 0xFF represents NO_KEY
 };
 
 

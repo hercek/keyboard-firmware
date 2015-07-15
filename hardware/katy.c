@@ -80,8 +80,10 @@ const logical_keycode matrix_to_logical_map[MATRIX_ROWS][MATRIX_COLS] PROGMEM =
 #undef KEY_NONE
 
 const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] PROGMEM = {
+	SPECIAL_HID_KEY_LAYER_SHIFT,					   //	LOGICAL_KEY_TH_LL, // extra left side left thumb key
+	SPECIAL_HID_KEY_LAYER_SHIFT,					   //	LOGICAL_KEY_TH_RR, // extra right side right thumb key
 	SPECIAL_HID_KEY_KEYPAD,							   //	LOGICAL_KEY_RROW1, // bottom row (outer)
-	SPECIAL_HID_KEY_PROGRAM,  						   //	LOGICAL_KEY_LROW1, // bottom row (outer)
+	SPECIAL_HID_KEY_PROGRAM,						   //	LOGICAL_KEY_LROW1, // bottom row (outer)
 	// non-keypad layer
 	HID_KEYBOARD_SC_A,								   //	LOGICAL_KEY_A
 	HID_KEYBOARD_SC_B,								   //	LOGICAL_KEY_B
@@ -134,7 +136,7 @@ const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] PROGMEM = {
 	HID_KEYBOARD_SC_RIGHT_ARROW,					   //	LOGICAL_KEY_LROW5,
 	HID_KEYBOARD_SC_PRINT_SCREEN,					   //	LOGICAL_KEY_LCOL2_1, // inner column (top)
 	HID_KEYBOARD_SC_CAPS_LOCK,						   //	LOGICAL_KEY_LCOL2_2,
-	HID_KEYBOARD_SC_F1,								   //	LOGICAL_KEY_LCOL2_3,
+	HID_KEYBOARD_SC_F2,								   //	LOGICAL_KEY_LCOL2_3,
 	// Right hand extra keys
 	HID_KEYBOARD_SC_MINUS_AND_UNDERSCORE,			   //	LOGICAL_KEY_RCOL1_1, // outer column (top)
 	HID_KEYBOARD_SC_BACKSLASH_AND_PIPE,				   //	LOGICAL_KEY_RCOL1_2,
@@ -146,7 +148,7 @@ const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] PROGMEM = {
 	HID_KEYBOARD_SC_DOWN_ARROW,						   //	LOGICAL_KEY_RROW5,
 	HID_KEYBOARD_SC_PAUSE,							   //	LOGICAL_KEY_RCOL2_1, // inner column (top)
 	0x65/*WinContextMenu (not in LUFA header)*/,	   //	LOGICAL_KEY_RCOL2_2,
-	HID_KEYBOARD_SC_F7,								   //	LOGICAL_KEY_RCOL2_3,
+	HID_KEYBOARD_SC_F8,								   //	LOGICAL_KEY_RCOL2_3,
 	// Left hand thumbpad
 	HID_KEYBOARD_SC_LEFT_ALT, 						   //	LOGICAL_KEY_L_ALT,
 	HID_KEYBOARD_SC_LEFT_CONTROL,					   //	LOGICAL_KEY_L_CTRL,
@@ -154,7 +156,6 @@ const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] PROGMEM = {
 	HID_KEYBOARD_SC_END,							   //	LOGICAL_KEY_END,
 	HID_KEYBOARD_SC_BACKSPACE,						   //	LOGICAL_KEY_BACKSPACE,
 	HID_KEYBOARD_SC_LEFT_SHIFT,						   //	LOGICAL_KEY_DELETE,
-	HID_KEYBOARD_SC_F2,								   //	LOGICAL_KEY_TH_LL, // extra left side left thumb key
 	HID_KEYBOARD_SC_LEFT_GUI,						   //	LOGICAL_KEY_TH_LR, // extra left side right thumb key
 	// Right hand thumb pad
 	HID_KEYBOARD_SC_RIGHT_ALT,						   //	LOGICAL_KEY_R_ALT,
@@ -164,7 +165,6 @@ const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] PROGMEM = {
 	HID_KEYBOARD_SC_RIGHT_SHIFT,					   //	LOGICAL_KEY_ENTER,
 	HID_KEYBOARD_SC_SPACE,							   //	LOGICAL_KEY_SPACE,
 	HID_KEYBOARD_SC_RIGHT_GUI,						   //	LOGICAL_KEY_TH_RL, // extra right side left thumb key
-	HID_KEYBOARD_SC_F8,								   //	LOGICAL_KEY_TH_RR, // extra right side right thumb key
 	/////////////////////////////////////////////////
 	// keypad layer									   //	***/### keypad mode default differs to base layer
 	HID_KEYBOARD_SC_A,								   //	LOGICAL_KEY_A
@@ -238,8 +238,7 @@ const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] PROGMEM = {
 	SPECIAL_HID_KEY_MOUSE_BTN5, 					   //	LOGICAL_KEY_END, ###
 	SPECIAL_HID_KEY_MOUSE_BTN1, 					   //	LOGICAL_KEY_BACKSPACE, ###
 	SPECIAL_HID_KEY_MOUSE_BTN3, 					   //	LOGICAL_KEY_DELETE, ###
-	HID_KEYBOARD_SC_F2,								   //	LOGICAL_KEY_LL, // extra left side left thumb key
-	HID_KEYBOARD_SC_LEFT_GUI,						   //	LOGICAL_KEY_LR, // extra left side right thumb key
+	HID_KEYBOARD_SC_LEFT_GUI,						   //	LOGICAL_KEY_TH_LR, // extra left side right thumb key
 	// Right hand thumbpad
 	HID_KEYBOARD_SC_RIGHT_ALT,						   //	LOGICAL_KEY_R_ALT,
 	HID_KEYBOARD_SC_RIGHT_CONTROL,					   //	LOGICAL_KEY_R_CTRL,
@@ -248,7 +247,6 @@ const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] PROGMEM = {
 	HID_KEYBOARD_SC_RIGHT_SHIFT,					   //	LOGICAL_KEY_ENTER,
 	HID_KEYBOARD_SC_SPACE,							   //	LOGICAL_KEY_SPACE,
 	HID_KEYBOARD_SC_RIGHT_GUI,						   //	LOGICAL_KEY_TH_RL, // extra right side left thumb key
-	HID_KEYBOARD_SC_F8,								   //	LOGICAL_KEY_TH_RR, // extra right side right thumb key
 };
 
 

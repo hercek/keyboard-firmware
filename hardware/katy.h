@@ -65,8 +65,8 @@
 
 // if the keypad mode is selected, and a logical key greater than KEYPAD_LAYER_START
 // is read, add KEYPAD_LAYER_SIZE to look up the mapping.
-#define KEYPAD_LAYER_START 2
-#define KEYPAD_LAYER_SIZE  78
+#define KEYPAD_LAYER_START 4
+#define KEYPAD_LAYER_SIZE  76
 
 //80 physical keys, 78 of which (all but keypad/program) have a separate keypad layer mapping
 #define NUM_LOGICAL_KEYS (KEYPAD_LAYER_START + (KEYPAD_LAYER_SIZE * 2))
@@ -81,9 +81,13 @@
 #define MATRIX_ROWS 16 // 8 cols on each side
 
 // Logical keys we have: logical keys represent a key-position+keypad-layer combination.
+#define LOGICAL_KEY_LEFT_LAYER_SHIFT LOGICAL_KEY_TH_LL
+#define LOGICAL_KEY_RIGHT_LAYER_SHIFT LOGICAL_KEY_TH_RR
 #define LOGICAL_KEY_KEYPAD LOGICAL_KEY_RROW1
 #define LOGICAL_KEY_PROGRAM LOGICAL_KEY_LROW1
 enum logical_keys {
+	LOGICAL_KEY_TH_LL, // extra left side left thumb key
+	LOGICAL_KEY_TH_RR, // extra right side right thumb key
 	LOGICAL_KEY_RROW1, // bottom row (outer)
 	LOGICAL_KEY_LROW1, // bottom row (outer)
 	// Main key blocks
@@ -161,7 +165,6 @@ enum logical_keys {
 	LOGICAL_KEY_END,
 	LOGICAL_KEY_BACKSPACE,
 	LOGICAL_KEY_DELETE,
-	LOGICAL_KEY_TH_LL, // extra left side left thumb key
 	LOGICAL_KEY_TH_LR, // extra left side right thumb key
 
 	// Right hand thumb pad
@@ -172,7 +175,6 @@ enum logical_keys {
 	LOGICAL_KEY_ENTER,
 	LOGICAL_KEY_SPACE,
 	LOGICAL_KEY_TH_RL, // extra right side left thumb key
-	LOGICAL_KEY_TH_RR, // extra right side right thumb key
 
 	// The keypad layer duplicates the previous 78 keys
 };
