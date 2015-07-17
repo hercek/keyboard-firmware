@@ -1,13 +1,13 @@
 /*
              LUFA Library
-     Copyright (C) Dean Camera, 2011.
+     Copyright (C) Dean Camera, 2014.
 
   dean [at] fourwalledcubicle [dot] com
            www.lufa-lib.org
 */
 
 /*
-  Copyright 2011  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  Copyright 2014  Dean Camera (dean [at] fourwalledcubicle [dot] com)
 
   Permission to use, copy, modify, distribute, and sell this
   software and its documentation for any purpose is hereby granted
@@ -18,7 +18,7 @@
   advertising or publicity pertaining to distribution of the
   software without specific, written prior permission.
 
-  The author disclaim all warranties with regard to this
+  The author disclaims all warranties with regard to this
   software, including all implied warranties of merchantability
   and fitness.  In no event shall the author be liable for any
   special, indirect or consequential damages or any damages
@@ -27,6 +27,9 @@
   arising out of or in connection with the use or performance of
   this software.
 */
+
+#include "../../../../Common/Common.h"
+#if (ARCH == ARCH_UC3)
 
 #define  __INCLUDE_FROM_USB_DRIVER
 #include "../USBMode.h"
@@ -80,6 +83,11 @@ void USB_Host_ProcessNextHostState(void)
 				USB_Host_VBUS_Auto_Enable();
 				USB_Host_VBUS_Auto_On();
 
+				#if defined(NO_AUTO_VBUS_MANAGEMENT)
+				USB_Host_VBUS_Manual_Enable();
+				USB_Host_VBUS_Manual_On();
+				#endif
+
 				USB_HostState = HOST_STATE_Powered_WaitForConnect;
 			}
 
@@ -106,11 +114,7 @@ void USB_Host_ProcessNextHostState(void)
 			HOST_TASK_NONBLOCK_WAIT(200, HOST_STATE_Powered_ConfigPipe);
 			break;
 		case HOST_STATE_Powered_ConfigPipe:
-			Pipe_ConfigurePipe(PIPE_CONTROLPIPE, EP_TYPE_CONTROL,
-							   PIPE_TOKEN_SETUP, ENDPOINT_CONTROLEP,
-							   PIPE_CONTROLPIPE_DEFAULT_SIZE, PIPE_BANK_SINGLE);
-
-			if (!(Pipe_IsConfigured()))
+			if (!(Pipe_ConfigurePipe(PIPE_CONTROLPIPE, EP_TYPE_CONTROL, ENDPOINT_CONTROLEP, PIPE_CONTROLPIPE_DEFAULT_SIZE, 1)))
 			{
 				ErrorCode    = HOST_ENUMERROR_PipeConfigError;
 				SubErrorCode = 0;
@@ -131,24 +135,21 @@ void USB_Host_ProcessNextHostState(void)
 
 			uint8_t DataBuffer[8];
 
+			Pipe_SelectPipe(PIPE_CONTROLPIPE);
 			if ((SubErrorCode = USB_Host_SendControlRequest(DataBuffer)) != HOST_SENDCONTROL_Successful)
 			{
 				ErrorCode = HOST_ENUMERROR_ControlError;
 				break;
 			}
 
-			USB_ControlPipeSize = DataBuffer[offsetof(USB_Descriptor_Device_t, Endpoint0Size)];
+			USB_Host_ControlPipeSize = DataBuffer[offsetof(USB_Descriptor_Device_t, Endpoint0Size)];
 
 			USB_Host_ResetDevice();
 
 			HOST_TASK_NONBLOCK_WAIT(200, HOST_STATE_Default_PostReset);
 			break;
 		case HOST_STATE_Default_PostReset:
-			Pipe_ConfigurePipe(PIPE_CONTROLPIPE, EP_TYPE_CONTROL,
-			                   PIPE_TOKEN_SETUP, ENDPOINT_CONTROLEP,
-			                   USB_ControlPipeSize, PIPE_BANK_SINGLE);
-
-			if (!(Pipe_IsConfigured()))
+			if (!(Pipe_ConfigurePipe(PIPE_CONTROLPIPE, EP_TYPE_CONTROL, ENDPOINT_CONTROLEP, USB_Host_ControlPipeSize, 1)))
 			{
 				ErrorCode    = HOST_ENUMERROR_PipeConfigError;
 				SubErrorCode = 0;
@@ -175,8 +176,12 @@ void USB_Host_ProcessNextHostState(void)
 		case HOST_STATE_Default_PostAddressSet:
 			USB_Host_SetDeviceAddress(USB_HOST_DEVICEADDRESS);
 
-			EVENT_USB_Host_DeviceEnumerationComplete();
 			USB_HostState = HOST_STATE_Addressed;
+
+			EVENT_USB_Host_DeviceEnumerationComplete();
+			break;
+
+		default:
 			break;
 	}
 
@@ -218,7 +223,7 @@ uint8_t USB_Host_WaitMS(uint8_t MS)
 			break;
 		}
 
-		if (Pipe_IsError() == true)
+		if (Pipe_IsError())
 		{
 			Pipe_ClearError();
 			ErrorCode = HOST_WAITERROR_PipeError;
@@ -226,7 +231,7 @@ uint8_t USB_Host_WaitMS(uint8_t MS)
 			break;
 		}
 
-		if (Pipe_IsStalled() == true)
+		if (Pipe_IsStalled())
 		{
 			Pipe_ClearStall();
 			ErrorCode = HOST_WAITERROR_SetupStalled;
@@ -253,6 +258,8 @@ static void USB_Host_ResetDevice(void)
 	USB_Host_ResetBus();
 	while (!(USB_Host_IsBusResetComplete()));
 	USB_Host_ResumeBus();
+
+	USB_Host_ConfigurationNumber = 0;
 
 	bool HSOFIEnabled = USB_INT_IsEnabled(USB_INT_HSOFI);
 
@@ -285,71 +292,6 @@ static void USB_Host_ResetDevice(void)
 	USB_INT_Enable(USB_INT_DDISCI);
 }
 
-uint8_t USB_Host_SetDeviceConfiguration(const uint8_t ConfigNumber)
-{
-	USB_ControlRequest = (USB_Request_Header_t)
-		{
-			.bmRequestType = (REQDIR_HOSTTODEVICE | REQTYPE_STANDARD | REQREC_DEVICE),
-			.bRequest      = REQ_SetConfiguration,
-			.wValue        = ConfigNumber,
-			.wIndex        = 0,
-			.wLength       = 0,
-		};
-
-	Pipe_SelectPipe(PIPE_CONTROLPIPE);
-
-	return USB_Host_SendControlRequest(NULL);
-}
-
-uint8_t USB_Host_GetDeviceDescriptor(void* const DeviceDescriptorPtr)
-{
-	USB_ControlRequest = (USB_Request_Header_t)
-		{
-			.bmRequestType = (REQDIR_DEVICETOHOST | REQTYPE_STANDARD | REQREC_DEVICE),
-			.bRequest      = REQ_GetDescriptor,
-			.wValue        = (DTYPE_Device << 8),
-			.wIndex        = 0,
-			.wLength       = sizeof(USB_Descriptor_Device_t),
-		};
-
-	Pipe_SelectPipe(PIPE_CONTROLPIPE);
-
-	return USB_Host_SendControlRequest(DeviceDescriptorPtr);
-}
-
-uint8_t USB_Host_GetDeviceStringDescriptor(const uint8_t Index,
-                                           void* const Buffer,
-                                           const uint8_t BufferLength)
-{
-	USB_ControlRequest = (USB_Request_Header_t)
-		{
-			.bmRequestType = (REQDIR_DEVICETOHOST | REQTYPE_STANDARD | REQREC_DEVICE),
-			.bRequest      = REQ_GetDescriptor,
-			.wValue        = (DTYPE_String << 8) | Index,
-			.wIndex        = 0,
-			.wLength       = BufferLength,
-		};
-
-	Pipe_SelectPipe(PIPE_CONTROLPIPE);
-
-	return USB_Host_SendControlRequest(Buffer);
-}
-
-uint8_t USB_Host_ClearPipeStall(const uint8_t EndpointNum)
-{
-	USB_ControlRequest = (USB_Request_Header_t)
-		{
-			.bmRequestType = (REQDIR_HOSTTODEVICE | REQTYPE_STANDARD | REQREC_ENDPOINT),
-			.bRequest      = REQ_ClearFeature,
-			.wValue        = FEATURE_SEL_EndpointHalt,
-			.wIndex        = EndpointNum,
-			.wLength       = 0,
-		};
-
-	Pipe_SelectPipe(PIPE_CONTROLPIPE);
-
-	return USB_Host_SendControlRequest(NULL);
-}
-
 #endif
 
+#endif

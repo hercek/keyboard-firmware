@@ -1,13 +1,13 @@
 /*
              LUFA Library
-     Copyright (C) Dean Camera, 2011.
+     Copyright (C) Dean Camera, 2014.
 
   dean [at] fourwalledcubicle [dot] com
            www.lufa-lib.org
 */
 
 /*
-  Copyright 2011  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  Copyright 2014  Dean Camera (dean [at] fourwalledcubicle [dot] com)
 
   Permission to use, copy, modify, distribute, and sell this
   software and its documentation for any purpose is hereby granted
@@ -18,7 +18,7 @@
   advertising or publicity pertaining to distribution of the
   software without specific, written prior permission.
 
-  The author disclaim all warranties with regard to this
+  The author disclaims all warranties with regard to this
   software, including all implied warranties of merchantability
   and fitness.  In no event shall the author be liable for any
   special, indirect or consequential damages or any damages
@@ -45,7 +45,7 @@
 
 /** \ingroup Group_PipeRW
  *  \defgroup Group_PipePrimitiveRW Read/Write of Primitive Data Types
- *  \brief Pipe data primative read/write definitions.
+ *  \brief Pipe data primitive read/write definitions.
  *
  *  Functions, macros, variables, enums and types related to data reading and writing of primitive data types
  *  from and to pipes.
@@ -84,7 +84,12 @@
 
 	/* Includes: */
 		#include "../../../Common/Common.h"
-		#include "USBMode.h"		
+		#include "USBMode.h"
+
+	/* Enable C linkage for C++ Compilers: */
+		#if defined(__cplusplus)
+			extern "C" {
+		#endif
 
 	/* Preprocessor Checks: */
 		#if !defined(__INCLUDE_FROM_USB_DRIVER)
@@ -92,6 +97,19 @@
 		#endif
 
 	/* Public Interface - May be used in end-application: */
+		/* Type Defines: */
+			/** Type define for a pipe table entry, used to configure pipes in groups via
+			 *  \ref Pipe_ConfigurePipeTable().
+			 */
+			typedef struct
+			{
+				uint8_t  Address; /**< Address of the pipe to configure, or zero if the table entry is to be unused. */
+				uint16_t Size; /**< Size of the pipe bank, in bytes. */
+				uint8_t  EndpointAddress; /**< Address of the endpoint in the connected device. */
+				uint8_t  Type; /**< Type of the endpoint, a \c EP_TYPE_* mask. */
+				uint8_t  Banks; /**< Number of hardware banks to use for the pipe. */
+			} USB_Pipe_Table_t;
+
 		/* Macros: */
 			/** Pipe address for the default control pipe, which always resides in address 0. This is
 			 *  defined for convenience to give more readable code when used with the pipe macros.
@@ -101,23 +119,23 @@
 			/** Pipe number mask, for masking against pipe addresses to retrieve the pipe's numerical address
 			 *  in the device.
 			 */
-			#define PIPE_PIPENUM_MASK               0x07
+			#define PIPE_PIPENUM_MASK               0x0F
 
 			/** Endpoint number mask, for masking against endpoint addresses to retrieve the endpoint's
 			 *  numerical address in the attached device.
 			 */
 			#define PIPE_EPNUM_MASK                 0x0F
 
-			/** Endpoint direction mask, for masking against endpoint addresses to retrieve the endpoint's
-			 *  direction for comparing with the \c ENDPOINT_DESCRIPTOR_DIR_* masks.
-			 */
-			#define PIPE_EPDIR_MASK                 0x80
-
 	/* Architecture Includes: */
 		#if (ARCH == ARCH_AVR8)
 			#include "AVR8/Pipe_AVR8.h"
 		#elif (ARCH == ARCH_UC3)
 			#include "UC3/Pipe_UC3.h"
+		#endif
+
+	/* Disable C linkage for C++ Compilers: */
+		#if defined(__cplusplus)
+			}
 		#endif
 
 #endif

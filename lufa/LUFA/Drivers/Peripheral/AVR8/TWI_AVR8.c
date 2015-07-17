@@ -1,9 +1,35 @@
 /*
-     Copyright (C) Dean Camera, 2011.
+             LUFA Library
+     Copyright (C) Dean Camera, 2014.
 
   dean [at] fourwalledcubicle [dot] com
            www.lufa-lib.org
 */
+
+/*
+  Copyright 2014  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+
+  Permission to use, copy, modify, distribute, and sell this
+  software and its documentation for any purpose is hereby granted
+  without fee, provided that the above copyright notice appear in
+  all copies and that both that the copyright notice and this
+  permission notice and warranty disclaimer appear in supporting
+  documentation, and that the name of the author not be used in
+  advertising or publicity pertaining to distribution of the
+  software without specific, written prior permission.
+
+  The author disclaims all warranties with regard to this
+  software, including all implied warranties of merchantability
+  and fitness.  In no event shall the author be liable for any
+  special, indirect or consequential damages or any damages
+  whatsoever resulting from loss of use, data or profits, whether
+  in an action of contract, negligence or other tortious action,
+  arising out of or in connection with the use or performance of
+  this software.
+*/
+
+#include "../../../Common/Common.h"
+#if (ARCH == ARCH_AVR8) && defined(TWCR)
 
 #define  __INCLUDE_FROM_TWI_C
 #include "../TWI.h"
@@ -19,7 +45,7 @@ uint8_t TWI_StartTransmission(const uint8_t SlaveAddress,
 		TWCR = ((1 << TWINT) | (1 << TWSTA) | (1 << TWEN));
 
 		TimeoutRemaining = (TimeoutMS * 100);
-		while (TimeoutRemaining-- && !(BusCaptured))
+		while (TimeoutRemaining && !(BusCaptured))
 		{
 			if (TWCR & (1 << TWINT))
 			{
@@ -39,6 +65,7 @@ uint8_t TWI_StartTransmission(const uint8_t SlaveAddress,
 			}
 
 			_delay_us(10);
+			TimeoutRemaining--;
 		}
 
 		if (!(TimeoutRemaining))
@@ -51,12 +78,13 @@ uint8_t TWI_StartTransmission(const uint8_t SlaveAddress,
 		TWCR = ((1 << TWINT) | (1 << TWEN));
 
 		TimeoutRemaining = (TimeoutMS * 100);
-		while (TimeoutRemaining--)
+		while (TimeoutRemaining)
 		{
 			if (TWCR & (1 << TWINT))
 			  break;
 
 			_delay_us(10);
+			TimeoutRemaining--;
 		}
 
 		if (!(TimeoutRemaining))
@@ -74,6 +102,34 @@ uint8_t TWI_StartTransmission(const uint8_t SlaveAddress,
 	}
 }
 
+bool TWI_SendByte(const uint8_t Byte)
+{
+	TWDR = Byte;
+	TWCR = ((1 << TWINT) | (1 << TWEN));
+	while (!(TWCR & (1 << TWINT)));
+
+	return ((TWSR & TW_STATUS_MASK) == TW_MT_DATA_ACK);
+}
+
+bool TWI_ReceiveByte(uint8_t* const Byte,
+					 const bool LastByte)
+{
+	uint8_t TWCRMask;
+
+	if (LastByte)
+	  TWCRMask = ((1 << TWINT) | (1 << TWEN));
+	else
+	  TWCRMask = ((1 << TWINT) | (1 << TWEN) | (1 << TWEA));
+
+	TWCR = TWCRMask;
+	while (!(TWCR & (1 << TWINT)));
+	*Byte = TWDR;
+
+	uint8_t Status = (TWSR & TW_STATUS_MASK);
+
+	return ((LastByte) ? (Status == TW_MR_DATA_NACK) : (Status == TW_MR_DATA_ACK));
+}
+
 uint8_t TWI_ReadPacket(const uint8_t SlaveAddress,
                        const uint8_t TimeoutMS,
                        const uint8_t* InternalAddress,
@@ -82,28 +138,35 @@ uint8_t TWI_ReadPacket(const uint8_t SlaveAddress,
                        uint8_t Length)
 {
 	uint8_t ErrorCode;
-	
-	if ((ErrorCode = TWI_WritePacket(SlaveAddress, TimeoutMS, InternalAddress, InternalAddressLen,
-	                                 NULL, 0)) != TWI_ERROR_NoError)
-	{
-		return ErrorCode;
-	}
 
-	if ((ErrorCode = TWI_StartTransmission((SlaveAddress & TWI_DEVICE_ADDRESS_MASK) | TWI_ADDRESS_READ,
-										   TimeoutMS)) == TWI_ERROR_NoError)
+	if ((ErrorCode = TWI_StartTransmission((SlaveAddress & TWI_DEVICE_ADDRESS_MASK) | TWI_ADDRESS_WRITE,
+	                                       TimeoutMS)) == TWI_ERROR_NoError)
 	{
-		while (Length--)
+		while (InternalAddressLen--)
 		{
-			if (!(TWI_ReceiveByte(Buffer++, (Length == 0))))
+			if (!(TWI_SendByte(*(InternalAddress++))))
 			{
 				ErrorCode = TWI_ERROR_SlaveNAK;
 				break;
 			}
 		}
-		
-		TWI_StopTransmission();
+
+		if ((ErrorCode = TWI_StartTransmission((SlaveAddress & TWI_DEVICE_ADDRESS_MASK) | TWI_ADDRESS_READ,
+											   TimeoutMS)) == TWI_ERROR_NoError)
+		{
+			while (Length--)
+			{
+				if (!(TWI_ReceiveByte(Buffer++, (Length == 0))))
+				{
+					ErrorCode = TWI_ERROR_SlaveNAK;
+					break;
+				}
+			}
+
+			TWI_StopTransmission();
+		}
 	}
-	
+
 	return ErrorCode;
 }
 
@@ -136,9 +199,11 @@ uint8_t TWI_WritePacket(const uint8_t SlaveAddress,
 				break;
 			}
 		}
-		
+
 		TWI_StopTransmission();
 	}
-	
+
 	return ErrorCode;
 }
+
+#endif

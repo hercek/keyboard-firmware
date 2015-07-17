@@ -1,13 +1,13 @@
 /*
              LUFA Library
-     Copyright (C) Dean Camera, 2011.
+     Copyright (C) Dean Camera, 2014.
 
   dean [at] fourwalledcubicle [dot] com
            www.lufa-lib.org
 */
 
 /*
-  Copyright 2011  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  Copyright 2014  Dean Camera (dean [at] fourwalledcubicle [dot] com)
 
   Permission to use, copy, modify, distribute, and sell this
   software and its documentation for any purpose is hereby granted
@@ -18,7 +18,7 @@
   advertising or publicity pertaining to distribution of the
   software without specific, written prior permission.
 
-  The author disclaim all warranties with regard to this
+  The author disclaims all warranties with regard to this
   software, including all implied warranties of merchantability
   and fitness.  In no event shall the author be liable for any
   special, indirect or consequential damages or any damages
@@ -41,19 +41,19 @@
 /** \ingroup Group_ADC
  *  \defgroup Group_ADC_AVR8 ADC Peripheral Driver (AVR8)
  *
- *  \section Sec_ModDescription Module Description
+ *  \section Sec_ADC_AVR8_ModDescription Module Description
  *  On-chip Analogue-to-Digital converter (ADC) driver for supported U4, U6 and U7 model AVRs that contain an ADC
  *  peripheral internally.
  *
  *  \note This file should not be included directly. It is automatically included as needed by the ADC driver
  *        dispatch header located in LUFA/Drivers/Peripheral/ADC.h.
  *
- *  \section Sec_ExampleUsage Example Usage
+ *  \section Sec_ADC_AVR8_ExampleUsage Example Usage
  *  The following snippet is an example of how this module may be used within a typical
  *  application.
  *
  *  \code
- *      // Initialise the ADC driver before first use
+ *      // Initialize the ADC driver before first use
  *      ADC_Init(ADC_FREE_RUNNING | ADC_PRESCALE_32);
  *
  *      // Must setup the ADC channel to read beforehand
@@ -65,8 +65,11 @@
  *
  *      // Start reading ADC channel 1 in free running (continuous conversion) mode
  *      ADC_StartReading(ADC_REFERENCE_AVCC | ADC_RIGHT_ADJUSTED | ADC_CHANNEL1);
- *      while (!(ADC_IsReadingComplete())) {};
- *      printf("Conversion Result: %d\r\n", ADC_GetResult());
+ *      for (;;)
+ *      {
+ *           while (!(ADC_IsReadingComplete())) {};
+ *           printf("Conversion Result: %d\r\n", ADC_GetResult());
+ *      }
  *  \endcode
  *
  *  @{
@@ -90,18 +93,10 @@
 
 		#if !(defined(__AVR_AT90USB1286__) || defined(__AVR_AT90USB646__) || \
 		      defined(__AVR_AT90USB1287__) || defined(__AVR_AT90USB647__) || \
-			  defined(__AVR_ATmega16U4__)  || defined(__AVR_ATmega32U4__) || \
-			  defined(__AVR_ATmega32U6__))
+			  defined(__AVR_ATmega16U4__)  || defined(__AVR_ATmega32U4__))
 			#error The ADC peripheral driver is not currently available for your selected microcontroller model.
 		#endif
 
-	/* Private Interface - For use in library only: */
-	#if !defined(__DOXYGEN__)
-		/* Macros: */
-			#define _ADC_GET_MUX_MASK2(y)           ADC_CHANNEL ## y
-			#define _ADC_GET_MUX_MASK(y)            _ADC_GET_MUX_MASK2(y)
-	#endif
-	
 	/* Public Interface - May be used in end-application: */
 		/* Macros: */
 			/** \name ADC Reference Configuration Masks */
@@ -115,7 +110,7 @@
 			/** Reference mask, for using the internally generated 2.56V reference voltage as the ADC reference. */
 			#define ADC_REFERENCE_INT2560MV         ((1 << REFS1) | (1 << REFS0))
 			//@}
-			
+
 			/** \name ADC Result Adjustment Configuration Masks */
 			//@{
 			/** Left-adjusts the 10-bit ADC result, so that the upper 8 bits of the value returned by the
@@ -141,7 +136,7 @@
 			 */
 			#define ADC_SINGLE_CONVERSION           (0 << ADATE)
 			//@}
-			
+
 			/** \name ADC Prescaler Configuration Masks */
 			//@{
 			/** Sets the ADC input clock to prescale by a factor of 2 the AVR's system clock. */
@@ -174,7 +169,7 @@
 			/** MUX mask define for the ADC1 channel of the ADC. See \ref ADC_StartReading() and \ref ADC_GetChannelReading(). */
 			#define ADC_CHANNEL1                    (0x01 << MUX0)
 
-			#if !(defined(__AVR_ATmega16U4__)  || defined(__AVR_ATmega32U4__) || defined(__DOXYGEN__))
+			#if (!(defined(__AVR_ATmega16U4__) || defined(__AVR_ATmega32U4__)) || defined(__DOXYGEN__))
 				/** MUX mask define for the ADC2 channel of the ADC. See \ref ADC_StartReading() and \ref ADC_GetChannelReading().
 				 *
 				 *  \note Not available on all AVR models.
@@ -199,9 +194,6 @@
 
 			/** MUX mask define for the ADC7 channel of the ADC. See \ref ADC_StartReading and \ref ADC_GetChannelReading. */
 			#define ADC_CHANNEL7                    (0x07 << MUX0)
-
-			/** MUX mask define for the internal 1.1V bandgap channel of the ADC. See \ref ADC_StartReading() and \ref ADC_GetChannelReading(). */
-			#define ADC_1100MV_BANDGAP              (0x1E << MUX0)
 
 			#if (defined(__AVR_ATmega16U4__)  || defined(__AVR_ATmega32U4__) || defined(__DOXYGEN__))
 				/** MUX mask define for the ADC8 channel of the ADC. See \ref ADC_StartReading() and \ref ADC_GetChannelReading().
@@ -248,14 +240,17 @@
 				#define ADC_INT_TEMP_SENS           ((1 << 8) | (0x07 << MUX0))
 			#endif
 
+			/** MUX mask define for the internal 1.1V band-gap channel of the ADC. See \ref ADC_StartReading() and \ref ADC_GetChannelReading(). */
+			#define ADC_1100MV_BANDGAP              (0x1E << MUX0)
+
 			/** Retrieves the ADC MUX mask for the given ADC channel number.
 			 *
-			 *  \note This macro will only work correctly on channel numbers that are compile-time
-			 *        constants defined by the preprocessor.
+			 *  \attention This macro will only work correctly on channel numbers that are compile-time
+			 *             constants defined by the preprocessor.
 			 *
 			 *  \param[in] Channel  Index of the ADC channel whose MUX mask is to be retrieved.
 			 */
-			#define ADC_GET_CHANNEL_MASK(Channel)   _ADC_GET_MUX_MASK(Channel)
+			#define ADC_GET_CHANNEL_MASK(Channel)   CONCAT_EXPANDED(ADC_CHANNEL, Channel)
 			//@}
 
 		/* Inline Functions: */
@@ -265,17 +260,15 @@
 			 *
 			 *  \note This must only be called for ADC channels with are connected to a physical port
 			 *        pin of the AVR, denoted by its special alternative function ADCx.
-			 *        \n\n
 			 *
-			 *  \note The channel number must be specified as an integer, and <b>not</b> a \c ADC_CHANNEL* mask.
+			 *  \warning The channel number must be specified as an integer, and <b>not</b> a \c ADC_CHANNEL* mask.
 			 *
 			 *  \param[in] ChannelIndex  ADC channel number to set up for conversions.
 			 */
 			static inline void ADC_SetupChannel(const uint8_t ChannelIndex)
 			{
 				#if (defined(__AVR_AT90USB1286__) || defined(__AVR_AT90USB646__) || \
-					 defined(__AVR_AT90USB1287__) || defined(__AVR_AT90USB647__) || \
-					 defined(__AVR_ATmega32U6__))
+					 defined(__AVR_AT90USB1287__) || defined(__AVR_AT90USB647__))
 				DDRF  &= ~(1 << ChannelIndex);
 				DIDR0 |=  (1 << ChannelIndex);
 				#elif (defined(__AVR_ATmega16U4__) || defined(__AVR_ATmega32U4__))
@@ -308,17 +301,15 @@
 			 *
 			 *  \note This must only be called for ADC channels with are connected to a physical port
 			 *        pin of the AVR, denoted by its special alternative function ADCx.
-			 *        \n\n
 			 *
-			 *  \note The channel number must be specified as an integer, and <b>not</b> a \c ADC_CHANNEL* mask.
+			 *  \warning The channel number must be specified as an integer, and <b>not</b> a \c ADC_CHANNEL* mask.
 			 *
 			 *  \param[in] ChannelIndex  ADC channel number to set up for conversions.
 			 */
 			static inline void ADC_DisableChannel(const uint8_t ChannelIndex)
 			{
 				#if (defined(__AVR_AT90USB1286__) || defined(__AVR_AT90USB646__) || \
-					 defined(__AVR_AT90USB1287__) || defined(__AVR_AT90USB647__) || \
-					 defined(__AVR_ATmega32U6__))
+					 defined(__AVR_AT90USB1287__) || defined(__AVR_AT90USB647__))
 				DDRF  &= ~(1 << ChannelIndex);
 				DIDR0 &= ~(1 << ChannelIndex);
 				#elif (defined(__AVR_ATmega16U4__) || defined(__AVR_ATmega32U4__))
@@ -371,7 +362,7 @@
 
 			/** Indicates if the current ADC conversion is completed, or still in progress.
 			 *
-			 *  \return Boolean false if the reading is still taking place, or true if the conversion is
+			 *  \return Boolean \c false if the reading is still taking place, or true if the conversion is
 			 *          complete and ready to be read out with \ref ADC_GetResult().
 			 */
 			static inline bool ADC_IsReadingComplete(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
@@ -400,6 +391,8 @@
 			 *        the results read directly from the \ref ADC_GetResult() instead to reduce overhead.
 			 *
 			 *  \param[in] MUXMask  Mask comprising of an ADC channel mask, reference mask and adjustment mask.
+			 *
+			 *  \return Converted ADC result for the given ADC channel.
 			 */
 			static inline uint16_t ADC_GetChannelReading(const uint16_t MUXMask) ATTR_WARN_UNUSED_RESULT;
 			static inline uint16_t ADC_GetChannelReading(const uint16_t MUXMask)
@@ -411,14 +404,14 @@
 				return ADC_GetResult();
 			}
 
-			/** Initialises the ADC, ready for conversions. This must be called before any other ADC operations.
+			/** Initializes the ADC, ready for conversions. This must be called before any other ADC operations.
 			 *  The "mode" parameter should be a mask comprised of a conversion mode (free running or single) and
 			 *  prescaler masks.
 			 *
 			 *  \param[in] Mode  Mask of ADC prescale and mode settings.
 			 */
-			static inline void ADC_Init(uint8_t Mode) ATTR_ALWAYS_INLINE;
-			static inline void ADC_Init(uint8_t Mode)
+			static inline void ADC_Init(const uint8_t Mode) ATTR_ALWAYS_INLINE;
+			static inline void ADC_Init(const uint8_t Mode)
 			{
 				ADCSRA = ((1 << ADEN) | Mode);
 			}

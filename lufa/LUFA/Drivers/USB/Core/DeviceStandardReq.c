@@ -1,13 +1,13 @@
 /*
              LUFA Library
-     Copyright (C) Dean Camera, 2011.
+     Copyright (C) Dean Camera, 2014.
 
   dean [at] fourwalledcubicle [dot] com
            www.lufa-lib.org
 */
 
 /*
-  Copyright 2011  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  Copyright 2014  Dean Camera (dean [at] fourwalledcubicle [dot] com)
 
   Permission to use, copy, modify, distribute, and sell this
   software and its documentation for any purpose is hereby granted
@@ -18,7 +18,7 @@
   advertising or publicity pertaining to distribution of the
   software without specific, written prior permission.
 
-  The author disclaim all warranties with regard to this
+  The author disclaims all warranties with regard to this
   software, including all implied warranties of merchantability
   and fitness.  In no event shall the author be liable for any
   special, indirect or consequential damages or any damages
@@ -36,23 +36,30 @@
 #define  __INCLUDE_FROM_DEVICESTDREQ_C
 #include "DeviceStandardReq.h"
 
-uint8_t USB_ConfigurationNumber;
+uint8_t USB_Device_ConfigurationNumber;
 
 #if !defined(NO_DEVICE_SELF_POWER)
-bool    USB_CurrentlySelfPowered;
+bool    USB_Device_CurrentlySelfPowered;
 #endif
 
 #if !defined(NO_DEVICE_REMOTE_WAKEUP)
-bool    USB_RemoteWakeupEnabled;
+bool    USB_Device_RemoteWakeupEnabled;
 #endif
 
 void USB_Device_ProcessControlRequest(void)
 {
+	#if defined(ARCH_BIG_ENDIAN)
 	USB_ControlRequest.bmRequestType = Endpoint_Read_8();
 	USB_ControlRequest.bRequest      = Endpoint_Read_8();
 	USB_ControlRequest.wValue        = Endpoint_Read_16_LE();
 	USB_ControlRequest.wIndex        = Endpoint_Read_16_LE();
 	USB_ControlRequest.wLength       = Endpoint_Read_16_LE();
+	#else
+	uint8_t* RequestHeader = (uint8_t*)&USB_ControlRequest;
+
+	for (uint8_t RequestHeaderByte = 0; RequestHeaderByte < sizeof(USB_Request_Header_t); RequestHeaderByte++)
+	  *(RequestHeader++) = Endpoint_Read_8();
+	#endif
 
 	EVENT_USB_Device_ControlRequest();
 
@@ -102,32 +109,34 @@ void USB_Device_ProcessControlRequest(void)
 				  USB_Device_SetConfiguration();
 
 				break;
+
+			default:
+				break;
 		}
 	}
 
 	if (Endpoint_IsSETUPReceived())
 	{
-		Endpoint_StallTransaction();
 		Endpoint_ClearSETUP();
+		Endpoint_StallTransaction();
 	}
 }
 
 static void USB_Device_SetAddress(void)
 {
-	uint8_t    DeviceAddress    = (USB_ControlRequest.wValue & 0x7F);
-	uint_reg_t CurrentGlobalInt = GetGlobalInterruptMask();
-	GlobalInterruptDisable();
-				
+	uint8_t DeviceAddress = (USB_ControlRequest.wValue & 0x7F);
+
+	USB_Device_SetDeviceAddress(DeviceAddress);
+
 	Endpoint_ClearSETUP();
 
 	Endpoint_ClearStatusStage();
 
 	while (!(Endpoint_IsINReady()));
 
-	USB_Device_SetDeviceAddress(DeviceAddress);
+	USB_Device_EnableDeviceAddress(DeviceAddress);
+
 	USB_DeviceState = (DeviceAddress) ? DEVICE_STATE_Addressed : DEVICE_STATE_Default;
-	
-	SetGlobalInterruptMask(CurrentGlobalInt);
 }
 
 static void USB_Device_SetConfiguration(void)
@@ -149,7 +158,7 @@ static void USB_Device_SetConfiguration(void)
 			uint8_t MemoryAddressSpace;
 		#endif
 	#endif
-	
+
 	if (CALLBACK_USB_GetDescriptor((DTYPE_Device << 8), 0, (void*)&DevDescriptorPtr
 	#if defined(ARCH_HAS_MULTI_ADDRESS_SPACE) && \
 	    !(defined(USE_FLASH_DESCRIPTORS) || defined(USE_EEPROM_DESCRIPTORS) || defined(USE_RAM_DESCRIPTORS))
@@ -178,17 +187,17 @@ static void USB_Device_SetConfiguration(void)
 	}
 	#else
 	if ((uint8_t)USB_ControlRequest.wValue > DevDescriptorPtr->NumberOfConfigurations)
-	  return;	
+	  return;
 	#endif
 	#endif
 
 	Endpoint_ClearSETUP();
 
-	USB_ConfigurationNumber = (uint8_t)USB_ControlRequest.wValue;
+	USB_Device_ConfigurationNumber = (uint8_t)USB_ControlRequest.wValue;
 
 	Endpoint_ClearStatusStage();
 
-	if (USB_ConfigurationNumber)
+	if (USB_Device_ConfigurationNumber)
 	  USB_DeviceState = DEVICE_STATE_Configured;
 	else
 	  USB_DeviceState = (USB_Device_IsAddressSet()) ? DEVICE_STATE_Configured : DEVICE_STATE_Powered;
@@ -200,7 +209,7 @@ static void USB_Device_GetConfiguration(void)
 {
 	Endpoint_ClearSETUP();
 
-	Endpoint_Write_8(USB_ConfigurationNumber);
+	Endpoint_Write_8(USB_Device_ConfigurationNumber);
 	Endpoint_ClearIN();
 
 	Endpoint_ClearStatusStage();
@@ -217,7 +226,7 @@ static void USB_Device_GetInternalSerialDescriptor(void)
 
 	SignatureDescriptor.Header.Type = DTYPE_String;
 	SignatureDescriptor.Header.Size = USB_STRING_LEN(INTERNAL_SERIAL_LENGTH_BITS / 4);
-	
+
 	USB_Device_GetSerialString(SignatureDescriptor.UnicodeString);
 
 	Endpoint_ClearSETUP();
@@ -282,29 +291,27 @@ static void USB_Device_GetStatus(void)
 
 	switch (USB_ControlRequest.bmRequestType)
 	{
-		#if !defined(NO_DEVICE_SELF_POWER) || !defined(NO_DEVICE_REMOTE_WAKEUP)
 		case (REQDIR_DEVICETOHOST | REQTYPE_STANDARD | REQREC_DEVICE):
 			#if !defined(NO_DEVICE_SELF_POWER)
-			if (USB_CurrentlySelfPowered)
+			if (USB_Device_CurrentlySelfPowered)
 			  CurrentStatus |= FEATURE_SELFPOWERED_ENABLED;
 			#endif
 
 			#if !defined(NO_DEVICE_REMOTE_WAKEUP)
-			if (USB_RemoteWakeupEnabled)
+			if (USB_Device_RemoteWakeupEnabled)
 			  CurrentStatus |= FEATURE_REMOTE_WAKEUP_ENABLED;
 			#endif
 			break;
-		#endif
-		#if !defined(CONTROL_ONLY_DEVICE)
 		case (REQDIR_DEVICETOHOST | REQTYPE_STANDARD | REQREC_ENDPOINT):
+			#if !defined(CONTROL_ONLY_DEVICE)
 			Endpoint_SelectEndpoint((uint8_t)USB_ControlRequest.wIndex & ENDPOINT_EPNUM_MASK);
 
 			CurrentStatus = Endpoint_IsStalled();
 
 			Endpoint_SelectEndpoint(ENDPOINT_CONTROLEP);
+			#endif
 
 			break;
-		#endif
 		default:
 			return;
 	}
@@ -324,7 +331,7 @@ static void USB_Device_ClearSetFeature(void)
 		#if !defined(NO_DEVICE_REMOTE_WAKEUP)
 		case REQREC_DEVICE:
 			if ((uint8_t)USB_ControlRequest.wValue == FEATURE_SEL_DeviceRemoteWakeup)
-			  USB_RemoteWakeupEnabled = (USB_ControlRequest.bRequest == REQ_SetFeature);
+			  USB_Device_RemoteWakeupEnabled = (USB_ControlRequest.bRequest == REQ_SetFeature);
 			else
 			  return;
 

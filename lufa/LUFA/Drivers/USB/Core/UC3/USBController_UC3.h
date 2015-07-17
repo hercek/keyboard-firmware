@@ -1,13 +1,13 @@
 /*
              LUFA Library
-     Copyright (C) Dean Camera, 2011.
+     Copyright (C) Dean Camera, 2014.
 
   dean [at] fourwalledcubicle [dot] com
            www.lufa-lib.org
 */
 
 /*
-  Copyright 2011  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  Copyright 2014  Dean Camera (dean [at] fourwalledcubicle [dot] com)
 
   Permission to use, copy, modify, distribute, and sell this
   software and its documentation for any purpose is hereby granted
@@ -18,7 +18,7 @@
   advertising or publicity pertaining to distribution of the
   software without specific, written prior permission.
 
-  The author disclaim all warranties with regard to this
+  The author disclaims all warranties with regard to this
   software, including all implied warranties of merchantability
   and fitness.  In no event shall the author be liable for any
   special, indirect or consequential damages or any damages
@@ -84,6 +84,16 @@
 			#error F_USB is not defined. You must define F_USB to the frequency of the clock input to the USB module.
 		#endif
 
+		#if (defined(USB_SERIES_UC3A3_AVR) || defined(USB_SERIES_UC3A4_AVR))
+			#if ((F_USB < 12000000) || (F_USB % 12000000))
+				#error Invalid F_USB specified. F_USB must be a multiple of 12MHz for UC3A3 and UC3A4 devices.
+			#endif
+		#else
+			#if ((F_USB < 48000000) || (F_USB % 48000000))
+				#error Invalid F_USB specified. F_USB must be a multiple of 48MHz for UC3A and UC3B devices.
+			#endif
+		#endif
+
 	/* Public Interface - May be used in end-application: */
 		/* Macros: */
 			/** \name USB Controller Option Masks */
@@ -92,46 +102,19 @@
 			 *  generation module. This indicates that an external oscillator should be used directly instead of an
 			 *  internal PLL clock source.
 			 */
-			#define USB_OPT_GCLK_SRC_OSC               (1 << 1)
+			#define USB_OPT_GCLK_SRC_OSC               (1 << 2)
 
 			/** Selects one of the system's PLL oscillators as the input clock to the USB Generic Clock source
 			 *  generation module. This indicates that one of the device's PLL outputs should be used instead of an
 			 *  external oscillator source.
 			 */
-			#define USB_OPT_GCLK_SRC_PLL               (0 << 1)
+			#define USB_OPT_GCLK_SRC_PLL               (0 << 2)
 
 			/** Selects PLL or External Oscillator 0 as the USB Generic Clock source module input clock. */
-			#define USB_OPT_GCLK_CHANNEL_0             (1 << 2)
+			#define USB_OPT_GCLK_CHANNEL_0             (1 << 3)
 
 			/** Selects PLL or External Oscillator 1 as the USB Generic Clock source module input clock. */
-			#define USB_OPT_GCLK_CHANNEL_1             (0 << 2)
-			//@}
-
-			/** \name Endpoint/Pipe Type Masks */
-			//@{
-			/** Mask for a CONTROL type endpoint or pipe.
-			 *
-			 *  \note See \ref Group_EndpointManagement and \ref Group_PipeManagement for endpoint/pipe functions.
-			 */
-			#define EP_TYPE_CONTROL                    0x00
-
-			/** Mask for an ISOCHRONOUS type endpoint or pipe.
-			 *
-			 *  \note See \ref Group_EndpointManagement and \ref Group_PipeManagement for endpoint/pipe functions.
-			 */
-			#define EP_TYPE_ISOCHRONOUS                0x01
-
-			/** Mask for a BULK type endpoint or pipe.
-			 *
-			 *  \note See \ref Group_EndpointManagement and \ref Group_PipeManagement for endpoint/pipe functions.
-			 */
-			#define EP_TYPE_BULK                       0x02
-
-			/** Mask for an INTERRUPT type endpoint or pipe.
-			 *
-			 *  \note See \ref Group_EndpointManagement and \ref Group_PipeManagement for endpoint/pipe functions.
-			 */
-			#define EP_TYPE_INTERRUPT                  0x03
+			#define USB_OPT_GCLK_CHANNEL_1             (0 << 3)
 			//@}
 
 			#if !defined(USB_STREAM_TIMEOUT_MS) || defined(__DOXYGEN__)
@@ -195,11 +178,13 @@
 			 *  Calling this function when the USB interface is already initialized will cause a complete USB
 			 *  interface reset and re-enumeration.
 			 *
-			 *  \param[in] Mode     This is a mask indicating what mode the USB interface is to be initialized to, a value
+			 *  \param[in] Mode     Mask indicating what mode the USB interface is to be initialized to, a value
 			 *                      from the \ref USB_Modes_t enum.
+			 *                      \note This parameter does not exist on devices with only one supported USB
+			 *                            mode (device or host).
 			 *
 			 *  \param[in] Options  Mask indicating the options which should be used when initializing the USB
-			 *                      interface to control the USB interface's behaviour. This should be comprised of
+			 *                      interface to control the USB interface's behavior. This should be comprised of
 			 *                      a \c USB_OPT_REG_* mask to control the regulator, a \c USB_OPT_*_PLL mask to control the
 			 *                      PLL, and a \c USB_DEVICE_OPT_* mask (when the device mode is enabled) to set the device
 			 *                      mode speed.
@@ -211,7 +196,7 @@
 			 *        function prototype.
 			 *        \n\n
 			 *
-			 *  \note To reduce the FLASH requirements of the library if only fixed settings are are required,
+			 *  \note To reduce the FLASH requirements of the library if only fixed settings are required,
 			 *        the options may be set statically in the same manner as the mode (see the Mode parameter of
 			 *        this function). To statically set the USB options, pass in the \c USE_STATIC_OPTIONS token,
 			 *        defined to the appropriate options masks. When the options are statically set, this
@@ -247,13 +232,12 @@
 			void USB_ResetInterface(void);
 
 		/* Global Variables: */
-			#if (!defined(USB_HOST_ONLY) && !defined(USB_DEVICE_ONLY)) || defined(__DOXYGEN__)
+			#if defined(USB_CAN_BE_BOTH) || defined(__DOXYGEN__)
 				/** Indicates the mode that the USB interface is currently initialized to, a value from the
 				 *  \ref USB_Modes_t enum.
 				 *
-				 *  \note This variable should be treated as read-only in the user application, and never manually
-				 *        changed in value.
-				 *        \n\n
+				 *  \attention This variable should be treated as read-only in the user application, and never manually
+				 *             changed in value.
 				 *
 				 *  \note When the controller is initialized into UID auto-detection mode, this variable will hold the
 				 *        currently selected USB mode (i.e. \ref USB_MODE_Device or \ref USB_MODE_Host). If the controller
@@ -263,9 +247,9 @@
 				 *        USB interface is not initialized.
 				 */
 				extern volatile uint8_t USB_CurrentMode;
-			#elif defined(USB_HOST_ONLY)
+			#elif defined(USB_CAN_BE_HOST)
 				#define USB_CurrentMode USB_MODE_Host
-			#elif defined(USB_DEVICE_ONLY)
+			#elif defined(USB_CAN_BE_DEVICE)
 				#define USB_CurrentMode USB_MODE_Device
 			#endif
 
@@ -273,37 +257,23 @@
 				/** Indicates the current USB options that the USB interface was initialized with when \ref USB_Init()
 				 *  was called. This value will be one of the \c USB_MODE_* masks defined elsewhere in this module.
 				 *
-				 *  \note This variable should be treated as read-only in the user application, and never manually
-				 *        changed in value.
+				 *  \attention This variable should be treated as read-only in the user application, and never manually
+				 *             changed in value.
 				 */
 				extern volatile uint8_t USB_Options;
 			#elif defined(USE_STATIC_OPTIONS)
 				#define USB_Options USE_STATIC_OPTIONS
 			#endif
 
-		/* Enums: */
-			/** Enum for the possible USB controller modes, for initialization via \ref USB_Init() and indication back to the
-			 *  user application via \ref USB_CurrentMode.
-			 */
-			enum USB_Modes_t
-			{
-				USB_MODE_None   = 0, /**< Indicates that the controller is currently not initialized in any specific USB mode. */
-				USB_MODE_Device = 1, /**< Indicates that the controller is currently initialized in USB Device mode. */
-				USB_MODE_Host   = 2, /**< Indicates that the controller is currently initialized in USB Host mode. */
-				USB_MODE_UID    = 3, /**< Indicates that the controller should determine the USB mode from the UID pin of the
-				                      *   USB connector.
-				                      */
-			};
-
 	/* Private Interface - For use in library only: */
 	#if !defined(__DOXYGEN__)
-		/* Macros: */			
-			#if (defined(USB_SERIES_UC3A3_AVR) || defined(USB_SERIES_UC3A4_AVR))
+		/* Macros: */
+			#if defined(USB_SERIES_UC3A3_AVR32) || defined(USB_SERIES_UC3A4_AVR32)
 				#define USB_CLOCK_REQUIRED_FREQ  12000000UL
 			#else
 				#define USB_CLOCK_REQUIRED_FREQ  48000000UL
 			#endif
-	
+
 		/* Function Prototypes: */
 			#if defined(__INCLUDE_FROM_USB_CONTROLLER_C)
 				#if defined(USB_CAN_BE_DEVICE)

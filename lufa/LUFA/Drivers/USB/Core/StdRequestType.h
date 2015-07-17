@@ -1,13 +1,13 @@
 /*
              LUFA Library
-     Copyright (C) Dean Camera, 2011.
+     Copyright (C) Dean Camera, 2014.
 
   dean [at] fourwalledcubicle [dot] com
            www.lufa-lib.org
 */
 
 /*
-  Copyright 2011  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  Copyright 2014  Dean Camera (dean [at] fourwalledcubicle [dot] com)
 
   Permission to use, copy, modify, distribute, and sell this
   software and its documentation for any purpose is hereby granted
@@ -18,7 +18,7 @@
   advertising or publicity pertaining to distribution of the
   software without specific, written prior permission.
 
-  The author disclaim all warranties with regard to this
+  The author disclaims all warranties with regard to this
   software, including all implied warranties of merchantability
   and fitness.  In no event shall the author be liable for any
   special, indirect or consequential damages or any damages
@@ -51,7 +51,12 @@
 
 	/* Includes: */
 		#include "../../../Common/Common.h"
-		#include "USBMode.h"		
+		#include "USBMode.h"
+
+	/* Enable C linkage for C++ Compilers: */
+		#if defined(__cplusplus)
+			extern "C" {
+		#endif
 
 	/* Preprocessor Checks: */
 		#if !defined(__INCLUDE_FROM_USB_DRIVER)
@@ -63,22 +68,22 @@
 			/** Mask for the request type parameter, to indicate the direction of the request data (Host to Device
 			 *  or Device to Host). The result of this mask should then be compared to the request direction masks.
 			 *
-			 *  \see REQDIR_* macros for masks indicating the request data direction.
+			 *  \see \c REQDIR_* macros for masks indicating the request data direction.
 			 */
 			#define CONTROL_REQTYPE_DIRECTION  0x80
 
 			/** Mask for the request type parameter, to indicate the type of request (Device, Class or Vendor
 			 *  Specific). The result of this mask should then be compared to the request type masks.
 			 *
-			 *  \see REQTYPE_* macros for masks indicating the request type.
+			 *  \see \c REQTYPE_* macros for masks indicating the request type.
 			 */
 			#define CONTROL_REQTYPE_TYPE       0x60
 
-			/** Mask for the request type parameter, to indicate the recipient of the request (Standard, Class
-			 *  or Vendor Specific). The result of this mask should then be compared to the request recipient
+			/** Mask for the request type parameter, to indicate the recipient of the request (Device, Interface
+			 *  Endpoint or Other). The result of this mask should then be compared to the request recipient
 			 *  masks.
 			 *
-			 *  \see REQREC_* macros for masks indicating the request recipient.
+			 *  \see \c REQREC_* macros for masks indicating the request recipient.
 			 */
 			#define CONTROL_REQTYPE_RECIPIENT  0x1F
 
@@ -162,7 +167,7 @@
 				uint16_t wValue; /**< wValue parameter of the request. */
 				uint16_t wIndex; /**< wIndex parameter of the request. */
 				uint16_t wLength; /**< Length of the data to transfer in bytes. */
-			} USB_Request_Header_t;
+			} ATTR_PACKED USB_Request_Header_t;
 
 		/* Enums: */
 			/** Enumeration for the various standard request commands. These commands are applicable when the
@@ -173,17 +178,17 @@
 			 */
 			enum USB_Control_Request_t
 			{
-				REQ_GetStatus           = 0, /**< Implemented in the library for device, endpoint and interface
-				                              *   recipients. Passed to the user application for other recipients
-				                              *   via the \ref EVENT_USB_Device_ControlRequest() event when received in
+				REQ_GetStatus           = 0, /**< Implemented in the library for device and endpoint recipients. Passed
+				                              *   to the user application for other recipients via the
+				                              *   \ref EVENT_USB_Device_ControlRequest() event when received in
 				                              *   device mode. */
-				REQ_ClearFeature        = 1, /**< Implemented in the library for device, endpoint and interface
-				                              *   recipients. Passed to the user application for other recipients
-				                              *   via the \ref EVENT_USB_Device_ControlRequest() event when received in
+				REQ_ClearFeature        = 1, /**< Implemented in the library for device and endpoint recipients. Passed
+				                              *   to the user application for other recipients via the
+				                              *   \ref EVENT_USB_Device_ControlRequest() event when received in
 				                              *   device mode. */
-				REQ_SetFeature          = 3, /**< Implemented in the library for device, endpoint and interface
-				                              *   recipients. Passed to the user application for other recipients
-				                              *   via the \ref EVENT_USB_Device_ControlRequest() event when received in
+				REQ_SetFeature          = 3, /**< Implemented in the library for device and endpoint recipients. Passed
+				                              *   to the user application for other recipients via the
+				                              *   \ref EVENT_USB_Device_ControlRequest() event when received in
 				                              *   device mode. */
 				REQ_SetAddress          = 5, /**< Implemented in the library for the device recipient. Passed
 				                              *   to the user application for other recipients via the
@@ -214,7 +219,7 @@
 				                              *   via the \ref EVENT_USB_Device_ControlRequest() event when received in
 				                              *   device mode. */
 			};
-			
+
 			/** Feature Selector values for Set Feature and Clear Feature standard control requests directed to the device, interface
 			 *  and endpoint recipients.
 			 */
@@ -222,7 +227,7 @@
 			{
 				FEATURE_SEL_EndpointHalt       = 0x00, /**< Feature selector for Clear Feature or Set Feature commands. When
 				                                        *   used in a Set Feature or Clear Feature request this indicates that an
-				                                        *   endpoint (whose address is given elsewhere in the request should have
+				                                        *   endpoint (whose address is given elsewhere in the request) should have
 				                                        *   its stall condition changed.
 				                                        */
 				FEATURE_SEL_DeviceRemoteWakeup = 0x01, /**< Feature selector for Device level Remote Wakeup enable set or clear.
@@ -240,6 +245,11 @@
 			/* Macros: */
 				#define FEATURE_SELFPOWERED_ENABLED     (1 << 0)
 				#define FEATURE_REMOTE_WAKEUP_ENABLED   (1 << 1)
+		#endif
+
+	/* Disable C linkage for C++ Compilers: */
+		#if defined(__cplusplus)
+			}
 		#endif
 
 #endif

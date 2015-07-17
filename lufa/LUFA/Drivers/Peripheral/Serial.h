@@ -1,13 +1,13 @@
 /*
              LUFA Library
-     Copyright (C) Dean Camera, 2011.
+     Copyright (C) Dean Camera, 2014.
 
   dean [at] fourwalledcubicle [dot] com
            www.lufa-lib.org
 */
 
 /*
-  Copyright 2011  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  Copyright 2014  Dean Camera (dean [at] fourwalledcubicle [dot] com)
 
   Permission to use, copy, modify, distribute, and sell this
   software and its documentation for any purpose is hereby granted
@@ -18,7 +18,7 @@
   advertising or publicity pertaining to distribution of the
   software without specific, written prior permission.
 
-  The author disclaim all warranties with regard to this
+  The author disclaims all warranties with regard to this
   software, including all implied warranties of merchantability
   and fitness.  In no event shall the author be liable for any
   special, indirect or consequential damages or any damages
@@ -42,11 +42,11 @@
  *  \defgroup Group_Serial Serial USART Driver - LUFA/Drivers/Peripheral/Serial.h
  *  \brief Hardware Serial USART driver.
  *
- *  \section Sec_Dependencies Module Source Dependencies
+ *  \section Sec_Serial_Dependencies Module Source Dependencies
  *  The following files must be built with any user project that uses this module:
  *    - LUFA/Drivers/Peripheral/<i>ARCH</i>/Serial_<i>ARCH</i>.c <i>(Makefile source module name: LUFA_SRC_SERIAL)</i>
  *
- *  \section Sec_ModDescription Module Description
+ *  \section Sec_Serial_ModDescription Module Description
  *  Hardware serial USART driver. This module provides an easy to use driver for the setup and transfer
  *  of data over the selected architecture and microcontroller model's USART port.
  *
@@ -66,8 +66,11 @@
 	/* Includes: */
 		#if (ARCH == ARCH_AVR8)
 			#include "AVR8/Serial_AVR8.h"
+		#elif (ARCH == ARCH_XMEGA)
+			#include "XMEGA/Serial_XMEGA.h"
 		#else
 			#error The Serial peripheral driver is not currently available for your selected architecture.
 		#endif
 
 #endif
+

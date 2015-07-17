@@ -1,13 +1,13 @@
 /*
              LUFA Library
-     Copyright (C) Dean Camera, 2011.
+     Copyright (C) Dean Camera, 2014.
 
   dean [at] fourwalledcubicle [dot] com
            www.lufa-lib.org
 */
 
 /*
-  Copyright 2011  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  Copyright 2014  Dean Camera (dean [at] fourwalledcubicle [dot] com)
 
   Permission to use, copy, modify, distribute, and sell this
   software and its documentation for any purpose is hereby granted
@@ -18,7 +18,7 @@
   advertising or publicity pertaining to distribution of the
   software without specific, written prior permission.
 
-  The author disclaim all warranties with regard to this
+  The author disclaims all warranties with regard to this
   software, including all implied warranties of merchantability
   and fitness.  In no event shall the author be liable for any
   special, indirect or consequential damages or any damages
@@ -91,7 +91,7 @@
 				#define USB_PLL_PSC                0
 			#elif (defined(__AVR_ATmega16U4__) || defined(__AVR_ATmega32U4__))
 				#define USB_PLL_PSC                0
-			#elif (defined(__AVR_AT90USB646__)  || defined(__AVR_AT90USB1286__) || defined(__AVR_ATmega32U6__))
+			#elif (defined(__AVR_AT90USB646__)  || defined(__AVR_AT90USB1286__))
 				#define USB_PLL_PSC                ((1 << PLLP1) | (1 << PLLP0))
 			#elif (defined(__AVR_AT90USB647__)  || defined(__AVR_AT90USB1287__))
 				#define USB_PLL_PSC                ((1 << PLLP1) | (1 << PLLP0))
@@ -103,7 +103,7 @@
 				#define USB_PLL_PSC                (1 << PLLP0)
 			#elif (defined(__AVR_ATmega16U4__) || defined(__AVR_ATmega32U4__))
 				#define USB_PLL_PSC                (1 << PINDIV)
-			#elif (defined(__AVR_AT90USB646__) || defined(__AVR_AT90USB647__) || defined(__AVR_ATmega32U6__))
+			#elif (defined(__AVR_AT90USB646__) || defined(__AVR_AT90USB647__))
 				#define USB_PLL_PSC                ((1 << PLLP2) | (1 << PLLP1))
 			#elif (defined(__AVR_AT90USB1286__) || defined(__AVR_AT90USB1287__))
 				#define USB_PLL_PSC                ((1 << PLLP2) | (1 << PLLP0))
@@ -133,6 +133,14 @@
 			 */
 			#define USB_OPT_REG_ENABLED                (0 << 1)
 
+			/** Option mask for \ref USB_Init() to keep regulator enabled at all times. Indicates that \ref USB_Disable()
+			 *  should not disable the regulator as it would otherwise. Has no effect if regulator is disabled using
+			 *  \ref USB_OPT_REG_DISABLED.
+			 *
+			 *  \note See USB AVR data sheet for more information on the internal pad regulator.
+			 */
+			#define USB_OPT_REG_KEEP_ENABLED           (1 << 3)
+
 			/** Manual PLL control option mask for \ref USB_Init(). This indicates to the library that the user application
 			 *  will take full responsibility for controlling the AVR's PLL (used to generate the high frequency clock
 			 *  that the USB controller requires) and ensuring that it is locked at the correct frequency for USB operations.
@@ -144,33 +152,6 @@
 			 *  that the USB controller requires) and ensuring that it is locked at the correct frequency for USB operations.
 			 */
 			#define USB_OPT_AUTO_PLL                   (0 << 2)
-			//@}
-			
-			/** \name Endpoint/Pipe Type Masks */
-			//@{
-			/** Mask for a CONTROL type endpoint or pipe.
-			 *
-			 *  \note See \ref Group_EndpointManagement and \ref Group_PipeManagement for endpoint/pipe functions.
-			 */
-			#define EP_TYPE_CONTROL                    0x00
-
-			/** Mask for an ISOCHRONOUS type endpoint or pipe.
-			 *
-			 *  \note See \ref Group_EndpointManagement and \ref Group_PipeManagement for endpoint/pipe functions.
-			 */
-			#define EP_TYPE_ISOCHRONOUS                0x01
-
-			/** Mask for a BULK type endpoint or pipe.
-			 *
-			 *  \note See \ref Group_EndpointManagement and \ref Group_PipeManagement for endpoint/pipe functions.
-			 */
-			#define EP_TYPE_BULK                       0x02
-
-			/** Mask for an INTERRUPT type endpoint or pipe.
-			 *
-			 *  \note See \ref Group_EndpointManagement and \ref Group_PipeManagement for endpoint/pipe functions.
-			 */
-			#define EP_TYPE_INTERRUPT                  0x03
 			//@}
 
 			#if !defined(USB_STREAM_TIMEOUT_MS) || defined(__DOXYGEN__)
@@ -238,11 +219,13 @@
 			 *  Calling this function when the USB interface is already initialized will cause a complete USB
 			 *  interface reset and re-enumeration.
 			 *
-			 *  \param[in] Mode     This is a mask indicating what mode the USB interface is to be initialized to, a value
+			 *  \param[in] Mode     Mask indicating what mode the USB interface is to be initialized to, a value
 			 *                      from the \ref USB_Modes_t enum.
+			 *                      \note This parameter does not exist on devices with only one supported USB
+			 *                            mode (device or host).
 			 *
 			 *  \param[in] Options  Mask indicating the options which should be used when initializing the USB
-			 *                      interface to control the USB interface's behaviour. This should be comprised of
+			 *                      interface to control the USB interface's behavior. This should be comprised of
 			 *                      a \c USB_OPT_REG_* mask to control the regulator, a \c USB_OPT_*_PLL mask to control the
 			 *                      PLL, and a \c USB_DEVICE_OPT_* mask (when the device mode is enabled) to set the device
 			 *                      mode speed.
@@ -254,7 +237,7 @@
 			 *        function prototype.
 			 *        \n\n
 			 *
-			 *  \note To reduce the FLASH requirements of the library if only fixed settings are are required,
+			 *  \note To reduce the FLASH requirements of the library if only fixed settings are required,
 			 *        the options may be set statically in the same manner as the mode (see the Mode parameter of
 			 *        this function). To statically set the USB options, pass in the \c USE_STATIC_OPTIONS token,
 			 *        defined to the appropriate options masks. When the options are statically set, this
@@ -294,13 +277,12 @@
 			void USB_ResetInterface(void);
 
 		/* Global Variables: */
-			#if (!defined(USB_HOST_ONLY) && !defined(USB_DEVICE_ONLY)) || defined(__DOXYGEN__)
+			#if defined(USB_CAN_BE_BOTH) || defined(__DOXYGEN__)
 				/** Indicates the mode that the USB interface is currently initialized to, a value from the
 				 *  \ref USB_Modes_t enum.
 				 *
-				 *  \note This variable should be treated as read-only in the user application, and never manually
-				 *        changed in value.
-				 *        \n\n
+				 *  \attention This variable should be treated as read-only in the user application, and never manually
+				 *             changed in value.
 				 *
 				 *  \note When the controller is initialized into UID auto-detection mode, this variable will hold the
 				 *        currently selected USB mode (i.e. \ref USB_MODE_Device or \ref USB_MODE_Host). If the controller
@@ -310,9 +292,9 @@
 				 *        USB interface is not initialized.
 				 */
 				extern volatile uint8_t USB_CurrentMode;
-			#elif defined(USB_HOST_ONLY)
+			#elif defined(USB_CAN_BE_HOST)
 				#define USB_CurrentMode USB_MODE_Host
-			#elif defined(USB_DEVICE_ONLY)
+			#elif defined(USB_CAN_BE_DEVICE)
 				#define USB_CurrentMode USB_MODE_Device
 			#endif
 
@@ -320,27 +302,13 @@
 				/** Indicates the current USB options that the USB interface was initialized with when \ref USB_Init()
 				 *  was called. This value will be one of the \c USB_MODE_* masks defined elsewhere in this module.
 				 *
-				 *  \note This variable should be treated as read-only in the user application, and never manually
-				 *        changed in value.
+				 *  \attention This variable should be treated as read-only in the user application, and never manually
+				 *             changed in value.
 				 */
 				extern volatile uint8_t USB_Options;
 			#elif defined(USE_STATIC_OPTIONS)
 				#define USB_Options USE_STATIC_OPTIONS
 			#endif
-
-		/* Enums: */
-			/** Enum for the possible USB controller modes, for initialization via \ref USB_Init() and indication back to the
-			 *  user application via \ref USB_CurrentMode.
-			 */
-			enum USB_Modes_t
-			{
-				USB_MODE_None   = 0, /**< Indicates that the controller is currently not initialized in any specific USB mode. */
-				USB_MODE_Device = 1, /**< Indicates that the controller is currently initialized in USB Device mode. */
-				USB_MODE_Host   = 2, /**< Indicates that the controller is currently initialized in USB Host mode. */
-				USB_MODE_UID    = 3, /**< Indicates that the controller should determine the USB mode from the UID pin of the
-				                      *   USB connector.
-				                      */
-			};
 
 	/* Private Interface - For use in library only: */
 	#if !defined(__DOXYGEN__)
@@ -359,29 +327,29 @@
 			static inline void USB_PLL_On(void) ATTR_ALWAYS_INLINE;
 			static inline void USB_PLL_On(void)
 			{
-				PLLCSR  = USB_PLL_PSC;
-				PLLCSR |= (1 << PLLE);
+				PLLCSR = USB_PLL_PSC;
+				PLLCSR = (USB_PLL_PSC | (1 << PLLE));
 			}
 
 			static inline void USB_PLL_Off(void) ATTR_ALWAYS_INLINE;
 			static inline void USB_PLL_Off(void)
 			{
-				PLLCSR  = 0;
+				PLLCSR = 0;
 			}
 
 			static inline bool USB_PLL_IsReady(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 			static inline bool USB_PLL_IsReady(void)
 			{
-				return ((PLLCSR  &   (1 << PLOCK)) ? true : false);
+				return ((PLLCSR & (1 << PLOCK)) ? true : false);
 			}
 
 			static inline void USB_REG_On(void) ATTR_ALWAYS_INLINE;
 			static inline void USB_REG_On(void)
 			{
 			#if defined(USB_SERIES_4_AVR) || defined(USB_SERIES_6_AVR) || defined(USB_SERIES_7_AVR)
-				UHWCON  |=  (1 << UVREGE);
+				UHWCON |=  (1 << UVREGE);
 			#else
-				REGCR   &= ~(1 << REGDIS);
+				REGCR  &= ~(1 << REGDIS);
 			#endif
 			}
 
@@ -389,9 +357,9 @@
 			static inline void USB_REG_Off(void)
 			{
 			#if defined(USB_SERIES_4_AVR) || defined(USB_SERIES_6_AVR) || defined(USB_SERIES_7_AVR)
-				UHWCON  &= ~(1 << UVREGE);
+				UHWCON &= ~(1 << UVREGE);
 			#else
-				REGCR   |=  (1 << REGDIS);
+				REGCR  |=  (1 << REGDIS);
 			#endif
 			}
 
@@ -399,47 +367,45 @@
 			static inline void USB_OTGPAD_On(void) ATTR_ALWAYS_INLINE;
 			static inline void USB_OTGPAD_On(void)
 			{
-				USBCON  |=  (1 << OTGPADE);
+				USBCON |=  (1 << OTGPADE);
 			}
 
 			static inline void USB_OTGPAD_Off(void) ATTR_ALWAYS_INLINE;
 			static inline void USB_OTGPAD_Off(void)
 			{
-				USBCON  &= ~(1 << OTGPADE);
+				USBCON &= ~(1 << OTGPADE);
 			}
 			#endif
 
 			static inline void USB_CLK_Freeze(void) ATTR_ALWAYS_INLINE;
 			static inline void USB_CLK_Freeze(void)
 			{
-				USBCON  |=  (1 << FRZCLK);
+				USBCON |=  (1 << FRZCLK);
 			}
 
 			static inline void USB_CLK_Unfreeze(void) ATTR_ALWAYS_INLINE;
 			static inline void USB_CLK_Unfreeze(void)
 			{
-				USBCON  &= ~(1 << FRZCLK);
+				USBCON &= ~(1 << FRZCLK);
 			}
 
 			static inline void USB_Controller_Enable(void) ATTR_ALWAYS_INLINE;
 			static inline void USB_Controller_Enable(void)
 			{
-				USBCON  |=  (1 << USBE);
+				USBCON |=  (1 << USBE);
 			}
 
 			static inline void USB_Controller_Disable(void) ATTR_ALWAYS_INLINE;
 			static inline void USB_Controller_Disable(void)
 			{
-				USBCON  &= ~(1 << USBE);
+				USBCON &= ~(1 << USBE);
 			}
 
 			static inline void USB_Controller_Reset(void) ATTR_ALWAYS_INLINE;
 			static inline void USB_Controller_Reset(void)
 			{
-				const uint8_t Temp = USBCON;
-
-				USBCON = (Temp & ~(1 << USBE));
-				USBCON = (Temp |  (1 << USBE));
+				USBCON &= ~(1 << USBE);
+				USBCON |=  (1 << USBE);
 			}
 
 			#if defined(USB_CAN_BE_BOTH)
