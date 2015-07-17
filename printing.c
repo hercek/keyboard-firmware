@@ -96,7 +96,7 @@ void char_to_keys(const char nextchar, hid_keycode* nextkey, hid_keycode* nextmo
 	uint8_t l = nextchar | 0x20;
 	if('a' <= l && 'z' >= l){
 		*nextkey = HID_KEYBOARD_SC_A + (l - 'a');
-		if(!(nextchar & 0x20)) *nextmod = HID_KEYBOARD_MODIFER_LEFTSHIFT;
+		if(!(nextchar & 0x20)) *nextmod = HID_KEYBOARD_MODIFIER_LEFTSHIFT;
 	}
 	else{
 		switch(nextchar){
@@ -105,46 +105,46 @@ void char_to_keys(const char nextchar, hid_keycode* nextkey, hid_keycode* nextmo
 			break;
 		case '!':
 			*nextkey = HID_KEYBOARD_SC_1_AND_EXCLAMATION;
-			*nextmod = HID_KEYBOARD_MODIFER_LEFTSHIFT;
+			*nextmod = HID_KEYBOARD_MODIFIER_LEFTSHIFT;
 			break;
 		case '"':
 			*nextkey = HID_KEYBOARD_SC_APOSTROPHE_AND_QUOTE;
-			*nextmod = HID_KEYBOARD_MODIFER_LEFTSHIFT;
+			*nextmod = HID_KEYBOARD_MODIFIER_LEFTSHIFT;
 			break;
 		case '#':
 			*nextkey = HID_KEYBOARD_SC_3_AND_HASHMARK;
-			*nextmod = HID_KEYBOARD_MODIFER_LEFTSHIFT;
+			*nextmod = HID_KEYBOARD_MODIFIER_LEFTSHIFT;
 			break;
 		case '$':
 			*nextkey = HID_KEYBOARD_SC_4_AND_DOLLAR;
-			*nextmod =  HID_KEYBOARD_MODIFER_LEFTSHIFT;
+			*nextmod =  HID_KEYBOARD_MODIFIER_LEFTSHIFT;
 			break;
 		case '%':
 			*nextkey = HID_KEYBOARD_SC_5_AND_PERCENTAGE;
-			*nextmod = HID_KEYBOARD_MODIFER_LEFTSHIFT;
+			*nextmod = HID_KEYBOARD_MODIFIER_LEFTSHIFT;
 			break;
 		case '&':
-			*nextkey = HID_KEYBOARD_SC_7_AND_AND_AMPERSAND;
-			*nextmod = HID_KEYBOARD_MODIFER_LEFTSHIFT;
+			*nextkey = HID_KEYBOARD_SC_7_AND_AMPERSAND;
+			*nextmod = HID_KEYBOARD_MODIFIER_LEFTSHIFT;
 			break;
 		case '\'':
 			*nextkey = HID_KEYBOARD_SC_APOSTROPHE_AND_QUOTE;
 			break;
 		case '(':
 			*nextkey = HID_KEYBOARD_SC_9_AND_OPENING_PARENTHESIS;
-			*nextmod = HID_KEYBOARD_MODIFER_LEFTSHIFT;
+			*nextmod = HID_KEYBOARD_MODIFIER_LEFTSHIFT;
 			break;
 		case ')':
 			*nextkey = HID_KEYBOARD_SC_0_AND_CLOSING_PARENTHESIS;
-			*nextmod = HID_KEYBOARD_MODIFER_LEFTSHIFT;
+			*nextmod = HID_KEYBOARD_MODIFIER_LEFTSHIFT;
 			break;
 		case '*':
 			*nextkey = HID_KEYBOARD_SC_8_AND_ASTERISK;
-			*nextmod = HID_KEYBOARD_MODIFER_LEFTSHIFT;
+			*nextmod = HID_KEYBOARD_MODIFIER_LEFTSHIFT;
 			break;
 		case '+':
 			*nextkey = HID_KEYBOARD_SC_EQUAL_AND_PLUS;
-			*nextmod = HID_KEYBOARD_MODIFER_LEFTSHIFT;
+			*nextmod = HID_KEYBOARD_MODIFIER_LEFTSHIFT;
 			break;
 		case ',':
 			*nextkey = HID_KEYBOARD_SC_COMMA_AND_LESS_THAN_SIGN;
@@ -180,7 +180,7 @@ void char_to_keys(const char nextchar, hid_keycode* nextkey, hid_keycode* nextmo
 			*nextkey = HID_KEYBOARD_SC_6_AND_CARET;
 			break;
 		case '7':
-			*nextkey = HID_KEYBOARD_SC_7_AND_AND_AMPERSAND;
+			*nextkey = HID_KEYBOARD_SC_7_AND_AMPERSAND;
 			break;
 		case '8':
 			*nextkey = HID_KEYBOARD_SC_8_AND_ASTERISK;
@@ -190,29 +190,29 @@ void char_to_keys(const char nextchar, hid_keycode* nextkey, hid_keycode* nextmo
 			break;
 		case ':':
 			*nextkey = HID_KEYBOARD_SC_SEMICOLON_AND_COLON;
-			*nextmod = HID_KEYBOARD_MODIFER_LEFTSHIFT;
+			*nextmod = HID_KEYBOARD_MODIFIER_LEFTSHIFT;
 			break;
 		case ';':
 			*nextkey = HID_KEYBOARD_SC_SEMICOLON_AND_COLON;
 			break;
 		case '<':
 			*nextkey = HID_KEYBOARD_SC_COMMA_AND_LESS_THAN_SIGN;
-			*nextmod = HID_KEYBOARD_MODIFER_LEFTSHIFT;
+			*nextmod = HID_KEYBOARD_MODIFIER_LEFTSHIFT;
 			break;
 		case '=':
 			*nextkey = HID_KEYBOARD_SC_EQUAL_AND_PLUS;
 			break;
 		case '>':
 			*nextkey = HID_KEYBOARD_SC_DOT_AND_GREATER_THAN_SIGN;
-			*nextmod = HID_KEYBOARD_MODIFER_LEFTSHIFT;
+			*nextmod = HID_KEYBOARD_MODIFIER_LEFTSHIFT;
 			break;
 		case '?':
 			*nextkey = HID_KEYBOARD_SC_SLASH_AND_QUESTION_MARK;
-			*nextmod = HID_KEYBOARD_MODIFER_LEFTSHIFT;
+			*nextmod = HID_KEYBOARD_MODIFIER_LEFTSHIFT;
 			break;
 		case '@':
 			*nextkey = HID_KEYBOARD_SC_2_AND_AT;
-			*nextmod = HID_KEYBOARD_MODIFER_LEFTSHIFT;
+			*nextmod = HID_KEYBOARD_MODIFIER_LEFTSHIFT;
 			break;
 		case '[':
 			*nextkey = HID_KEYBOARD_SC_OPENING_BRACKET_AND_OPENING_BRACE;
@@ -225,27 +225,27 @@ void char_to_keys(const char nextchar, hid_keycode* nextkey, hid_keycode* nextmo
 			break;
 		case '^':
 			*nextkey = HID_KEYBOARD_SC_6_AND_CARET;
-			*nextmod = HID_KEYBOARD_MODIFER_LEFTSHIFT;
+			*nextmod = HID_KEYBOARD_MODIFIER_LEFTSHIFT;
 			break;
 		case '_':
 			*nextkey = HID_KEYBOARD_SC_MINUS_AND_UNDERSCORE;
-			*nextmod = HID_KEYBOARD_MODIFER_LEFTSHIFT;
+			*nextmod = HID_KEYBOARD_MODIFIER_LEFTSHIFT;
 			break;
 		case '`':
 			*nextkey = HID_KEYBOARD_SC_GRAVE_ACCENT_AND_TILDE;
-			*nextmod = HID_KEYBOARD_MODIFER_LEFTSHIFT;
+			*nextmod = HID_KEYBOARD_MODIFIER_LEFTSHIFT;
 			break;
 		case '{':
 			*nextkey = HID_KEYBOARD_SC_OPENING_BRACKET_AND_OPENING_BRACE;
-			*nextmod = HID_KEYBOARD_MODIFER_LEFTSHIFT;
+			*nextmod = HID_KEYBOARD_MODIFIER_LEFTSHIFT;
 			break;
 		case '|':
 			*nextkey = HID_KEYBOARD_SC_BACKSLASH_AND_PIPE;
-			*nextmod = HID_KEYBOARD_MODIFER_LEFTSHIFT;
+			*nextmod = HID_KEYBOARD_MODIFIER_LEFTSHIFT;
 			break;
 		case '}':
 			*nextkey = HID_KEYBOARD_SC_CLOSING_BRACKET_AND_CLOSING_BRACE;
-			*nextmod = HID_KEYBOARD_MODIFER_LEFTSHIFT;
+			*nextmod = HID_KEYBOARD_MODIFIER_LEFTSHIFT;
 			break;
 		case '~':
 			*nextkey = HID_KEYBOARD_SC_GRAVE_ACCENT_AND_TILDE;
@@ -258,7 +258,7 @@ void char_to_keys(const char nextchar, hid_keycode* nextkey, hid_keycode* nextmo
 			break;
 		default:
 			*nextkey = HID_KEYBOARD_SC_SLASH_AND_QUESTION_MARK;
-			*nextmod = HID_KEYBOARD_MODIFER_LEFTSHIFT;
+			*nextmod = HID_KEYBOARD_MODIFIER_LEFTSHIFT;
 			break;
 		}
 	}

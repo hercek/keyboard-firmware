@@ -254,14 +254,14 @@ typedef struct
 /////////////// HID.h
 
 
-#define HID_KEYBOARD_MODIFER_LEFTCTRL                     (1 << 0)
-#define HID_KEYBOARD_MODIFER_LEFTSHIFT                    (1 << 1)
-#define HID_KEYBOARD_MODIFER_LEFTALT                      (1 << 2)
-#define HID_KEYBOARD_MODIFER_LEFTGUI                      (1 << 3)
-#define HID_KEYBOARD_MODIFER_RIGHTCTRL                    (1 << 4)
-#define HID_KEYBOARD_MODIFER_RIGHTSHIFT                   (1 << 5)
-#define HID_KEYBOARD_MODIFER_RIGHTALT                     (1 << 6)
-#define HID_KEYBOARD_MODIFER_RIGHTGUI                     (1 << 7)
+#define HID_KEYBOARD_MODIFIER_LEFTCTRL                     (1 << 0)
+#define HID_KEYBOARD_MODIFIER_LEFTSHIFT                    (1 << 1)
+#define HID_KEYBOARD_MODIFIER_LEFTALT                      (1 << 2)
+#define HID_KEYBOARD_MODIFIER_LEFTGUI                      (1 << 3)
+#define HID_KEYBOARD_MODIFIER_RIGHTCTRL                    (1 << 4)
+#define HID_KEYBOARD_MODIFIER_RIGHTSHIFT                   (1 << 5)
+#define HID_KEYBOARD_MODIFIER_RIGHTALT                     (1 << 6)
+#define HID_KEYBOARD_MODIFIER_RIGHTGUI                     (1 << 7)
 
 
 #define HID_KEYBOARD_LED_NUMLOCK                          (1 << 0)
@@ -305,7 +305,7 @@ typedef struct
 #define HID_KEYBOARD_SC_4_AND_DOLLAR                      0x21
 #define HID_KEYBOARD_SC_5_AND_PERCENTAGE                  0x22
 #define HID_KEYBOARD_SC_6_AND_CARET                       0x23
-#define HID_KEYBOARD_SC_7_AND_AND_AMPERSAND               0x24
+#define HID_KEYBOARD_SC_7_AND_AMPERSAND               0x24
 #define HID_KEYBOARD_SC_8_AND_ASTERISK                    0x25
 #define HID_KEYBOARD_SC_9_AND_OPENING_PARENTHESIS         0x26
 #define HID_KEYBOARD_SC_0_AND_CLOSING_PARENTHESIS         0x27
@@ -371,7 +371,7 @@ typedef struct
 #define HID_KEYBOARD_SC_KEYPAD_DOT_AND_DELETE             0x63
 #define HID_KEYBOARD_SC_NON_US_BACKSLASH_AND_PIPE         0x64
 #define HID_KEYBOARD_SC_POWER                             0x66
-#define HID_KEYBOARD_SC_EQUAL_SIGN                        0x67
+#define HID_KEYBOARD_SC_KEYPAD_EQUAL_SIGN                        0x67
 #define HID_KEYBOARD_SC_F13                               0x68
 #define HID_KEYBOARD_SC_F14                               0x69
 #define HID_KEYBOARD_SC_F15                               0x6A
@@ -386,7 +386,7 @@ typedef struct
 #define HID_KEYBOARD_SC_F24                               0x73
 #define HID_KEYBOARD_SC_EXECUTE                           0x74
 #define HID_KEYBOARD_SC_HELP                              0x75
-#define HID_KEYBOARD_SC_MANU                              0x76
+#define HID_KEYBOARD_SC_MENU                              0x76
 #define HID_KEYBOARD_SC_SELECT                            0x77
 #define HID_KEYBOARD_SC_STOP                              0x78
 #define HID_KEYBOARD_SC_AGAIN                             0x79
@@ -402,7 +402,7 @@ typedef struct
 #define HID_KEYBOARD_SC_LOCKING_NUM_LOCK                  0x83
 #define HID_KEYBOARD_SC_LOCKING_SCROLL_LOCK               0x84
 #define HID_KEYBOARD_SC_KEYPAD_COMMA                      0x85
-#define HID_KEYBOARD_SC_KEYPAD_EQUAL_SIGN                 0x86
+#define HID_KEYBOARD_SC_KEYPAD_EQUAL_SIGN_AS400                 0x86
 #define HID_KEYBOARD_SC_INTERNATIONAL1                    0x87
 #define HID_KEYBOARD_SC_INTERNATIONAL2                    0x88
 #define HID_KEYBOARD_SC_INTERNATIONAL3                    0x89
