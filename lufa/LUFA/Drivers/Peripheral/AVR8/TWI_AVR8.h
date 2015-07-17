@@ -1,13 +1,13 @@
 /*
              LUFA Library
-     Copyright (C) Dean Camera, 2011.
+     Copyright (C) Dean Camera, 2014.
 
   dean [at] fourwalledcubicle [dot] com
            www.lufa-lib.org
 */
 
 /*
-  Copyright 2011  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  Copyright 2014  Dean Camera (dean [at] fourwalledcubicle [dot] com)
 
   Permission to use, copy, modify, distribute, and sell this
   software and its documentation for any purpose is hereby granted
@@ -18,7 +18,7 @@
   advertising or publicity pertaining to distribution of the
   software without specific, written prior permission.
 
-  The author disclaim all warranties with regard to this
+  The author disclaims all warranties with regard to this
   software, including all implied warranties of merchantability
   and fitness.  In no event shall the author be liable for any
   special, indirect or consequential damages or any damages
@@ -40,23 +40,23 @@
 /** \ingroup Group_TWI
  *  \defgroup Group_TWI_AVR8 TWI Peripheral Driver (AVR8)
  *
- *  \section Sec_ModDescription Module Description
+ *  \section Sec_TWI_AVR8_ModDescription Module Description
  *  Master mode TWI driver for the 8-bit AVR microcontrollers which contain a hardware TWI module.
  *
  *  \note This file should not be included directly. It is automatically included as needed by the TWI driver
  *        dispatch header located in LUFA/Drivers/Peripheral/TWI.h.
  *
- *  \section Sec_ExampleUsage Example Usage
+ *  \section Sec_TWI_AVR8_ExampleUsage Example Usage
  *  The following snippet is an example of how this module may be used within a typical
  *  application.
  *
  *  <b>Low Level API Example:</b>
  *  \code
- *      // Initialise the TWI driver before first use
- *      TWI_Init(TWI_BIT_PRESCALE_1, 10);
+ *      // Initialize the TWI driver before first use at 200KHz
+ *      TWI_Init(TWI_BIT_PRESCALE_1, TWI_BITLENGTH_FROM_FREQ(1, 200000));
  *
  *      // Start a write session to device at device address 0xA0, internal address 0xDC with a 10ms timeout
- *      if (TWI_StartTransmission(0xA0 | TWI_ADDRESS_WRITE, 10))
+ *      if (TWI_StartTransmission(0xA0 | TWI_ADDRESS_WRITE, 10) == TWI_ERROR_NoError)
  *      {
  *          TWI_SendByte(0xDC);
  *
@@ -69,12 +69,12 @@
  *      }
  *
  *      // Start a read session to device at address 0xA0, internal address 0xDC with a 10ms timeout
- *      if (TWI_StartTransmission(0xA0 | TWI_ADDRESS_WRITE, 10))
+ *      if (TWI_StartTransmission(0xA0 | TWI_ADDRESS_WRITE, 10) == TWI_ERROR_NoError)
  *      {
  *          TWI_SendByte(0xDC);
  *          TWI_StopTransmission();
  *
- *          if (TWI_StartTransmission(0xA0 | TWI_ADDRESS_READ, 10))
+ *          if (TWI_StartTransmission(0xA0 | TWI_ADDRESS_READ, 10) == TWI_ERROR_NoError)
  *          {
  *              uint8_t Byte1, Byte2, Byte3;
  *
@@ -88,11 +88,11 @@
  *          }
  *      }
  *  \endcode
- * 
+ *
  *  <b>High Level API Example:</b>
  *  \code
- *      // Initialise the TWI driver before first use
- *      TWI_Init(TWI_BIT_PRESCALE_1, 10);
+ *      // Initialize the TWI driver before first use at 200KHz
+ *      TWI_Init(TWI_BIT_PRESCALE_1, TWI_BITLENGTH_FROM_FREQ(1, 200000));
  *
  *      // Start a write session to device at device address 0xA0, internal address 0xDC with a 10ms timeout
  *      uint8_t InternalWriteAddress = 0xDC;
@@ -133,8 +133,7 @@
 
 		#if !(defined(__AVR_AT90USB1286__) || defined(__AVR_AT90USB646__) || \
 		      defined(__AVR_AT90USB1287__) || defined(__AVR_AT90USB647__) || \
-			  defined(__AVR_ATmega16U4__)  || defined(__AVR_ATmega32U4__) || \
-			  defined(__AVR_ATmega32U6__))
+			  defined(__AVR_ATmega16U4__)  || defined(__AVR_ATmega32U4__))
 			#error The TWI peripheral driver is not currently available for your selected microcontroller model.
 		#endif
 
@@ -143,21 +142,21 @@
 			/** TWI slave device address mask for a read session. Mask with a slave device base address to obtain
 			 *  the correct TWI bus address for the slave device when reading data from it.
 			 */
-			#define TWI_ADDRESS_READ         0x00
+			#define TWI_ADDRESS_READ         0x01
 
 			/** TWI slave device address mask for a write session. Mask with a slave device base address to obtain
 			 *  the correct TWI bus address for the slave device when writing data to it.
 			 */
-			#define TWI_ADDRESS_WRITE        0x01
+			#define TWI_ADDRESS_WRITE        0x00
 
 			/** Mask to retrieve the base address for a TWI device, which can then be ORed with \ref TWI_ADDRESS_READ
 			 *  or \ref TWI_ADDRESS_WRITE to obtain the device's read and write address respectively.
 			 */
 			#define TWI_DEVICE_ADDRESS_MASK  0xFE
-			
+
 			/** Bit length prescaler for \ref TWI_Init(). This mask multiplies the TWI bit length prescaler by 1. */
 			#define TWI_BIT_PRESCALE_1       ((0 << TWPS1) | (0 << TWPS0))
-			
+
 			/** Bit length prescaler for \ref TWI_Init(). This mask multiplies the TWI bit length prescaler by 4. */
 			#define TWI_BIT_PRESCALE_4       ((0 << TWPS1) | (1 << TWPS0))
 
@@ -166,33 +165,46 @@
 
 			/** Bit length prescaler for \ref TWI_Init(). This mask multiplies the TWI bit length prescaler by 64. */
 			#define TWI_BIT_PRESCALE_64      ((1 << TWPS1) | (1 << TWPS0))
-			
+
+			/** Calculates the length of each bit on the TWI bus for a given target frequency. This may be used with
+			 *  the \ref TWI_Init() function to convert a bus frequency to a number of clocks for the \c BitLength
+			 *  parameter.
+			 *
+			 *  \param[in] Prescale   Prescaler set on the TWI bus.
+			 *  \param[in] Frequency  Desired TWI bus frequency in Hz.
+			 *
+			 *  \return Bit length in clocks for the given TWI bus frequency at the given prescaler value.
+			 */
+			#define TWI_BITLENGTH_FROM_FREQ(Prescale, Frequency) ((((F_CPU / (Prescale)) / (Frequency)) - 16) / 2)
+
 		/* Enums: */
 			/** Enum for the possible return codes of the TWI transfer start routine and other dependant TWI functions. */
 			enum TWI_ErrorCodes_t
 			{
-				TWI_ERROR_NoError              = 0, /**< Indicates that the command completed sucessfully. */
+				TWI_ERROR_NoError              = 0, /**< Indicates that the command completed successfully. */
 				TWI_ERROR_BusFault             = 1, /**< A TWI bus fault occurred while attempting to capture the bus. */
 				TWI_ERROR_BusCaptureTimeout    = 2, /**< A timeout occurred whilst waiting for the bus to be ready. */
 				TWI_ERROR_SlaveResponseTimeout = 3, /**< No ACK received at the nominated slave address within the timeout period. */
 				TWI_ERROR_SlaveNotReady        = 4, /**< Slave NAKed the TWI bus START condition. */
 				TWI_ERROR_SlaveNAK             = 5, /**< Slave NAKed whilst attempting to send data to the device. */
 			};
-	
+
 		/* Inline Functions: */
-			/** Initialises the TWI hardware into master mode, ready for data transmission and reception. This must be
+			/** Initializes the TWI hardware into master mode, ready for data transmission and reception. This must be
 			 *  before any other TWI operations.
 			 *
 			 *  The generated SCL frequency will be according to the formula <pre>F_CPU / (16 + 2 * BitLength + 4 ^ Prescale)</pre>.
 			 *
-			 *  \note The value of the \c BitLength parameter should not be set below 10 or invalid bus conditions may
-			 *        occur, as indicated in the AVR8 microcontroller datasheet.
+			 *  \attention The value of the \c BitLength parameter should not be set below 10 or invalid bus conditions may
+			 *             occur, as indicated in the AVR8 microcontroller datasheet.
 			 *
 			 *  \param[in] Prescale   Prescaler to use when determining the bus frequency, a \c TWI_BIT_PRESCALE_* value.
 			 *  \param[in] BitLength  Length of the bits sent on the bus.
 			 */
-			static inline void TWI_Init(const uint8_t Prescale, const uint8_t BitLength) ATTR_ALWAYS_INLINE;
-			static inline void TWI_Init(const uint8_t Prescale, const uint8_t BitLength)
+			static inline void TWI_Init(const uint8_t Prescale,
+			                            const uint8_t BitLength) ATTR_ALWAYS_INLINE;
+			static inline void TWI_Init(const uint8_t Prescale,
+			                            const uint8_t BitLength)
 			{
 				TWCR |= (1 << TWEN);
 				TWSR  = Prescale;
@@ -215,70 +227,53 @@
 				TWCR = ((1 << TWINT) | (1 << TWSTO) | (1 << TWEN));
 			}
 
+		/* Function Prototypes: */
+			/** Begins a master mode TWI bus communication with the given slave device address.
+			 *
+			 *  \param[in] SlaveAddress  Address of the slave TWI device to communicate with.
+			 *  \param[in] TimeoutMS     Timeout period within which the slave must respond, in milliseconds.
+			 *
+			 *  \return A value from the \ref TWI_ErrorCodes_t enum.
+			 */
+			uint8_t TWI_StartTransmission(const uint8_t SlaveAddress,
+			                              const uint8_t TimeoutMS);
+
 			/** Sends a byte to the currently addressed device on the TWI bus.
 			 *
 			 *  \param[in] Byte  Byte to send to the currently addressed device
 			 *
 			 *  \return Boolean \c true if the recipient ACKed the byte, \c false otherwise
 			 */
-			static inline bool TWI_SendByte(const uint8_t Byte)
-			{
-				TWDR = Byte;
-				TWCR = ((1 << TWINT) | (1 << TWEN));
-				while (!(TWCR & (1 << TWINT)));
-
-				return ((TWSR & TW_STATUS_MASK) == TW_MT_DATA_ACK);
-			}
+			bool TWI_SendByte(const uint8_t Byte);
 
 			/** Receives a byte from the currently addressed device on the TWI bus.
 			 *
-			 *  \param[in] Byte      Location where the read byte is to be stored
-			 *  \param[in] LastByte  Indicates if the byte should be ACKed if false, NAKed if true
+			 *  \param[in] Byte      Location where the read byte is to be stored.
+			 *  \param[in] LastByte  Indicates if the byte should be ACKed if false, NAKed if true.
 			 *
-			 *  \return Boolean \c true if the byte reception successfully completed, \c false otherwise
+			 *  \return Boolean \c true if the byte reception successfully completed, \c false otherwise.
 			 */
-			static inline uint8_t TWI_ReceiveByte(uint8_t* const Byte,
-			                                      const bool LastByte)
-			{
-				uint8_t TWCRMask = ((1 << TWINT) | (1 << TWEN));
-
-				if (!(LastByte))
-				  TWCRMask |= (1 << TWEA);
-
-				TWCR = TWCRMask;
-				while (!(TWCR & (1 << TWINT)));
-				*Byte = TWDR;
-
-				return ((TWSR & TW_STATUS_MASK) == TW_MR_DATA_ACK);
-			}
-
-		/* Function Prototypes: */
-			/** Begins a master mode TWI bus communication with the given slave device address.
-			 *
-			 *  \param[in] SlaveAddress  Address of the slave TWI device to communicate with
-			 *  \param[in] TimeoutMS     Timeout period within which the slave must respond, in milliseconds
-			 *
-			 *  \return A value from the \ref TWI_ErrorCodes_t enum
-			 */
-			uint8_t TWI_StartTransmission(const uint8_t SlaveAddress,
-			                              const uint8_t TimeoutMS);
+			bool TWI_ReceiveByte(uint8_t* const Byte,
+			                     const bool LastByte) ATTR_NON_NULL_PTR_ARG(1);
 
 			/** High level function to perform a complete packet transfer over the TWI bus to the specified
 			 *  device.
 			 *
-			 *  \param[in] SlaveAddress        Base address of the TWI slave device to communicate with
-			 *  \param[in] TimeoutMS           Timeout for bus capture and slave START ACK, in milliseconds
-			 *  \param[in] InternalAddress     Pointer to a location where the internal slave read start address is stored
-			 *  \param[in] InternalAddressLen  Size of the internal device address, in bytes
-			 *  \param[in] Buffer              Pointer to a buffer where the read packet data is to be stored
-			 *  \param[in] Length              Size of the packet to read, in bytes
+			 *  \param[in] SlaveAddress        Base address of the TWI slave device to communicate with.
+			 *  \param[in] TimeoutMS           Timeout for bus capture and slave START ACK, in milliseconds.
+			 *  \param[in] InternalAddress     Pointer to a location where the internal slave read start address is stored.
+			 *  \param[in] InternalAddressLen  Size of the internal device address, in bytes.
+			 *  \param[in] Buffer              Pointer to a buffer where the read packet data is to be stored.
+			 *  \param[in] Length              Size of the packet to read, in bytes.
+			 *
+			 *  \return A value from the \ref TWI_ErrorCodes_t enum.
 			 */
 			uint8_t TWI_ReadPacket(const uint8_t SlaveAddress,
 			                       const uint8_t TimeoutMS,
 			                       const uint8_t* InternalAddress,
 			                       uint8_t InternalAddressLen,
 			                       uint8_t* Buffer,
-			                       uint8_t Length);
+			                       uint8_t Length) ATTR_NON_NULL_PTR_ARG(3);
 
 			/** High level function to perform a complete packet transfer over the TWI bus from the specified
 			 *  device.
@@ -289,13 +284,15 @@
 			 *  \param[in] InternalAddressLen  Size of the internal device address, in bytes
 			 *  \param[in] Buffer              Pointer to a buffer where the packet data to send is stored
 			 *  \param[in] Length              Size of the packet to send, in bytes
+			 *
+			 *  \return A value from the \ref TWI_ErrorCodes_t enum.
 			 */
 			uint8_t TWI_WritePacket(const uint8_t SlaveAddress,
 			                        const uint8_t TimeoutMS,
 			                        const uint8_t* InternalAddress,
 			                        uint8_t InternalAddressLen,
 			                        const uint8_t* Buffer,
-			                        uint8_t Length);
+			                        uint8_t Length) ATTR_NON_NULL_PTR_ARG(3);
 
 	/* Disable C linkage for C++ Compilers: */
 		#if defined(__cplusplus)

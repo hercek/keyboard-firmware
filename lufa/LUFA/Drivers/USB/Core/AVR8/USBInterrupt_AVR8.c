@@ -1,13 +1,13 @@
 /*
              LUFA Library
-     Copyright (C) Dean Camera, 2011.
+     Copyright (C) Dean Camera, 2014.
 
   dean [at] fourwalledcubicle [dot] com
            www.lufa-lib.org
 */
 
 /*
-  Copyright 2011  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  Copyright 2014  Dean Camera (dean [at] fourwalledcubicle [dot] com)
 
   Permission to use, copy, modify, distribute, and sell this
   software and its documentation for any purpose is hereby granted
@@ -18,7 +18,7 @@
   advertising or publicity pertaining to distribution of the
   software without specific, written prior permission.
 
-  The author disclaim all warranties with regard to this
+  The author disclaims all warranties with regard to this
   software, including all implied warranties of merchantability
   and fitness.  In no event shall the author be liable for any
   special, indirect or consequential damages or any damages
@@ -27,6 +27,9 @@
   arising out of or in connection with the use or performance of
   this software.
 */
+
+#include "../../../../Common/Common.h"
+#if (ARCH == ARCH_AVR8)
 
 #define  __INCLUDE_FROM_USB_DRIVER
 #include "../USBInterrupt.h"
@@ -144,10 +147,10 @@ ISR(USB_GEN_vect, ISR_BLOCK)
 		USB_INT_Disable(USB_INT_WAKEUPI);
 		USB_INT_Enable(USB_INT_SUSPI);
 
-		if (USB_ConfigurationNumber)
+		if (USB_Device_ConfigurationNumber)
 		  USB_DeviceState = DEVICE_STATE_Configured;
 		else
-		  USB_DeviceState = (USB_Device_IsAddressSet()) ? DEVICE_STATE_Configured : DEVICE_STATE_Powered;
+		  USB_DeviceState = (USB_Device_IsAddressSet()) ? DEVICE_STATE_Addressed : DEVICE_STATE_Powered;
 
 		#if defined(USB_SERIES_2_AVR) && !defined(NO_LIMITED_CONTROLLER_CONNECT)
 		EVENT_USB_Device_Connect();
@@ -160,16 +163,15 @@ ISR(USB_GEN_vect, ISR_BLOCK)
 	{
 		USB_INT_Clear(USB_INT_EORSTI);
 
-		USB_DeviceState         = DEVICE_STATE_Default;
-		USB_ConfigurationNumber = 0;
+		USB_DeviceState                = DEVICE_STATE_Default;
+		USB_Device_ConfigurationNumber = 0;
 
 		USB_INT_Clear(USB_INT_SUSPI);
 		USB_INT_Disable(USB_INT_SUSPI);
 		USB_INT_Enable(USB_INT_WAKEUPI);
 
 		Endpoint_ConfigureEndpoint(ENDPOINT_CONTROLEP, EP_TYPE_CONTROL,
-		                           ENDPOINT_DIR_OUT, USB_ControlEndpointSize,
-		                           ENDPOINT_BANK_SINGLE);
+		                           USB_Device_ControlEndpointSize, 1);
 
 		#if defined(INTERRUPT_CONTROL_ENDPOINT)
 		USB_INT_Enable(USB_INT_RXSTPI);
@@ -271,5 +273,7 @@ ISR(USB_COM_vect, ISR_BLOCK)
 	USB_INT_Enable(USB_INT_RXSTPI);
 	Endpoint_SelectEndpoint(PrevSelectedEndpoint);
 }
+#endif
+
 #endif
 

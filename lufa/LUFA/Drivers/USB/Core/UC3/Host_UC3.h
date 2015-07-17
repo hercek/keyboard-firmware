@@ -1,13 +1,13 @@
 /*
              LUFA Library
-     Copyright (C) Dean Camera, 2011.
+     Copyright (C) Dean Camera, 2014.
 
   dean [at] fourwalledcubicle [dot] com
            www.lufa-lib.org
 */
 
 /*
-  Copyright 2011  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  Copyright 2014  Dean Camera (dean [at] fourwalledcubicle [dot] com)
 
   Permission to use, copy, modify, distribute, and sell this
   software and its documentation for any purpose is hereby granted
@@ -18,7 +18,7 @@
   advertising or publicity pertaining to distribution of the
   software without specific, written prior permission.
 
-  The author disclaim all warranties with regard to this
+  The author disclaims all warranties with regard to this
   software, including all implied warranties of merchantability
   and fitness.  In no event shall the author be liable for any
   special, indirect or consequential damages or any damages
@@ -72,17 +72,6 @@
 			 *  fixed value is specified by the library.
 			 */
 			#define USB_HOST_DEVICEADDRESS                 1
-
-			#if !defined(USB_HOST_TIMEOUT_MS) || defined(__DOXYGEN__)
-				/** Constant for the maximum software timeout period of sent USB control transactions to an attached
-				 *  device. If a device fails to respond to a sent control request within this period, the
-				 *  library will return a timeout error code.
-				 *
-				 *  This value may be overridden in the user project makefile as the value of the
-				 *  \ref USB_HOST_TIMEOUT_MS token, and passed to the compiler using the -D switch.
-				 */
-				#define USB_HOST_TIMEOUT_MS                1000
-			#endif
 
 			#if !defined(HOST_DEVICE_SETTLE_DELAY_MS) || defined(__DOXYGEN__)
 				/** Constant for the delay in milliseconds after a device is connected before the library
@@ -140,6 +129,8 @@
 		/* Inline Functions: */
 			/** Returns the current USB frame number, when in host mode. Every millisecond the USB bus is active (i.e. not suspended)
 			 *  the frame number is incremented by one.
+			 *
+			 *  \return Current USB frame number from the USB controller.
 			 */
 			static inline uint16_t USB_Host_GetFrameNumber(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
 			static inline uint16_t USB_Host_GetFrameNumber(void)
@@ -152,7 +143,7 @@
 				 *  \ref EVENT_USB_Host_StartOfFrame() event to fire once per millisecond, synchronized to the USB bus,
 				 *  at the start of each USB frame when a device is enumerated while in host mode.
 				 *
-				 *  \note Not available when the \c NO_SOF_EVENTS compile time token is defined.
+				 *  \note This function is not available when the \c NO_SOF_EVENTS compile time token is defined.
 				 */
 				static inline void USB_Host_EnableSOFEvents(void) ATTR_ALWAYS_INLINE;
 				static inline void USB_Host_EnableSOFEvents(void)
@@ -163,7 +154,7 @@
 				/** Disables the host mode Start Of Frame events. When disabled, this stops the firing of the
 				 *  \ref EVENT_USB_Host_StartOfFrame() event when enumerated in host mode.
 				 *
-				 *  \note Not available when the NO_SOF_EVENTS compile time token is defined.
+				 *  \note This function is not available when the \c NO_SOF_EVENTS compile time token is defined.
 				 */
 				static inline void USB_Host_DisableSOFEvents(void) ATTR_ALWAYS_INLINE;
 				static inline void USB_Host_DisableSOFEvents(void)
@@ -208,6 +199,9 @@
 			/** Suspends the USB bus, preventing any communications from occurring between the host and attached
 			 *  device until the bus has been resumed. This stops the transmission of the 1MS Start Of Frame
 			 *  messages to the device.
+			 *
+			 *  \note While the USB bus is suspended, all USB interrupt sources are also disabled; this means that
+			 *        some events (such as device disconnections) will not fire until the bus is resumed.
 			 */
 			static inline void USB_Host_SuspendBus(void) ATTR_ALWAYS_INLINE;
 			static inline void USB_Host_SuspendBus(void)
@@ -239,7 +233,7 @@
 			}
 
 			/** Determines if the attached device is currently issuing a Remote Wakeup request, requesting
-			 *  that the host resume the USB bus and wake up the device, false otherwise.
+			 *  that the host resume the USB bus and wake up the device, \c false otherwise.
 			 *
 			 *  \return Boolean \c true if the attached device has sent a Remote Wakeup request, \c false otherwise.
 			 */
@@ -276,60 +270,6 @@
 			{
 				return AVR32_USBB.UHCON.resume;
 			}
-
-		/* Function Prototypes: */
-			/** Convenience function. This routine sends a SET CONFIGURATION standard request to the attached
-			 *  device, with the given configuration index. This can be used to easily set the device
-			 *  configuration without creating and sending the request manually.
-			 *
-			 *  \note After this routine returns, the control pipe will be selected.
-			 *
-			 *  \param[in] ConfigNumber  Configuration index to send to the device.
-			 *
-			 *  \return A value from the \ref USB_Host_SendControlErrorCodes_t enum to indicate the result.
-			 */
-			uint8_t USB_Host_SetDeviceConfiguration(const uint8_t ConfigNumber);
-
-			/** Convenience function. This routine sends a GET DESCRIPTOR standard request to the attached
-			 *  device, requesting the device descriptor. This can be used to easily retrieve information
-			 *  about the device such as its VID, PID and power requirements.
-			 *
-			 *  \note After this routine returns, the control pipe will be selected.
-			 *
-			 *  \param[out] DeviceDescriptorPtr  Pointer to the destination device descriptor structure where
-			 *                                   the read data is to be stored.
-			 *
-			 *  \return A value from the \ref USB_Host_SendControlErrorCodes_t enum to indicate the result.
-			 */
-			uint8_t USB_Host_GetDeviceDescriptor(void* const DeviceDescriptorPtr);
-
-			/** Convenience function. This routine sends a GET DESCRIPTOR standard request to the attached
-			 *  device, requesting the string descriptor of the specified index. This can be used to easily
-			 *  retrieve string descriptors from the device by index, after the index is obtained from the
-			 *  Device or Configuration descriptors.
-			 *
-			 *  \note After this routine returns, the control pipe will be selected.
-			 *
-			 *  \param[in]  Index        Index of the string index to retrieve.
-			 *  \param[out] Buffer       Pointer to the destination buffer where the retrieved string descriptor is
-			 *                           to be stored.
-			 *  \param[in] BufferLength  Maximum size of the string descriptor which can be stored into the buffer.
-			 *
-			 *  \return A value from the \ref USB_Host_SendControlErrorCodes_t enum to indicate the result.
-			 */
-			uint8_t USB_Host_GetDeviceStringDescriptor(const uint8_t Index,
-			                                           void* const Buffer,
-			                                           const uint8_t BufferLength);
-
-			/** Clears a stall condition on the given pipe, via a CLEAR FEATURE standard request to the attached device.
-			 *
-			 *  \note After this routine returns, the control pipe will be selected.
-			 *
-			 *  \param[in] EndpointIndex  Index of the endpoint to clear, including the endpoint's direction.
-			 *
-			 *  \return A value from the \ref USB_Host_SendControlErrorCodes_t enum to indicate the result.
-			 */
-			uint8_t USB_Host_ClearPipeStall(const uint8_t EndpointIndex);
 
 	/* Private Interface - For use in library only: */
 	#if !defined(__DOXYGEN__)

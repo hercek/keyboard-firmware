@@ -1,13 +1,13 @@
 /*
              LUFA Library
-     Copyright (C) Dean Camera, 2011.
+     Copyright (C) Dean Camera, 2014.
 
   dean [at] fourwalledcubicle [dot] com
            www.lufa-lib.org
 */
 
 /*
-  Copyright 2011  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  Copyright 2014  Dean Camera (dean [at] fourwalledcubicle [dot] com)
 
   Permission to use, copy, modify, distribute, and sell this
   software and its documentation for any purpose is hereby granted
@@ -18,7 +18,7 @@
   advertising or publicity pertaining to distribution of the
   software without specific, written prior permission.
 
-  The author disclaim all warranties with regard to this
+  The author disclaims all warranties with regard to this
   software, including all implied warranties of merchantability
   and fitness.  In no event shall the author be liable for any
   special, indirect or consequential damages or any damages
@@ -28,11 +28,14 @@
   this software.
 */
 
+#include "../../../../Common/Common.h"
+#if (ARCH == ARCH_UC3)
+
 #define  __INCLUDE_FROM_USB_DRIVER
 #define  __INCLUDE_FROM_USB_CONTROLLER_C
 #include "../USBController.h"
 
-#if (!defined(USB_HOST_ONLY) && !defined(USB_DEVICE_ONLY))
+#if defined(USB_CAN_BE_BOTH)
 volatile uint8_t USB_CurrentMode = USB_MODE_None;
 #endif
 
@@ -59,7 +62,7 @@ void USB_Init(
 	#if !defined(USE_STATIC_OPTIONS)
 	USB_Options = Options;
 	#endif
-	
+
 	#if defined(USB_CAN_BE_BOTH)
 	if (Mode == USB_MODE_UID)
 	{
@@ -73,7 +76,7 @@ void USB_Init(
 		USB_CurrentMode = Mode;
 	}
 	#else
-	AVR32_USBB.USBCON.uide = false;	
+	AVR32_USBB.USBCON.uide = false;
 	#endif
 
 	USB_IsInitialized = true;
@@ -109,7 +112,7 @@ void USB_ResetInterface(void)
 	AVR32_PM.GCCTRL[AVR32_PM_GCLK_USBB].pllsel = !(USB_Options & USB_OPT_GCLK_SRC_OSC);
 	AVR32_PM.GCCTRL[AVR32_PM_GCLK_USBB].oscsel = !(USB_Options & USB_OPT_GCLK_CHANNEL_0);
 	AVR32_PM.GCCTRL[AVR32_PM_GCLK_USBB].diven  = (F_USB != USB_CLOCK_REQUIRED_FREQ);
-	AVR32_PM.GCCTRL[AVR32_PM_GCLK_USBB].div    = (F_USB == USB_CLOCK_REQUIRED_FREQ) ? 0 : (uint32_t)(((F_USB / USB_CLOCK_REQUIRED_FREQ) - 1) / 2);
+	AVR32_PM.GCCTRL[AVR32_PM_GCLK_USBB].div    = (F_USB == USB_CLOCK_REQUIRED_FREQ) ? 0 : (uint32_t)((F_USB / USB_CLOCK_REQUIRED_FREQ / 2) - 1);
 	AVR32_PM.GCCTRL[AVR32_PM_GCLK_USBB].cen    = true;
 
 	USB_INT_DisableAllInterrupts();
@@ -134,6 +137,10 @@ void USB_ResetInterface(void)
 	}
 	else if (USB_CurrentMode == USB_MODE_Host)
 	{
+		#if defined(INVERTED_VBUS_ENABLE_LINE)
+		AVR32_USBB.USBCON.vbuspo = true;
+		#endif
+
 		#if defined(USB_CAN_BE_HOST)
 		AVR32_USBB.USBCON.uimod = false;
 
@@ -147,34 +154,44 @@ void USB_ResetInterface(void)
 #if defined(USB_CAN_BE_DEVICE)
 static void USB_Init_Device(void)
 {
-	USB_DeviceState          = DEVICE_STATE_Unattached;
-	USB_ConfigurationNumber  = 0;
+	USB_DeviceState                 = DEVICE_STATE_Unattached;
+	USB_Device_ConfigurationNumber  = 0;
 
 	#if !defined(NO_DEVICE_REMOTE_WAKEUP)
-	USB_RemoteWakeupEnabled  = false;
+	USB_Device_RemoteWakeupEnabled  = false;
 	#endif
 
 	#if !defined(NO_DEVICE_SELF_POWER)
-	USB_CurrentlySelfPowered = false;
+	USB_Device_CurrentlySelfPowered = false;
 	#endif
 
 	#if !defined(FIXED_CONTROL_ENDPOINT_SIZE)
 	USB_Descriptor_Device_t* DeviceDescriptorPtr;
 
 	if (CALLBACK_USB_GetDescriptor((DTYPE_Device << 8), 0, (void*)&DeviceDescriptorPtr) != NO_DESCRIPTOR)
-	  USB_ControlEndpointSize = DeviceDescriptorPtr->Endpoint0Size;
+	  USB_Device_ControlEndpointSize = DeviceDescriptorPtr->Endpoint0Size;
 	#endif
 
 	if (USB_Options & USB_DEVICE_OPT_LOWSPEED)
-	  USB_Device_SetLowSpeed();
+	{
+		USB_Device_SetLowSpeed();
+	}
 	else
-	  USB_Device_SetFullSpeed();
+	{
+		#if defined(USB_DEVICE_OPT_HIGHSPEED)
+		if (USB_Options & USB_DEVICE_OPT_HIGHSPEED)
+		  USB_Device_SetHighSpeed();
+		else
+		  USB_Device_SetFullSpeed();
+		#else
+		USB_Device_SetFullSpeed();
+		#endif
+	}
 
 	USB_INT_Enable(USB_INT_VBUSTI);
 
 	Endpoint_ConfigureEndpoint(ENDPOINT_CONTROLEP, EP_TYPE_CONTROL,
-							   ENDPOINT_DIR_OUT, USB_ControlEndpointSize,
-							   ENDPOINT_BANK_SINGLE);
+							   USB_Device_ControlEndpointSize, 1);
 
 	USB_INT_Clear(USB_INT_SUSPI);
 	USB_INT_Enable(USB_INT_SUSPI);
@@ -187,8 +204,9 @@ static void USB_Init_Device(void)
 #if defined(USB_CAN_BE_HOST)
 static void USB_Init_Host(void)
 {
-	USB_HostState       = HOST_STATE_Unattached;
-	USB_ControlPipeSize = PIPE_CONTROLPIPE_DEFAULT_SIZE;
+	USB_HostState                = HOST_STATE_Unattached;
+	USB_Host_ConfigurationNumber = 0;
+	USB_Host_ControlPipeSize     = PIPE_CONTROLPIPE_DEFAULT_SIZE;
 
 	USB_Host_HostMode_On();
 
@@ -201,3 +219,4 @@ static void USB_Init_Host(void)
 }
 #endif
 
+#endif

@@ -1,13 +1,13 @@
 /*
              LUFA Library
-     Copyright (C) Dean Camera, 2011.
+     Copyright (C) Dean Camera, 2014.
 
   dean [at] fourwalledcubicle [dot] com
            www.lufa-lib.org
 */
 
 /*
-  Copyright 2011  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  Copyright 2014  Dean Camera (dean [at] fourwalledcubicle [dot] com)
 
   Permission to use, copy, modify, distribute, and sell this
   software and its documentation for any purpose is hereby granted
@@ -18,7 +18,7 @@
   advertising or publicity pertaining to distribution of the
   software without specific, written prior permission.
 
-  The author disclaim all warranties with regard to this
+  The author disclaims all warranties with regard to this
   software, including all implied warranties of merchantability
   and fitness.  In no event shall the author be liable for any
   special, indirect or consequential damages or any damages
@@ -43,7 +43,7 @@
 
 	/* Includes: */
 		#include "../../../Common/Common.h"
-		#include "USBMode.h"		
+		#include "USBMode.h"
 		#include "USBController.h"
 		#include "Events.h"
 		#include "StdRequestType.h"
@@ -73,16 +73,18 @@
 			 *  or device (i.e. if \ref USB_Init() has been run). If this is false, all other library globals related
 			 *  to the USB driver are invalid.
 			 *
-			 *  \note This variable should be treated as read-only in the user application, and never manually
-			 *        changed in value.
+			 *  \attention This variable should be treated as read-only in the user application, and never manually
+			 *             changed in value.
 			 *
 			 *  \ingroup Group_USBManagement
 			 */
 			extern volatile bool USB_IsInitialized;
 
 			/** Structure containing the last received Control request when in Device mode (for use in user-applications
-			 *  inside of the \ref EVENT_USB_Device_ControlRequest() event, or for filling up with a control request to 
+			 *  inside of the \ref EVENT_USB_Device_ControlRequest() event, or for filling up with a control request to
 			 *  issue when in Host mode before calling \ref USB_Host_SendControlRequest().
+			 *
+			 *  \note The contents of this structure is automatically endian-corrected for the current CPU architecture.
 			 *
 			 *  \ingroup Group_USBManagement
 			 */
@@ -93,9 +95,8 @@
 					/** Indicates the current host state machine state. When in host mode, this indicates the state
 					 *  via one of the values of the \ref USB_Host_States_t enum values.
 					 *
-					 *  This value may be altered by the user application to implement the \ref HOST_STATE_Addressed,
-					 *  \ref HOST_STATE_Configured and \ref HOST_STATE_Suspended states which are not implemented by
-					 *  the library internally.
+					 *  This value should not be altered by the user application as it is handled automatically by the
+					 *  library.
 					 *
 					 *  To reduce program size and speed up checks of this global on the AVR8 architecture, it can be
 					 *  placed into one of the AVR's \c GPIOR hardware registers instead of RAM by defining the
@@ -111,9 +112,7 @@
 					 */
 					extern volatile uint8_t USB_HostState;
 				#else
-					#define _GET_HOST_GPIOR_NAME2(y) GPIOR ## y
-					#define _GET_HOST_GPIOR_NAME(x)  _GET_HOST_GPIOR_NAME2(x)
-					#define USB_HostState            _GET_HOST_GPIOR_NAME(HOST_STATE_AS_GPIOR)
+					#define USB_HostState            CONCAT_EXPANDED(GPIOR, HOST_STATE_AS_GPIOR)
 				#endif
 			#endif
 
@@ -132,11 +131,11 @@
 					 *  the compiler via the -D switch. When defined, the corresponding GPIOR register should not be used
 					 *  in the user application except implicitly via the library APIs.
 					 *
+					 *  \attention This variable should be treated as read-only in the user application, and never manually
+					 *             changed in value except in the circumstances outlined above.
+					 *
 					 *  \note This global is only present if the user application can be a USB device.
 					 *        \n\n
-					 *
-					 *  \note This variable should be treated as read-only in the user application, and never manually
-					 *        changed in value except in the circumstances outlined above.
 					 *
 					 *  \see \ref USB_Device_States_t for a list of possible device states.
 					 *
@@ -144,9 +143,7 @@
 					 */
 					extern volatile uint8_t USB_DeviceState;
 				#else
-					#define _GET_DEVICE_GPIOR_NAME2(y) GPIOR ## y
-					#define _GET_DEVICE_GPIOR_NAME(x)  _GET_DEVICE_GPIOR_NAME2(x)
-					#define USB_DeviceState            _GET_DEVICE_GPIOR_NAME(DEVICE_STATE_AS_GPIOR)
+					#define USB_DeviceState            CONCAT_EXPANDED(GPIOR, DEVICE_STATE_AS_GPIOR)
 				#endif
 			#endif
 
@@ -189,9 +186,9 @@
 			#endif
 
 		/* Macros: */
-			#define HOST_TASK_NONBLOCK_WAIT(Duration, NextState) MACROS{ USB_HostState   = HOST_STATE_WaitForDevice; \
-			                                                             WaitMSRemaining = (Duration);               \
-			                                                             PostWaitState   = (NextState);              }MACROE
+			#define HOST_TASK_NONBLOCK_WAIT(Duration, NextState) do { USB_HostState   = HOST_STATE_WaitForDevice; \
+			                                                          WaitMSRemaining = (Duration);               \
+			                                                          PostWaitState   = (NextState);              } while (0)
 	#endif
 
 	/* Disable C linkage for C++ Compilers: */

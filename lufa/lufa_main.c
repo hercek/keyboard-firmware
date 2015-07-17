@@ -44,6 +44,9 @@
 #include "macro.h"
 #include "macro_index.h"
 
+#define KEYBOARD_IN_EPADDR        (ENDPOINT_DIR_IN | 1)
+#define MOUSE_IN_EPADDR           (ENDPOINT_DIR_IN | 3)
+
 /** LUFA HID Class driver interface configuration and state information. This structure is
  *  passed to all HID Class driver functions, so that multiple instances of the same class
  *  within a device can be differentiated from one another.
@@ -54,9 +57,9 @@ USB_ClassInfo_HID_Device_t Keyboard_HID_Interface =
 			{
 				.InterfaceNumber              = 0,
 
-				.ReportINEndpointNumber       = KEYBOARD_IN_EPNUM,
-				.ReportINEndpointSize         = HID_EPSIZE,
-				.ReportINEndpointDoubleBank   = false,
+				.ReportINEndpoint.Address      = KEYBOARD_IN_EPADDR,
+				.ReportINEndpoint.Size         = HID_EPSIZE,
+				.ReportINEndpoint.Banks        = 1,
 
 				.PrevReportINBuffer           = (void*) &PrevKeyboardHIDReportBuffer,
 				.PrevReportINBufferSize       = sizeof(PrevKeyboardHIDReportBuffer),
@@ -74,8 +77,9 @@ USB_ClassInfo_HID_Device_t Mouse_HID_Interface =
 			{
 				.InterfaceNumber              = 1,
 
-				.ReportINEndpointNumber       = MOUSE_IN_EPNUM,
-				.ReportINEndpointSize         = HID_EPSIZE,
+				.ReportINEndpoint.Address      = MOUSE_IN_EPADDR,
+				.ReportINEndpoint.Size         = HID_EPSIZE,
+				.ReportINEndpoint.Banks        = 1,
 
 				.PrevReportINBuffer           = (void*) &PrevMouseHIDReportBuffer,
 				.PrevReportINBufferSize       = sizeof(PrevMouseHIDReportBuffer),

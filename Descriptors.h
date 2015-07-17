@@ -52,6 +52,7 @@
 
 #ifdef BUILD_FOR_LUFA
 		#include <LUFA/Drivers/USB/USB.h>
+		#include <LUFA/Drivers/USB/Class/Common/HIDClassCommon.h>
 #else
 		#include <LUFA_compat.h> // Stripped types from LUFA headers
 #endif
@@ -85,7 +86,7 @@
 		typedef struct
 		{
 			uint8_t Modifier; /**< Keyboard modifier byte, indicating pressed modifier keys (a combination of
-							   *   \c HID_KEYBOARD_MODIFER_* masks).
+							   *   \c HID_KEYBOARD_MODIFIER_* masks).
 							   */
 			uint8_t Reserved; /**< Reserved for OEM use, always set to 0. */
 			uint8_t KeyCode[KEYBOARDREPORT_KEY_COUNT]; /**< Key codes of the currently pressed keys. */

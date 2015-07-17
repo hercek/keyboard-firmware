@@ -1,13 +1,13 @@
 /*
              LUFA Library
-     Copyright (C) Dean Camera, 2011.
+     Copyright (C) Dean Camera, 2014.
 
   dean [at] fourwalledcubicle [dot] com
            www.lufa-lib.org
 */
 
 /*
-  Copyright 2011  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  Copyright 2014  Dean Camera (dean [at] fourwalledcubicle [dot] com)
 
   Permission to use, copy, modify, distribute, and sell this
   software and its documentation for any purpose is hereby granted
@@ -18,7 +18,7 @@
   advertising or publicity pertaining to distribution of the
   software without specific, written prior permission.
 
-  The author disclaim all warranties with regard to this
+  The author disclaims all warranties with regard to this
   software, including all implied warranties of merchantability
   and fitness.  In no event shall the author be liable for any
   special, indirect or consequential damages or any damages
@@ -54,10 +54,6 @@
 		#include "USBMode.h"
 		#include "Events.h"
 
-		#if defined(USB_CAN_BE_DEVICE)
-			#include "Device.h"
-		#endif
-
 	/* Enable C linkage for C++ Compilers: */
 		#if defined(__cplusplus)
 			extern "C" {
@@ -89,112 +85,116 @@
 			 */
 			#define USB_STRING_LEN(UnicodeChars)      (sizeof(USB_Descriptor_Header_t) + ((UnicodeChars) << 1))
 
-			/** Macro to encode a given four digit floating point version number (e.g. 01.23) into Binary Coded
-			 *  Decimal format for descriptor fields requiring BCD encoding, such as the USB version number in the
-			 *  standard device descriptor.
+			/** Convenience macro to easily create \ref USB_Descriptor_String_t instances from a wide character string.
 			 *
-			 *  \param[in]  x  Version number to encode as a 16-bit little-endian number, as a floating point number.
+			 *  \note This macro is for little-endian systems only.
+			 *
+			 *  \param[in] String  String to initialize a USB String Descriptor structure with.
 			 */
-			#define VERSION_BCD(x)                    CPU_TO_LE16((((VERSION_TENS(x) << 4) | VERSION_ONES(x)) << 8) | \
-			                                          ((VERSION_TENTHS(x) << 4) | VERSION_HUNDREDTHS(x)))
+			#define USB_STRING_DESCRIPTOR(String)     { .Header = {.Size = sizeof(USB_Descriptor_Header_t) + (sizeof(String) - 2), .Type = DTYPE_String}, .UnicodeString = String }
+
+			/** Convenience macro to easily create \ref USB_Descriptor_String_t instances from an array of characters.
+			 *
+			 *  \param[in] ...  Characters to initialize a USB String Descriptor structure with.
+			 */
+			#define USB_STRING_DESCRIPTOR_ARRAY(...)  { .Header = {.Size = sizeof(USB_Descriptor_Header_t) + sizeof((uint16_t){__VA_ARGS__}), .Type = DTYPE_String}, .UnicodeString = {__VA_ARGS__} }
+
+			/** Macro to encode a given major/minor/revision version number into Binary Coded Decimal format for descriptor
+			 *  fields requiring BCD encoding, such as the USB version number in the standard device descriptor.
+			 *
+			 *  \note This value is automatically converted into Little Endian, suitable for direct use inside device
+			 *        descriptors on all architectures without endianness conversion macros.
+			 *
+			 *  \param[in]  Major     Major version number to encode.
+			 *  \param[in]  Minor     Minor version number to encode.
+			 *  \param[in]  Revision  Revision version number to encode.
+			 */
+			#define VERSION_BCD(Major, Minor, Revision) \
+			                                          CPU_TO_LE16( ((Major & 0xFF) << 8) | \
+			                                                       ((Minor & 0x0F) << 4) | \
+			                                                       (Revision & 0x0F) )
 
 			/** String language ID for the English language. Should be used in \ref USB_Descriptor_String_t descriptors
 			 *  to indicate that the English language is supported by the device in its string descriptors.
 			 */
-			#define LANGUAGE_ID_ENG                   CPU_TO_LE16(0x0409)
-
-			/** \name Endpoint Address Direction Masks */
-			//@{
-			/** Can be masked with an endpoint address for a \ref USB_Descriptor_Endpoint_t endpoint descriptor's
-			 *  EndpointAddress value to indicate to the host that the endpoint is of the IN direction (i.e, from
-			 *  device to host).
-			 */
-			#define ENDPOINT_DESCRIPTOR_DIR_IN        0x80
-
-			/** Can be masked with an endpoint address for a \ref USB_Descriptor_Endpoint_t endpoint descriptor's
-			 *  EndpointAddress value to indicate to the host that the endpoint is of the OUT direction (i.e, from
-			 *  host to device).
-			 */
-			#define ENDPOINT_DESCRIPTOR_DIR_OUT       0x00
-			//@}
+			#define LANGUAGE_ID_ENG                   0x0409
 
 			/** \name USB Configuration Descriptor Attribute Masks */
 			//@{
-			/** Can be masked with other configuration descriptor attributes for a \ref USB_Descriptor_Configuration_Header_t
-			 *  descriptor's ConfigAttributes value to indicate that the specified configuration can draw its power
-			 *  from the host's VBUS line.
+			/** Mask for the reserved bit in the Configuration Descriptor's \c ConfigAttributes field, which must be set on all
+			 *  devices for historical purposes.
 			 */
-			#define USB_CONFIG_ATTR_BUSPOWERED        0x80
+			#define USB_CONFIG_ATTR_RESERVED          0x80
 
 			/** Can be masked with other configuration descriptor attributes for a \ref USB_Descriptor_Configuration_Header_t
-			 *  descriptor's ConfigAttributes value to indicate that the specified configuration can draw its power
+			 *  descriptor's \c ConfigAttributes value to indicate that the specified configuration can draw its power
 			 *  from the device's own power source.
 			 */
 			#define USB_CONFIG_ATTR_SELFPOWERED       0x40
 
 			/** Can be masked with other configuration descriptor attributes for a \ref USB_Descriptor_Configuration_Header_t
-			 *  descriptor's ConfigAttributes value to indicate that the specified configuration supports the
+			 *  descriptor's \c ConfigAttributes value to indicate that the specified configuration supports the
 			 *  remote wakeup feature of the USB standard, allowing a suspended USB device to wake up the host upon
 			 *  request.
 			 */
 			#define USB_CONFIG_ATTR_REMOTEWAKEUP      0x20
 			//@}
-			
+
 			/** \name Endpoint Descriptor Attribute Masks */
 			//@{
 			/** Can be masked with other endpoint descriptor attributes for a \ref USB_Descriptor_Endpoint_t descriptor's
-			 *  Attributes value to indicate that the specified endpoint is not synchronized.
+			 *  \c Attributes value to indicate that the specified endpoint is not synchronized.
 			 *
 			 *  \see The USB specification for more details on the possible Endpoint attributes.
 			 */
 			#define ENDPOINT_ATTR_NO_SYNC             (0 << 2)
 
 			/** Can be masked with other endpoint descriptor attributes for a \ref USB_Descriptor_Endpoint_t descriptor's
-			 *  Attributes value to indicate that the specified endpoint is asynchronous.
+			 *  \c Attributes value to indicate that the specified endpoint is asynchronous.
 			 *
 			 *  \see The USB specification for more details on the possible Endpoint attributes.
 			 */
 			#define ENDPOINT_ATTR_ASYNC               (1 << 2)
 
 			/** Can be masked with other endpoint descriptor attributes for a \ref USB_Descriptor_Endpoint_t descriptor's
-			 *  Attributes value to indicate that the specified endpoint is adaptive.
+			 *  \c Attributes value to indicate that the specified endpoint is adaptive.
 			 *
 			 *  \see The USB specification for more details on the possible Endpoint attributes.
 			 */
 			#define ENDPOINT_ATTR_ADAPTIVE            (2 << 2)
 
 			/** Can be masked with other endpoint descriptor attributes for a \ref USB_Descriptor_Endpoint_t descriptor's
-			 *  Attributes value to indicate that the specified endpoint is synchronized.
+			 *  \c Attributes value to indicate that the specified endpoint is synchronized.
 			 *
 			 *  \see The USB specification for more details on the possible Endpoint attributes.
 			 */
 			#define ENDPOINT_ATTR_SYNC                (3 << 2)
 			//@}
-			
+
 			/** \name Endpoint Descriptor Usage Masks */
 			//@{
 			/** Can be masked with other endpoint descriptor attributes for a \ref USB_Descriptor_Endpoint_t descriptor's
-			 *  Attributes value to indicate that the specified endpoint is used for data transfers.
+			 *  \c Attributes value to indicate that the specified endpoint is used for data transfers.
 			 *
 			 *  \see The USB specification for more details on the possible Endpoint usage attributes.
 			 */
 			#define ENDPOINT_USAGE_DATA               (0 << 4)
 
 			/** Can be masked with other endpoint descriptor attributes for a \ref USB_Descriptor_Endpoint_t descriptor's
-			 *  Attributes value to indicate that the specified endpoint is used for feedback.
+			 *  \c Attributes value to indicate that the specified endpoint is used for feedback.
 			 *
 			 *  \see The USB specification for more details on the possible Endpoint usage attributes.
 			 */
 			#define ENDPOINT_USAGE_FEEDBACK           (1 << 4)
 
 			/** Can be masked with other endpoint descriptor attributes for a \ref USB_Descriptor_Endpoint_t descriptor's
-			 *  Attributes value to indicate that the specified endpoint is used for implicit feedback.
+			 *  \c Attributes value to indicate that the specified endpoint is used for implicit feedback.
 			 *
 			 *  \see The USB specification for more details on the possible Endpoint usage attributes.
 			 */
 			#define ENDPOINT_USAGE_IMPLICIT_FEEDBACK  (2 << 4)
 			//@}
-			
+
 		/* Enums: */
 			/** Enum for the possible standard descriptor types, as given in each descriptor's header. */
 			enum USB_DescriptorTypes_t
@@ -251,6 +251,8 @@
 			 *  uses LUFA-specific element names to make each element's purpose clearer.
 			 *
 			 *  \see \ref USB_StdDescriptor_Header_t for the version of this type with standard element names.
+			 *
+			 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 			 */
 			typedef struct
 			{
@@ -266,6 +268,8 @@
 			 *  uses the relevant standard's given element names to ensure compatibility with the standard.
 			 *
 			 *  \see \ref USB_Descriptor_Header_t for the version of this type with non-standard LUFA specific element names.
+			 *
+			 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 			 */
 			typedef struct
 			{
@@ -281,12 +285,17 @@
 			 *  element's purpose clearer.
 			 *
 			 *  \see \ref USB_StdDescriptor_Device_t for the version of this type with standard element names.
+			 *
+			 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 			 */
 			typedef struct
 			{
 				USB_Descriptor_Header_t Header; /**< Descriptor header, including type and size. */
 
-				uint16_t USBSpecification; /**< BCD of the supported USB specification. */
+				uint16_t USBSpecification; /**< BCD of the supported USB specification.
+				                            *
+				                            *   \see \ref VERSION_BCD() utility macro.
+				                            */
 				uint8_t  Class; /**< USB device class. */
 				uint8_t  SubClass; /**< USB device subclass. */
 				uint8_t  Protocol; /**< USB device protocol. */
@@ -295,8 +304,10 @@
 
 				uint16_t VendorID; /**< Vendor ID for the USB product. */
 				uint16_t ProductID; /**< Unique product ID for the USB product. */
-				uint16_t ReleaseNumber; /**< Product release (version) number. */
-
+				uint16_t ReleaseNumber; /**< Product release (version) number.
+				                         *
+				                         *   \see \ref VERSION_BCD() utility macro.
+				                         */
 				uint8_t  ManufacturerStrIndex; /**< String index for the manufacturer's name. The
 				                                *   host will request this string via a separate
 				                                *   control request for the string descriptor.
@@ -312,12 +323,12 @@
 				                             *
 				                             *  \note On some microcontroller models, there is an embedded serial number
 				                             *        in the chip which can be used for the device serial number.
-				                             *        To use this serial number, set this to USE_INTERNAL_SERIAL.
-				                             *        On unsupported devices, this will evaluate to 0 and will cause
-				                             *        the host to generate a pseudo-unique value for the device upon
-				                             *        insertion.
+				                             *        To use this serial number, set this to \c USE_INTERNAL_SERIAL.
+				                             *        On unsupported devices, this will evaluate to \ref NO_DESCRIPTOR
+				                             *        and will cause the host to generate a pseudo-unique value for the
+				                             *        device upon insertion.
 				                             *
-				                             *  \see ManufacturerStrIndex structure entry.
+				                             *  \see \c ManufacturerStrIndex structure entry.
 				                             */
 				uint8_t  NumberOfConfigurations; /**< Total number of configurations supported by
 				                                  *   the device.
@@ -330,6 +341,8 @@
 			 *  to ensure compatibility with the standard.
 			 *
 			 *  \see \ref USB_Descriptor_Device_t for the version of this type with non-standard LUFA specific element names.
+			 *
+			 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 			 */
 			typedef struct
 			{
@@ -337,14 +350,20 @@
 				uint8_t  bDescriptorType; /**< Type of the descriptor, either a value in \ref USB_DescriptorTypes_t or a value
 				                              *   given by the specific class.
 				                              */
-				uint16_t bcdUSB; /**< BCD of the supported USB specification. */
+				uint16_t bcdUSB; /**< BCD of the supported USB specification.
+				                  *
+				                  *   \see \ref VERSION_BCD() utility macro.
+				                  */
 				uint8_t  bDeviceClass; /**< USB device class. */
 				uint8_t  bDeviceSubClass; /**< USB device subclass. */
 				uint8_t  bDeviceProtocol; /**< USB device protocol. */
 				uint8_t  bMaxPacketSize0; /**< Size of the control (address 0) endpoint's bank in bytes. */
 				uint16_t idVendor; /**< Vendor ID for the USB product. */
 				uint16_t idProduct; /**< Unique product ID for the USB product. */
-				uint16_t bcdDevice; /**< Product release (version) number. */
+				uint16_t bcdDevice; /**< Product release (version) number.
+				                     *
+				                     *   \see \ref VERSION_BCD() utility macro.
+				                     */
 				uint8_t  iManufacturer; /**< String index for the manufacturer's name. The
 				                         *   host will request this string via a separate
 				                         *   control request for the string descriptor.
@@ -360,17 +379,70 @@
 				                        *
 				                        *  \note On some microcontroller models, there is an embedded serial number
 				                        *        in the chip which can be used for the device serial number.
-				                        *        To use this serial number, set this to USE_INTERNAL_SERIAL.
-				                        *        On unsupported devices, this will evaluate to 0 and will cause
-				                        *        the host to generate a pseudo-unique value for the device upon
-				                        *        insertion.
+				                        *        To use this serial number, set this to \c USE_INTERNAL_SERIAL.
+				                        *        On unsupported devices, this will evaluate to \ref NO_DESCRIPTOR
+				                        *        and will cause the host to generate a pseudo-unique value for the
+				                        *        device upon insertion.
 				                        *
-				                        *  \see ManufacturerStrIndex structure entry.
+				                        *  \see \c ManufacturerStrIndex structure entry.
 				                        */
 				uint8_t  bNumConfigurations; /**< Total number of configurations supported by
 				                              *   the device.
 				                              */
 			} ATTR_PACKED USB_StdDescriptor_Device_t;
+
+			/** \brief Standard USB Device Qualifier Descriptor (LUFA naming conventions).
+			 *
+			 *  Type define for a standard Device Qualifier Descriptor. This structure uses LUFA-specific element names
+			 *  to make each element's purpose clearer.
+			 *
+			 *  \see \ref USB_StdDescriptor_DeviceQualifier_t for the version of this type with standard element names.
+			 */
+			typedef struct
+			{
+				USB_Descriptor_Header_t Header; /**< Descriptor header, including type and size. */
+
+				uint16_t USBSpecification; /**< BCD of the supported USB specification.
+				                            *
+				                            *   \see \ref VERSION_BCD() utility macro.
+				                            */
+				uint8_t  Class; /**< USB device class. */
+				uint8_t  SubClass; /**< USB device subclass. */
+				uint8_t  Protocol; /**< USB device protocol. */
+
+				uint8_t  Endpoint0Size; /**< Size of the control (address 0) endpoint's bank in bytes. */
+				uint8_t  NumberOfConfigurations; /**< Total number of configurations supported by
+				                                  *   the device.
+				                                  */
+				uint8_t  Reserved; /**< Reserved for future use, must be 0. */
+			} ATTR_PACKED USB_Descriptor_DeviceQualifier_t;
+
+			/** \brief Standard USB Device Qualifier Descriptor (USB-IF naming conventions).
+			 *
+			 *  Type define for a standard Device Qualifier Descriptor. This structure uses the relevant standard's given element names
+			 *  to ensure compatibility with the standard.
+			 *
+			 *  \see \ref USB_Descriptor_DeviceQualifier_t for the version of this type with non-standard LUFA specific element names.
+			 */
+			typedef struct
+			{
+				uint8_t  bLength; /**< Size of the descriptor, in bytes. */
+				uint8_t  bDescriptorType; /**< Type of the descriptor, either a value in \ref USB_DescriptorTypes_t or a value
+				                           *   given by the specific class.
+				                           */
+				uint16_t bcdUSB; /**< BCD of the supported USB specification.
+				                  *
+				                  *   \see \ref VERSION_BCD() utility macro.
+				                  */
+				uint8_t  bDeviceClass; /**< USB device class. */
+				uint8_t  bDeviceSubClass; /**< USB device subclass. */
+				uint8_t  bDeviceProtocol; /**< USB device protocol. */
+				uint8_t  bMaxPacketSize0; /**< Size of the control (address 0) endpoint's bank in bytes. */
+				uint8_t  bNumConfigurations; /**< Total number of configurations supported by
+				                              *   the device.
+				                              */
+				uint8_t  bReserved; /**< Reserved for future use, must be 0. */
+			} ATTR_PACKED USB_StdDescriptor_DeviceQualifier_t;
 
 			/** \brief Standard USB Configuration Descriptor (LUFA naming conventions).
 			 *
@@ -378,6 +450,8 @@
 			 *  to make each element's purpose clearer.
 			 *
 			 *  \see \ref USB_StdDescriptor_Configuration_Header_t for the version of this type with standard element names.
+			 *
+			 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 			 */
 			typedef struct
 			{
@@ -391,8 +465,8 @@
 				uint8_t  ConfigurationNumber; /**< Configuration index of the current configuration. */
 				uint8_t  ConfigurationStrIndex; /**< Index of a string descriptor describing the configuration. */
 
-				uint8_t  ConfigAttributes; /**< Configuration attributes, comprised of a mask of zero or
-				                            *   more USB_CONFIG_ATTR_* masks.
+				uint8_t  ConfigAttributes; /**< Configuration attributes, comprised of a mask of \c USB_CONFIG_ATTR_* masks.
+				                            *   On all devices, this should include USB_CONFIG_ATTR_RESERVED at a minimum.
 				                            */
 
 				uint8_t  MaxPowerConsumption; /**< Maximum power consumption of the device while in the
@@ -407,21 +481,23 @@
 			 *  to ensure compatibility with the standard.
 			 *
 			 *  \see \ref USB_Descriptor_Device_t for the version of this type with non-standard LUFA specific element names.
+			 *
+			 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 			 */
 			typedef struct
 			{
 				uint8_t  bLength; /**< Size of the descriptor, in bytes. */
 				uint8_t  bDescriptorType; /**< Type of the descriptor, either a value in \ref USB_DescriptorTypes_t or a value
-				                              *   given by the specific class.
-				                              */
+				                           *   given by the specific class.
+				                           */
 				uint16_t wTotalLength; /**< Size of the configuration descriptor header,
 				                           *   and all sub descriptors inside the configuration.
 				                           */
 				uint8_t  bNumInterfaces; /**< Total number of interfaces in the configuration. */
 				uint8_t  bConfigurationValue; /**< Configuration index of the current configuration. */
 				uint8_t  iConfiguration; /**< Index of a string descriptor describing the configuration. */
-				uint8_t  bmAttributes; /**< Configuration attributes, comprised of a mask of zero or
-				                        *   more USB_CONFIG_ATTR_* masks.
+				uint8_t  bmAttributes; /**< Configuration attributes, comprised of a mask of \c USB_CONFIG_ATTR_* masks.
+				                        *   On all devices, this should include USB_CONFIG_ATTR_RESERVED at a minimum.
 				                        */
 				uint8_t  bMaxPower; /**< Maximum power consumption of the device while in the
 				                     *   current configuration, calculated by the \ref USB_CONFIG_POWER_MA()
@@ -435,6 +511,8 @@
 			 *  to make each element's purpose clearer.
 			 *
 			 *  \see \ref USB_StdDescriptor_Interface_t for the version of this type with standard element names.
+			 *
+			 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 			 */
 			typedef struct
 			{
@@ -461,6 +539,8 @@
 			 *  to ensure compatibility with the standard.
 			 *
 			 *  \see \ref USB_Descriptor_Interface_t for the version of this type with non-standard LUFA specific element names.
+			 *
+			 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 			 */
 			typedef struct
 			{
@@ -495,6 +575,8 @@
 			 *  function. Read the ECN for more information.
 			 *
 			 *  \see \ref USB_StdDescriptor_Interface_Association_t for the version of this type with standard element names.
+			 *
+			 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 			 */
 			typedef struct
 			{
@@ -525,6 +607,8 @@
 			 *
 			 *  \see \ref USB_Descriptor_Interface_Association_t for the version of this type with non-standard LUFA specific
 			 *       element names.
+			 *
+			 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 			 */
 			typedef struct
 			{
@@ -548,6 +632,8 @@
 			 *  to make each element's purpose clearer.
 			 *
 			 *  \see \ref USB_StdDescriptor_Endpoint_t for the version of this type with standard element names.
+			 *
+			 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 			 */
 			typedef struct
 			{
@@ -574,6 +660,8 @@
 			 *
 			 *  \see \ref USB_Descriptor_Endpoint_t for the version of this type with non-standard LUFA specific
 			 *       element names.
+			 *
+			 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 			 */
 			typedef struct
 			{
@@ -607,12 +695,14 @@
 			 *  This structure uses LUFA-specific element names to make each element's purpose clearer.
 			 *
 			 *  \see \ref USB_StdDescriptor_String_t for the version of this type with standard element names.
+			 *
+			 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 			 */
 			typedef struct
 			{
 				USB_Descriptor_Header_t Header; /**< Descriptor header, including type and size. */
 
-				#if (ARCH == ARCH_AVR8)
+				#if (((ARCH == ARCH_AVR8) || (ARCH == ARCH_XMEGA)) && !defined(__DOXYGEN__))
 				wchar_t  UnicodeString[];
 				#else
 				uint16_t UnicodeString[]; /**< String data, as unicode characters (alternatively,
@@ -624,7 +714,8 @@
 				                           *   Under GCC, strings prefixed with the "L" character (before
 				                           *   the opening string quotation mark) are considered to be
 				                           *   Unicode strings, and may be used instead of an explicit
-				                           *   array of ASCII characters.
+				                           *   array of ASCII characters on little endian devices with
+				                           *   UTF-16-LE \c wchar_t encoding.
 				                           */
 				#endif
 			} ATTR_PACKED USB_Descriptor_String_t;
@@ -642,6 +733,8 @@
 			 *
 			 *  \see \ref USB_Descriptor_String_t for the version of this type with with non-standard LUFA specific
 			 *       element names.
+			 *
+			 *  \note Regardless of CPU architecture, these values should be stored as little endian.
 			 */
 			typedef struct
 			{
@@ -660,14 +753,6 @@
 				                     */
 			} ATTR_PACKED USB_StdDescriptor_String_t;
 
-	/* Private Interface - For use in library only: */
-	#if !defined(__DOXYGEN__)
-		/* Macros: */
-			#define VERSION_TENS(x)                   (int)((x) / 10)
-			#define VERSION_ONES(x)                   (int)((x) - (10 * VERSION_TENS(x)))
-			#define VERSION_TENTHS(x)                 (int)(((x) - (int)(x)) * 10)
-			#define VERSION_HUNDREDTHS(x)             (int)((((x) - (int)(x)) * 100) - (10 * VERSION_TENTHS(x)))
-	#endif
 
 	/* Disable C linkage for C++ Compilers: */
 		#if defined(__cplusplus)

@@ -1,13 +1,13 @@
 /*
              LUFA Library
-     Copyright (C) Dean Camera, 2011.
+     Copyright (C) Dean Camera, 2014.
 
   dean [at] fourwalledcubicle [dot] com
            www.lufa-lib.org
 */
 
 /*
-  Copyright 2011  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  Copyright 2014  Dean Camera (dean [at] fourwalledcubicle [dot] com)
 
   Permission to use, copy, modify, distribute, and sell this
   software and its documentation for any purpose is hereby granted
@@ -18,7 +18,7 @@
   advertising or publicity pertaining to distribution of the
   software without specific, written prior permission.
 
-  The author disclaim all warranties with regard to this
+  The author disclaims all warranties with regard to this
   software, including all implied warranties of merchantability
   and fitness.  In no event shall the author be liable for any
   special, indirect or consequential damages or any damages
@@ -34,7 +34,7 @@
  */
 
 /** \ingroup Group_MiscDrivers
- *  \defgroup Group_AT45DB321C Atmel AT45DB321C Dataflash Commands
+ *  \defgroup Group_AT45DB321C Atmel AT45DB321C Dataflash Commands - LUFA/Drivers/Misc/AT45DB321C.h
  *  \brief Command constants for the Atmel AT45DB321C Dataflash.
  *
  *  Dataflash command constants for the Atmel AT45DB321C Dataflash IC.
@@ -53,8 +53,6 @@
 			#define DF_STATUS_COMPMISMATCH                  (1 << 6)
 			#define DF_STATUS_SECTORPROTECTION_ON           (1 << 1)
 			//@}
-
-			#define DF_MANUFACTURER_ATMEL                   0x1F
 
 			/** \name Dataflash Commands */
 			//@{
@@ -92,6 +90,9 @@
 
 			#define DF_CMD_READMANUFACTURERDEVICEINFO       0x9F
 			//@}
+
+			/** Manufacturer code for Atmel Corporation, returned by Atmel Dataflash ICs in response to the \c DF_CMD_READMANUFACTURERDEVICEINFO command. */
+			#define DF_MANUFACTURER_ATMEL                   0x1F
 
 #endif
 

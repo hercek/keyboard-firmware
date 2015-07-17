@@ -18,11 +18,11 @@ static void serial_eeprom_start_write_if_unaligned(void* const addr){
 #define  TEMPLATE_BUFFER_OFFSET(Length)            0
 #define  TEMPLATE_BUFFER_MOVE(BufferPtr, Amount)   BufferPtr += Amount
 #define  TEMPLATE_TRANSFER_BYTE(BufferPtr)         Endpoint_Write_8(serial_eeprom_read_byte(BufferPtr))
-#include "LUFA/Drivers/USB/Core/Template/Template_Endpoint_Control_W.c"
+#include "LUFA/Drivers/USB/Core/AVR8/Template/Template_Endpoint_Control_W.c"
 
 // This unfortunately has to peek into the internals enough to see the Buffer pointer and Length iterators.
 #define  TEMPLATE_FUNC_NAME                      Endpoint_Read_Control_SEStream_LE
 #define  TEMPLATE_BUFFER_OFFSET(Length)          ({ serial_eeprom_start_write_if_unaligned(Buffer); 0; })
 #define  TEMPLATE_BUFFER_MOVE(BufferPtr, Amount) BufferPtr += Amount
 #define  TEMPLATE_TRANSFER_BYTE(BufferPtr) ({ uint8_t b = Endpoint_Read_8(); serial_eeprom_write_step(BufferPtr, &b, 1, (Length == 1)); })
-#include "LUFA/Drivers/USB/Core/Template/Template_Endpoint_Control_R.c"
+#include "LUFA/Drivers/USB/Core/AVR8/Template/Template_Endpoint_Control_R.c"

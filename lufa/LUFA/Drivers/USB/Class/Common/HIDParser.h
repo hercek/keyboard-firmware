@@ -1,13 +1,13 @@
 /*
              LUFA Library
-     Copyright (C) Dean Camera, 2011.
+     Copyright (C) Dean Camera, 2014.
 
   dean [at] fourwalledcubicle [dot] com
            www.lufa-lib.org
 */
 
 /*
-  Copyright 2011  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  Copyright 2014  Dean Camera (dean [at] fourwalledcubicle [dot] com)
 
   Permission to use, copy, modify, distribute, and sell this
   software and its documentation for any purpose is hereby granted
@@ -18,7 +18,7 @@
   advertising or publicity pertaining to distribution of the
   software without specific, written prior permission.
 
-  The author disclaim all warranties with regard to this
+  The author disclaims all warranties with regard to this
   software, including all implied warranties of merchantability
   and fitness.  In no event shall the author be liable for any
   special, indirect or consequential damages or any damages
@@ -40,11 +40,11 @@
  *  \defgroup Group_HIDParser HID Report Parser
  *  \brief USB Human Interface Device (HID) Class report descriptor parser.
  *
- *  \section Sec_Dependencies Module Source Dependencies
+ *  \section Sec_HIDParser_Dependencies Module Source Dependencies
  *  The following files must be built with any user project that uses this module:
  *    - LUFA/Drivers/USB/Class/Host/HIDParser.c <i>(Makefile source module name: LUFA_SRC_USB)</i>
  *
- *  \section Sec_ModDescription Module Description
+ *  \section Sec_HIDParser_ModDescription Module Description
  *  Human Interface Device (HID) class report descriptor parser. This module implements a parser than is
  *  capable of processing a complete HID report descriptor, and outputting a flat structure containing the
  *  contents of the report in an a more friendly format. The parsed data may then be further processed and used
@@ -54,11 +54,11 @@
  *  of data exchanged between a HID device and a host, including both the physical encoding of each item
  *  (such as a button, key press or joystick axis) in the sent and received data packets - known as "reports" -
  *  as well as other information about each item such as the usages, data range, physical location and other
- *  characterstics. In this way a HID device can retain a high degree of flexibility in its capabilities, as it
- *  is not forced to comply with a given report layout or featureset.
+ *  characteristics. In this way a HID device can retain a high degree of flexibility in its capabilities, as it
+ *  is not forced to comply with a given report layout or feature-set.
  *
  *  This module also contains routines for the processing of data in an actual HID report, using the parsed report
- *  descritor data as a guide for the encoding.
+ *  descriptor data as a guide for the encoding.
  *
  *  @{
  */
@@ -70,8 +70,8 @@
 		#include "../../../../Common/Common.h"
 
 		#include "HIDReportData.h"
-		#include "../Common/HID.h"
-		
+		#include "HIDClassCommon.h"
+
 	/* Enable C linkage for C++ Compilers: */
 		#if defined(__cplusplus)
 			extern "C" {
@@ -222,7 +222,7 @@
 			{
 				uint16_t                    BitOffset;      /**< Bit offset in the IN, OUT or FEATURE report of the item. */
 				uint8_t                     ItemType;       /**< Report item type, a value in \ref HID_ReportItemTypes_t. */
-				uint16_t                    ItemFlags;      /**< Item data flags, a mask of HID_IOF_* constants. */
+				uint16_t                    ItemFlags;      /**< Item data flags, a mask of \c HID_IOF_* constants. */
 				uint8_t                     ReportID;       /**< Report ID this item belongs to, or 0x00 if device has only one report */
 				HID_CollectionPath_t*       CollectionPath; /**< Collection path of the item. */
 
@@ -284,8 +284,8 @@
 			/** Extracts the given report item's value out of the given HID report and places it into the Value
 			 *  member of the report item's \ref HID_ReportItem_t structure.
 			 *
-			 *  When called on a report with an item that exists in that report, this copies the report item's Value
-			 *  to it's PreviousValue element for easy checking to see if an item's value has changed before processing
+			 *  When called on a report with an item that exists in that report, this copies the report item's \c Value
+			 *  to its \c PreviousValue element for easy checking to see if an item's value has changed before processing
 			 *  a report. If the given item does not exist in the report, the function does not modify the report item's
 			 *  data.
 			 *
@@ -295,14 +295,14 @@
 			 *  \returns Boolean \c true if the item to retrieve was located in the given report, \c false otherwise.
 			 */
 			bool USB_GetHIDReportItemInfo(const uint8_t* ReportData,
-			                              HID_ReportItem_t* const ReportItem) ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
+			                              HID_ReportItem_t* const ReportItem) ATTR_NON_NULL_PTR_ARG(1);
 
-			/** Retrieves the given report item's value out of the Value member of the report item's
+			/** Retrieves the given report item's value out of the \c Value member of the report item's
 			 *  \ref HID_ReportItem_t structure and places it into the correct position in the HID report
 			 *  buffer. The report buffer is assumed to have the appropriate bits cleared before calling
 			 *  this function (i.e., the buffer should be explicitly cleared before report values are added).
 			 *
-			 *  When called, this copies the report item's Value element to it's PreviousValue element for easy
+			 *  When called, this copies the report item's \c Value element to its \c PreviousValue element for easy
 			 *  checking to see if an item's value has changed before sending a report.
 			 *
 			 *  If the device has multiple HID reports, the first byte in the report is set to the report ID of the given item.
@@ -311,16 +311,16 @@
 			 *  \param[in]  ReportItem  Pointer to the report item of interest in a \ref HID_ReportInfo_t ReportItem array.
 			 */
 			void USB_SetHIDReportItemInfo(uint8_t* ReportData,
-			                              HID_ReportItem_t* const ReportItem) ATTR_NON_NULL_PTR_ARG(1) ATTR_NON_NULL_PTR_ARG(2);
+			                              HID_ReportItem_t* const ReportItem) ATTR_NON_NULL_PTR_ARG(1);
 
-			/** Retrieves the size of a given HID report in bytes from it's Report ID.
+			/** Retrieves the size of a given HID report in bytes from its Report ID.
 			 *
 			 *  \param[in] ParserData  Pointer to a \ref HID_ReportInfo_t instance containing the parser output.
-			 *  \param[in] ReportID    Report ID of the report whose size is to be retrieved.
-			 *  \param[in] ReportType  Type of the report whose size is to be determined, a valued from the
+			 *  \param[in] ReportID    Report ID of the report whose size is to be determined.
+			 *  \param[in] ReportType  Type of the report whose size is to be determined, a value from the
 			 *                         \ref HID_ReportItemTypes_t enum.
 			 *
-			 *  \return Size of the report in bytes, or 0 if the report does not exist.
+			 *  \return Size of the report in bytes, or \c 0 if the report does not exist.
 			 */
 			uint16_t USB_GetHIDReportSize(HID_ReportInfo_t* const ParserData,
 			                              const uint8_t ReportID,
@@ -330,6 +330,10 @@
 			 *  the parser is used, to determine what report IN, OUT and FEATURE item's information is stored into the user
 			 *  \ref HID_ReportInfo_t structure. This can be used to filter only those items the application will be using, so that
 			 *  no RAM is wasted storing the attributes for report items which will never be referenced by the application.
+			 *
+			 *  Report item pointers passed to this callback function may be cached by the user application for later use
+			 *  when processing report items. This provides faster report processing in the user application than would
+			 *  a search of the entire parsed report item table for each received or sent report.
 			 *
 			 *  \param[in] CurrentItem  Pointer to the current report item for user checking.
 			 *

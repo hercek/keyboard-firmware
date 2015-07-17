@@ -1,13 +1,13 @@
 /*
              LUFA Library
-     Copyright (C) Dean Camera, 2011.
+     Copyright (C) Dean Camera, 2014.
 
   dean [at] fourwalledcubicle [dot] com
            www.lufa-lib.org
 */
 
 /*
-  Copyright 2011  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  Copyright 2014  Dean Camera (dean [at] fourwalledcubicle [dot] com)
 
   Permission to use, copy, modify, distribute, and sell this
   software and its documentation for any purpose is hereby granted
@@ -18,7 +18,7 @@
   advertising or publicity pertaining to distribution of the
   software without specific, written prior permission.
 
-  The author disclaim all warranties with regard to this
+  The author disclaims all warranties with regard to this
   software, including all implied warranties of merchantability
   and fitness.  In no event shall the author be liable for any
   special, indirect or consequential damages or any damages
@@ -48,27 +48,25 @@
  *  \defgroup Group_Dataflash Dataflash Driver - LUFA/Drivers/Board/Dataflash.h
  *  \brief Atmel Dataflash storage IC board hardware driver.
  *
- *  \section Sec_Dependencies Module Source Dependencies
+ *  \section Sec_Dataflash_Dependencies Module Source Dependencies
  *  The following files must be built with any user project that uses this module:
  *    - None
  *
- *  \section Sec_ModDescription Module Description
+ *  \section Sec_Dataflash_ModDescription Module Description
  *  Dataflash driver. This module provides an easy to use interface for the Dataflash ICs located on many boards,
  *  for the storage of large amounts of data into the Dataflash's non-volatile memory.
  *
  *  If the \c BOARD value is set to \c BOARD_USER, this will include the \c /Board/Dataflash.h file in the user project
- *  directory. Otherwise, it will include the appropriate built in board driver header file.
+ *  directory. Otherwise, it will include the appropriate built-in board driver header file.
  *
  *  For possible \c BOARD makefile values, see \ref Group_BoardTypes.
  *
- *  \section Sec_ExampleUsage Example Usage
+ *  \section Sec_Dataflash_ExampleUsage Example Usage
  *  The following snippet is an example of how this module may be used within a typical
  *  application.
  *
  *  \code
- *      // Initialise the SPI and board Dataflash drivers before first use
- *      SPI_Init(SPI_SPEED_FCPU_DIV_2 | SPI_ORDER_MSB_FIRST | SPI_SCK_LEAD_FALLING |
- *               SPI_SAMPLE_TRAILING | SPI_MODE_MASTER);
+ *      // Initialize the board Dataflash driver before first use
  *      Dataflash_Init();
  *
  *      uint8_t WriteBuffer[DATAFLASH_PAGE_SIZE];
@@ -122,8 +120,7 @@
 		#define __INCLUDE_FROM_DATAFLASH_H
 
 	/* Includes: */
-	#include "../../Common/Common.h"
-	#include "../Peripheral/SPI.h"
+		#include "../../Common/Common.h"
 
 	/* Enable C linkage for C++ Compilers: */
 		#if defined(__cplusplus)
@@ -132,23 +129,23 @@
 
 	/* Public Interface - May be used in end-application: */
 		/* Macros: */
-			#if !defined(__DOXYGEN__)
-				#define __GET_DATAFLASH_MASK2(x, y) x ## y
-				#define __GET_DATAFLASH_MASK(x)     __GET_DATAFLASH_MASK2(DATAFLASH_CHIP,x)
-			#endif
-
 			/** Retrieves the Dataflash chip select mask for the given Dataflash chip index.
 			 *
-			 *  \param[in] index  Index of the dataflash chip mask to retrieve
+			 *  \attention This macro will only work correctly on chip index numbers that are compile-time
+			 *             constants defined by the preprocessor.
+			 *
+			 *  \param[in] index  Index of the dataflash chip mask to retrieve.
 			 *
 			 *  \return Mask for the given Dataflash chip's /CS pin
 			 */
-			#define DATAFLASH_CHIP_MASK(index)      __GET_DATAFLASH_MASK(index)
+			#define DATAFLASH_CHIP_MASK(index)      CONCAT_EXPANDED(DATAFLASH_CHIP, index)
 
 		/* Inline Functions: */
-			/** Initialises the dataflash driver so that commands and data may be sent to an attached dataflash IC.
+			/** Initializes the dataflash driver so that commands and data may be sent to an attached dataflash IC.
 			 *
-			 *  \note The microcontroller's SPI driver must be initialized before any of the dataflash commands are used.
+			 *  \note The microcontroller's physical interface driver connected to the Dataflash IC must be initialized before
+			 *        any of the dataflash commands are used. This is usually a SPI hardware port, but on some devices/boards may
+			 *        be a USART operating in SPI Master mode.
 			 */
 			static inline void Dataflash_Init(void);
 
@@ -161,7 +158,7 @@
 
 			/** Selects the given dataflash chip.
 			 *
-			 *  \param[in]  ChipMask  Mask of the Dataflash IC to select, in the form of \c DATAFLASH_CHIPn mask (where n is
+			 *  \param[in]  ChipMask  Mask of the Dataflash IC to select, in the form of a \c DATAFLASH_CHIPn mask (where n is
 			 *              the chip number).
 			 */
 			static inline void Dataflash_SelectChip(const uint8_t ChipMask) ATTR_ALWAYS_INLINE;
@@ -176,7 +173,7 @@
 			 *  are deselected.
 			 *
 			 *  \param[in] PageAddress  Address of the page to manipulate, ranging from
-			 *                          ((DATAFLASH_PAGES * DATAFLASH_TOTALCHIPS) - 1).
+			 *                          0 to ((DATAFLASH_PAGES * DATAFLASH_TOTALCHIPS) - 1).
 			 */
 			static inline void Dataflash_SelectChipFromPage(const uint16_t PageAddress);
 
@@ -191,7 +188,7 @@
 			static inline void Dataflash_WaitWhileBusy(void);
 
 			/** Sends a set of page and buffer address bytes to the currently selected dataflash IC, for use with
-			 *  dataflash commands which require a complete 24-byte address.
+			 *  dataflash commands which require a complete 24-bit address.
 			 *
 			 *  \param[in] PageAddress  Page address within the selected dataflash IC
 			 *  \param[in] BufferByte   Address within the dataflash's buffer
@@ -201,51 +198,57 @@
 
 			/** Sends a byte to the currently selected dataflash IC, and returns a byte from the dataflash.
 			 *
-			 *  \param[in] Byte of data to send to the dataflash
+			 *  \param[in] Byte  Byte of data to send to the dataflash
 			 *
 			 *  \return Last response byte from the dataflash
 			 */
 			static inline uint8_t Dataflash_TransferByte(const uint8_t Byte) ATTR_ALWAYS_INLINE;
-			static inline uint8_t Dataflash_TransferByte(const uint8_t Byte)
-			{
-				return SPI_TransferByte(Byte);
-			}
 
 			/** Sends a byte to the currently selected dataflash IC, and ignores the next byte from the dataflash.
 			 *
-			 *  \param[in] Byte of data to send to the dataflash
+			 *  \param[in] Byte  Byte of data to send to the dataflash
 			 */
 			static inline void Dataflash_SendByte(const uint8_t Byte) ATTR_ALWAYS_INLINE;
-			static inline void Dataflash_SendByte(const uint8_t Byte)
-			{
-				SPI_SendByte(Byte);
-			}
 
 			/** Sends a dummy byte to the currently selected dataflash IC, and returns the next byte from the dataflash.
 			 *
 			 *  \return Last response byte from the dataflash
 			 */
 			static inline uint8_t Dataflash_ReceiveByte(void) ATTR_ALWAYS_INLINE ATTR_WARN_UNUSED_RESULT;
-			static inline uint8_t Dataflash_ReceiveByte(void)
-			{
-				return SPI_ReceiveByte();
-			}
 
 		/* Includes: */
 			#if (BOARD == BOARD_NONE)
-				#error The Board Dataflash driver cannot be used if the makefile BOARD option is not set.
+				#define DATAFLASH_TOTALCHIPS  0
+				#define DATAFLASH_NO_CHIP     0
+				#define DATAFLASH_CHIP1       0
+				#define DATAFLASH_PAGE_SIZE   0
+				#define DATAFLASH_PAGES       0
+				static inline void    Dataflash_Init(void) {};
+				static inline uint8_t Dataflash_TransferByte(const uint8_t Byte) { return 0; };
+				static inline void    Dataflash_SendByte(const uint8_t Byte) {};
+				static inline uint8_t Dataflash_ReceiveByte(void) { return 0; };
+				static inline uint8_t Dataflash_GetSelectedChip(void) { return 0; };
+				static inline void    Dataflash_SelectChip(const uint8_t ChipMask) {};
+				static inline void    Dataflash_DeselectChip(void) {};
+				static inline void    Dataflash_SelectChipFromPage(const uint16_t PageAddress) {};
+				static inline void    Dataflash_ToggleSelectedChipCS(void) {};
+				static inline void    Dataflash_WaitWhileBusy(void) {};
+				static inline void    Dataflash_SendAddressBytes(uint16_t PageAddress,
+				                                                 const uint16_t BufferByte) {};
 			#elif (BOARD == BOARD_USBKEY)
-				#include "USBKEY/Dataflash.h"
+				#include "AVR8/USBKEY/Dataflash.h"
 			#elif (BOARD == BOARD_STK525)
-				#include "STK525/Dataflash.h"
+				#include "AVR8/STK525/Dataflash.h"
 			#elif (BOARD == BOARD_STK526)
-				#include "STK526/Dataflash.h"
-			#elif (BOARD == BOARD_XPLAIN)
-				#include "XPLAIN/Dataflash.h"
-			#elif (BOARD == BOARD_XPLAIN_REV1)
-				#include "XPLAIN/Dataflash.h"
+				#include "AVR8/STK526/Dataflash.h"
+			#elif ((BOARD == BOARD_XPLAIN) || (BOARD == BOARD_XPLAIN_REV1))
+				#include "AVR8/XPLAIN/Dataflash.h"
 			#elif (BOARD == BOARD_EVK527)
-				#include "EVK527/Dataflash.h"
+				#include "AVR8/EVK527/Dataflash.h"
+			#elif (BOARD == BOARD_A3BU_XPLAINED)
+				#include "XMEGA/A3BU_XPLAINED/Dataflash.h"
+			#elif (BOARD == BOARD_B1_XPLAINED)
+				#include "XMEGA/B1_XPLAINED/Dataflash.h"
 			#else
 				#include "Board/Dataflash.h"
 			#endif

@@ -1,13 +1,13 @@
 /*
              LUFA Library
-     Copyright (C) Dean Camera, 2011.
+     Copyright (C) Dean Camera, 2014.
 
   dean [at] fourwalledcubicle [dot] com
            www.lufa-lib.org
 */
 
 /*
-  Copyright 2011  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  Copyright 2014  Dean Camera (dean [at] fourwalledcubicle [dot] com)
 
   Permission to use, copy, modify, distribute, and sell this
   software and its documentation for any purpose is hereby granted
@@ -18,7 +18,7 @@
   advertising or publicity pertaining to distribution of the
   software without specific, written prior permission.
 
-  The author disclaim all warranties with regard to this
+  The author disclaims all warranties with regard to this
   software, including all implied warranties of merchantability
   and fitness.  In no event shall the author be liable for any
   special, indirect or consequential damages or any damages
@@ -28,6 +28,9 @@
   this software.
 */
 
+#include "../../../../Common/Common.h"
+#if (ARCH == ARCH_AVR8)
+
 #define  __INCLUDE_FROM_USB_DRIVER
 #include "../USBMode.h"
 
@@ -36,8 +39,23 @@
 #include "../Endpoint.h"
 
 #if !defined(FIXED_CONTROL_ENDPOINT_SIZE)
-uint8_t USB_ControlEndpointSize = ENDPOINT_CONTROLEP_DEFAULT_SIZE;
+uint8_t USB_Device_ControlEndpointSize = ENDPOINT_CONTROLEP_DEFAULT_SIZE;
 #endif
+
+bool Endpoint_ConfigureEndpointTable(const USB_Endpoint_Table_t* const Table,
+                                     const uint8_t Entries)
+{
+	for (uint8_t i = 0; i < Entries; i++)
+	{
+		if (!(Table[i].Address))
+		  continue;
+
+		if (!(Endpoint_ConfigureEndpoint(Table[i].Address, Table[i].Type, Table[i].Size, Table[i].Banks)))
+		  return false;
+	}
+
+	return true;
+}
 
 bool Endpoint_ConfigureEndpoint_Prv(const uint8_t Number,
                                     const uint8_t UECFG0XData,
@@ -52,7 +70,7 @@ bool Endpoint_ConfigureEndpoint_Prv(const uint8_t Number,
 	UECFG1X = UECFG1XData;
 
 	return Endpoint_IsConfigured();
-#else	
+#else
 	for (uint8_t EPNum = Number; EPNum < ENDPOINT_TOTAL_ENDPOINTS; EPNum++)
 	{
 		uint8_t UECFG0XTemp;
@@ -60,7 +78,7 @@ bool Endpoint_ConfigureEndpoint_Prv(const uint8_t Number,
 		uint8_t UEIENXTemp;
 
 		Endpoint_SelectEndpoint(EPNum);
-		
+
 		if (EPNum == Number)
 		{
 			UECFG0XTemp = UECFG0XData;
@@ -78,17 +96,17 @@ bool Endpoint_ConfigureEndpoint_Prv(const uint8_t Number,
 		  continue;
 
 		Endpoint_DisableEndpoint();
-		UECFG1X &= (1 << ALLOC);
+		UECFG1X &= ~(1 << ALLOC);
 
 		Endpoint_EnableEndpoint();
 		UECFG0X = UECFG0XTemp;
 		UECFG1X = UECFG1XTemp;
 		UEIENX  = UEIENXTemp;
-			
+
 		if (!(Endpoint_IsConfigured()))
-		  return false;			
+		  return false;
 	}
-	
+
 	Endpoint_SelectEndpoint(Number);
 	return true;
 #endif
@@ -155,7 +173,7 @@ uint8_t Endpoint_WaitUntilReady(void)
 			if (Endpoint_IsOUTReceived())
 			  return ENDPOINT_READYWAIT_NoError;
 		}
-		
+
 		uint8_t USB_DeviceState_LCL = USB_DeviceState;
 
 		if (USB_DeviceState_LCL == DEVICE_STATE_Unattached)
@@ -180,3 +198,4 @@ uint8_t Endpoint_WaitUntilReady(void)
 
 #endif
 
+#endif
