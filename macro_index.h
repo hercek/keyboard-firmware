@@ -51,7 +51,7 @@
 /**
  * Size in bytes of macro index
  */
-#define MACRO_INDEX_SIZE 300 // 50 x 6-byte entries
+#define MACRO_INDEX_SIZE 96 // 16 x 6-byte entries
 
 #define MACRO_MAX_KEYS 4
 

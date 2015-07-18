@@ -270,7 +270,7 @@ static void handle_state_normal(void){
 					if(ki == SPECIAL_LKEY_CONFIG_SAVE || ki == SPECIAL_LKEY_CONFIG_LOAD || ki == SPECIAL_LKEY_CONFIG_DELETE){
 						type = ki;
 					}
-					else if(ki >= LOGICAL_KEY_1 && ki <= LOGICAL_KEY_0){
+					else if(ki >= LOGICAL_KEY_1 && ki <= (LOGICAL_KEY_1+NUM_KEY_MAPPING_INDICES)){
 						pos = ki;
 					}
 				}

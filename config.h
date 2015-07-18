@@ -61,6 +61,9 @@
 	#define PROGRAMS_SIZE 0
 #endif
 
+// We support saving up to 10 keyboard remappings as their differences from the default.
+#define NUM_KEY_MAPPING_INDICES 3 // maximum number here is 10 !!!
+
 // Configuration is saved in the eeprom
 typedef struct _configuration_flags {
 	unsigned char key_sound_enabled:1;

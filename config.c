@@ -78,12 +78,11 @@ hid_keycode* config_get_mapping(void){
 // These (variable sized) mappings are stored in the fixed-size buffer saved_key_mappings,
 // indexed by saved_key_mapping_indices. The buffer is kept packed (subsequent mappings
 // moved down on removal)
-#define NUM_KEY_MAPPING_INDICES 10
 struct { uint8_t start; uint8_t end; } saved_key_mapping_indices[NUM_KEY_MAPPING_INDICES] EEMEM;
 
 // Key mappings are saved as a list of (logical_keycode, hid_keycode)
 // pairs. Indexed by uint8_t, so must be <= 256 long.
-#define SAVED_KEY_MAPPINGS_BUFFER_SIZE 256
+#define SAVED_KEY_MAPPINGS_BUFFER_SIZE 128
 struct { logical_keycode l_key; hid_keycode h_key; } saved_key_mappings[SAVED_KEY_MAPPINGS_BUFFER_SIZE] EEMEM;
 
 // Programs are stored in external eeprom.
