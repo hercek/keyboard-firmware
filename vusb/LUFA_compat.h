@@ -28,8 +28,10 @@
 #define USB_STRING_LEN(UnicodeChars)      (sizeof(USB_Descriptor_Header_t) + ((UnicodeChars) << 1))
 
 
-#define VERSION_BCD(x)                    CPU_TO_LE16((((VERSION_TENS(x) << 4) | VERSION_ONES(x)) << 8) | \
-													  ((VERSION_TENTHS(x) << 4) | VERSION_HUNDREDTHS(x)))
+#define VERSION_BCD(Major, Minor, Revision) \
+                                          CPU_TO_LE16( ((Major & 0xFF) << 8) | \
+                                                       ((Minor & 0x0F) << 4) | \
+                                                       (Revision & 0x0F) )
 
 #define LANGUAGE_ID_ENG                   CPU_TO_LE16(0x0409)
 
@@ -37,7 +39,7 @@
 
 #define ENDPOINT_DESCRIPTOR_DIR_OUT       0x00
 
-#define USB_CONFIG_ATTR_BUSPOWERED        0x80
+#define USB_CONFIG_ATTR_RESERVED          0x80
 
 #define USB_CONFIG_ATTR_SELFPOWERED       0x40
 
