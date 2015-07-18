@@ -343,5 +343,6 @@ uint8_t matrix_read_column(uint8_t matrix_column);
 void set_all_leds(uint8_t led_mask);
 
 void test_leds(void);
+void test_photosensor(void);
 
 #endif // __KINESIS_H

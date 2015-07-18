@@ -118,6 +118,9 @@ void __attribute__((noreturn)) Keyboard_Main(void)
 			keystate_update();
 			ledstate_update();
 			update.keys = 0;
+#ifdef KATY_DEBUG
+			test_photosensor();
+#endif //KATY_DEBUG
 		}
 		else if(!update.keys && slice){
 			update.keys = 1;
@@ -223,28 +226,26 @@ static void handle_state_normal(void){
 					current_state = STATE_WAITING;
 					next_state = STATE_NORMAL;
 					break;
-
+#ifdef KATY_DEBUG
 				case SPECIAL_LKEY_READ_EEPROM:
 					buzzer_start_f(100, 200);
 					serial_eeprom_test_read();
 					current_state = STATE_PRINTING;
 					next_state = STATE_NORMAL;
 					break;
-
 				case SPECIAL_LKEY_WRITE_EEPROM:
 					buzzer_start_f(100, 100);
 					serial_eeprom_test_write();
 					current_state = STATE_PRINTING;
 					next_state = STATE_NORMAL;
 					break;
-
 				case SPECIAL_LKEY_TEST_LEDS:
 					buzzer_start_f(100, 100);
 					test_leds();
 					current_state = STATE_WAITING;
 					next_state = STATE_NORMAL;
 					break;
-
+#endif //KATY_DEBUG
 				default:
 					break;
 				}

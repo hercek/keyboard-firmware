@@ -270,7 +270,6 @@ int16_t serial_eeprom_read(const uint8_t* addr, uint8_t* buf, uint16_t len){
 	return read_bytes ? read_bytes : -1;
 }
 
-#ifdef DEBUG
 
 // test code to dump the contents of the eeprom - typically not linked in
 uint8_t serial_eeprom_test_read(void){
@@ -351,4 +350,3 @@ uint8_t serial_eeprom_test_write(void){
 		return 1;
 	}
 }
-#endif // DEBUG

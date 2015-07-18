@@ -314,11 +314,11 @@ static uint8_t read_calibration_byte(uint8_t index) {
 	return result;
 }
 
-static void photoresistor_init(void) {
-	PORTB.DIRSET = PIN0_bm; // photoPwr is output
-	PORTB.OUTSET = PIN0_bm; // Turn on 3.3V on photoPwr
-	//PORTB.DIRCLR = PIN2_bm; // photoSns is input
-	//PORTB.PIN2CTRL = PORT_OPC_TOTEM_gc; // No pull up nor pull down on photoSns
+static void photosensor_init(void) {
+	PORTB.DIRSET = PIN2_bm; // photoPwr is output
+	PORTB.OUTSET = PIN2_bm; // Turn on 3.3V on photoPwr
+	//PORTB.DIRCLR = PIN0_bm; // photoSns is input
+	//PORTB.PIN0CTRL = PORT_OPC_TOTEM_gc; // No pull up nor pull down on photoSns
 	// First read is wrong, discard it
 	ADCA.CALL = read_calibration_byte(offsetof(NVM_PROD_SIGNATURES_t, ADCACAL0));
 	ADCA.CALL = read_calibration_byte(offsetof(NVM_PROD_SIGNATURES_t, ADCACAL0));
@@ -327,14 +327,14 @@ static void photoresistor_init(void) {
 	//ADCA.REFCTRL = ADC_REFSEL_INTVCC_gc;
 	// Set up ADC for photoSns
 	ADCA.CH0.CTRL = ADC_CH_INPUTMODE_SINGLEENDED_gc;
-	ADCA.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN10_gc; //PB2 == ADC10 (a4u datasheet, page 58)
+	ADCA.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN8_gc; //PB0 == ADC8 (a4u datasheet, page 58)
 	ADCA.CTRLA = ADC_ENABLE_bm;
 	//_delay_us(3); // wait at least 24 ADC clocks (24*4/32MHz = 3us)
 }
 
-static void photoresistor_test(void) {
-	static float moving_average = 0.0f;
+void test_photosensor(void) {
 	static uint16_t ma[32] = {0};
+	static uint16_t adc_range = 0;
 	static uint8_t index = 0;
 	const uint8_t array_size = sizeof(ma)/sizeof(ma[0]);
 	char adc_string[9] = {0};
@@ -343,32 +343,33 @@ static void photoresistor_test(void) {
 	while (!(ADCA.CH0.INTFLAGS & ADC_CH0IF_bm)); // Wait for conversion to be finished.
 	uint16_t adc_result = ADCA.CH0RES & 0x0FFF; // get the 12bit value
 
-	moving_average -= ma[index]/array_size;
 	ma[index] = adc_result;
-	moving_average += adc_result/array_size;
 	index = (index + 1) % array_size;
 
-/*
-	uint16_t adc_average = 0;
+	uint32_t adc_average = 0;
+	uint16_t adc_max = 0;
+	uint16_t adc_min = -1;
 	for (uint8_t i = 0; i < array_size; ++i) {
 		adc_average += ma[i];
+		if (adc_max < ma[i]) adc_max = ma[i];
+		if (adc_min > ma[i]) adc_min = ma[i];
 	}
 	adc_average /= array_size;
-*/
-
-	/*TODO remove this:*/
-	sprintf(adc_string, "%8d", (uint16_t)moving_average);
+	if (!(uptimems() & 0x1ff))
+		adc_range = 0;
+	if (adc_range < adc_max-adc_min)
+		adc_range = adc_max-adc_min;
 
 	//uint8_t reset_status = RST.STATUS;
 	//RST.STATUS = 0x01;
 	//sprintf(adc_string, "0x%02x", reset_status);
 
+	sprintf(adc_string, "%8d", (uint16_t)adc_average);
 	//sprintf(adc_string, "%8d", adc_average);
 	//sprintf(adc_string, "%8d", adc_result);
 	lcd_print_position(1, 0, adc_string);
-	sprintf(adc_string, "%8d", adc_result);
+	sprintf(adc_string, "%8d", adc_range);
 	lcd_print_position(0, 0, adc_string);
-	_delay_ms(500); // wait a second to be able to read what's on LCD
 }
 
 #endif
@@ -476,7 +477,7 @@ void ports_init(void){
 	#define LED_PORT_DIRCLR(m) PORTE.DIRCLR=m
 
 	// Set up Photo Transistor
-	photoresistor_init();
+	photosensor_init();
 #else
 # error "Unknown architecture."
 #endif
@@ -528,7 +529,6 @@ void matrix_select_row(uint8_t matrix_row){
 		}
 	}
 #elif (ARCH == ARCH_XMEGA)
-	// /*TODO REMOVE ME*/ photoresistor_test();
 	if (matrix_row < MATRIX_ROWS/2) {
 		// handling lef hand side of the keyboard
 		if (matrix_row == 0) {
@@ -628,6 +628,9 @@ uint8_t matrix_read_column(uint8_t matrix_column){
 
 
 void set_all_leds(uint8_t led_mask){
+#ifdef KATY_DEBUG
+	return; //needed for test_photosensor()
+#endif //KATY_DEBUG
 	static uint8_t prev_led_mask = 0;
 	if (prev_led_mask == led_mask) return;
 	prev_led_mask = led_mask;
