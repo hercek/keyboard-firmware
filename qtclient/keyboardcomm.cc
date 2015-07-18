@@ -112,7 +112,8 @@ QByteArray KeyboardComm::getDefaultMapping() {
 
 QByteArray KeyboardComm::getPrograms() {
 	QByteArray programs(getProgramSpaceRaw(), 0);
-	doVendorRequest(READ_PROGRAMS, Read, programs);
+	if ( programs.size() > 0 )
+		doVendorRequest(READ_PROGRAMS, Read, programs);
 	return programs;
 }
 
@@ -132,7 +133,8 @@ void KeyboardComm::setMacroIndex(const QByteArray& macroIndex) {
 
 QByteArray KeyboardComm::getMacroStorage() {
 	QByteArray macroStorage(getMacroStorageSize(), 0);
-	doVendorRequest(READ_MACRO_STORAGE, Read, macroStorage);
+	if ( macroStorage.size() > 0 )
+		doVendorRequest(READ_MACRO_STORAGE, Read, macroStorage);
 	return macroStorage;
 }
 
