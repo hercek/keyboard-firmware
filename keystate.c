@@ -153,6 +153,10 @@ void keystate_update(void){
 #ifdef KEYPAD_LAYER
 void keystate_toggle_keypad(void){
 	keypad_mode = !keypad_mode;
+	#if USE_BUZZER
+	//if (config_get_flags().key_sound_enabled)
+		buzzer_start_f(100, keypad_mode ? BUZZER_ON_TONE : BUZZER_OFF_TONE);
+	#endif
 	// And clear all currently pressed keys that are now no longer available
 	for(int i = 0; i < KEYSTATE_COUNT; ++i){
 		logical_keycode l_key = key_states[i].l_key;

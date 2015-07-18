@@ -56,8 +56,8 @@
 #define BUZZER_FAILURE_TONE 220
 
 // for enabling and disabling a setting
-#define BUZZER_ON_TONE 75
-#define BUZZER_OFF_TONE 150
+#define BUZZER_ON_TONE 150
+#define BUZZER_OFF_TONE 75
 
 #if USE_BUZZER
 

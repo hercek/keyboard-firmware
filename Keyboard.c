@@ -516,6 +516,11 @@ void Fill_MouseReport(MouseReport_Data_t* MouseReport){
 static uint8_t USB_LEDReport = 0;
 
 void Process_KeyboardLEDReport(uint8_t report){
+	#if USE_BUZZER
+	if (report != USB_LEDReport)
+		//if (config_get_flags().key_sound_enabled)
+			buzzer_start_f(100, BUZZER_DEFAULT_TONE);
+	#endif
 	USB_LEDReport = report;
 }
 
