@@ -28,11 +28,18 @@ LD_FLAGS     =
 AVRDUDE_PROGRAMMER = dragon_jtag
 AVRDUDE_PORT = usb
 
+GDBINIT_FILE = .avr-gdbinit
+DEBUG_HOST = 127.0.0.1
+DEBUG_PORT = 3333
+DEBUG_UI = gdb
+AVARICE_FLAGS = --dragon --jtag usb
+
 # Default target
 all:
 
 # Custom makefile include
 include keyboard-firmware.mk
+include debug.mk
 
 # Include LUFA build script makefiles
 include $(LUFA_PATH)/Build/lufa_core.mk
