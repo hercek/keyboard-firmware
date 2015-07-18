@@ -81,15 +81,15 @@
 #define MATRIX_ROWS 16 // 8 cols on each side
 
 // Logical keys we have: logical keys represent a key-position+keypad-layer combination.
-#define LOGICAL_KEY_LEFT_LAYER_SHIFT LOGICAL_KEY_TH_LL
-#define LOGICAL_KEY_RIGHT_LAYER_SHIFT LOGICAL_KEY_TH_RR
 #define LOGICAL_KEY_KEYPAD LOGICAL_KEY_RROW1
 #define LOGICAL_KEY_PROGRAM LOGICAL_KEY_LROW1
+#define LOGICAL_KEY_LEFT_LAYER_SHIFT LOGICAL_KEY_TH_LL
+#define LOGICAL_KEY_RIGHT_LAYER_SHIFT LOGICAL_KEY_TH_RR
 enum logical_keys {
-	LOGICAL_KEY_TH_LL, // extra left side left thumb key
-	LOGICAL_KEY_TH_RR, // extra right side right thumb key
-	LOGICAL_KEY_RROW1, // bottom row (outer)
-	LOGICAL_KEY_LROW1, // bottom row (outer)
+	LOGICAL_KEY_RROW1, // right bottom row (outer)         //keypad
+	LOGICAL_KEY_LROW1, // left bottom row (outer)          //program
+	LOGICAL_KEY_TH_LL, // extra left side left thumb key   // keypadShift
+	LOGICAL_KEY_TH_RR, // extra right side right thumb key // keypadShift
 	// Main key blocks
 	LOGICAL_KEY_A,
 	LOGICAL_KEY_B,
@@ -163,8 +163,8 @@ enum logical_keys {
 	LOGICAL_KEY_L_CTRL,
 	LOGICAL_KEY_HOME,
 	LOGICAL_KEY_END,
-	LOGICAL_KEY_BACKSPACE,
 	LOGICAL_KEY_DELETE,
+	LOGICAL_KEY_BACKSPACE,
 	LOGICAL_KEY_TH_LR, // extra left side right thumb key
 
 	// Right hand thumb pad
