@@ -54,7 +54,7 @@ static const char *usages[] = {
 	"[",                              // 0x2f
 	"]",                              // 0x30
 	"\\",                             // 0x31
-	"Nonus_/~",                      // 0x32
+	"NonUS_/~",                      // 0x32
 	";",                              // 0x33
 	"'",                              // 0x34
 	"`",                              // 0x35
@@ -104,7 +104,7 @@ static const char *usages[] = {
 	"Kpd9",                           // 0x61
 	"Kpd0",                           // 0x62
 	"Kpd.",                           // 0x63
-	"Nonus_\\|",                      // 0x64
+	"NonUS_\\|",                      // 0x64
 	"Appli-_cation",                  // 0x65
 	"Power",                          // 0x66
 	"Equal_Sign",                     // 0x67
@@ -242,9 +242,10 @@ static const char *usages[] = {
 	"Prog_5",                           //0xf5
 	"Prog_6",                           //0xf6
 	"Macro",                          //0xf7
-	"", "", "", "", "",               // F8-Fc Reserved
-	"Progrm",                        // 0xfd (Non-Remappable)
-	"Keypad",                         // 0xfe (Non-Remappable)
+	"", "", "", "",                   // F8-Fb Reserved
+	"Keypad_Shift",                   // 0xfc (Non-Remappable)
+	"Prog-_ram",                      // 0xfe (Non-Remapable)
+	"Keypad_Switch",                  // 0xfe (Non-Remappable)
 	"No_Key"                          // 0xff
 };
 
