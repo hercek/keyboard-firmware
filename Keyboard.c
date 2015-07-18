@@ -108,7 +108,7 @@ void __attribute__((noreturn)) Keyboard_Main(void)
 	sei();
 
 	// Low pitched buzz on startup
-	buzzer_start_f(200, 200);
+	//buzzer_start_f(200, 200);
 
 	struct { int keys:1; int mouse:1; } update;
 

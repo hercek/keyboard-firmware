@@ -38,7 +38,7 @@ static LiquidCrystal lcd( &LcdRS, /*&LcdRW,*/ &LcdEn, &NybleBus );
 void lcd_init(void) {
 	LcdRW.setOutput();
 	LcdRW.setLow();
-	//lcd.begin(8, 2);
+	lcd.begin(8, 2);
 }
 
 void lcd_clear(void)

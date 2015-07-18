@@ -48,8 +48,6 @@ void LiquidCrystal::init(Pin* rs, Pin* rw, Pin* cs, Bus* data)
     _displayfunction = LCD_8BITMODE | LCD_1LINE | LCD_5x8DOTS;
   else
     _displayfunction = LCD_4BITMODE | LCD_1LINE | LCD_5x8DOTS;
-
-  begin(8, 2);
 }
 
 void LiquidCrystal::begin(uint8_t cols, uint8_t lines, uint8_t dotsize) {
@@ -65,9 +63,9 @@ void LiquidCrystal::begin(uint8_t cols, uint8_t lines, uint8_t dotsize) {
   }
 
   // SEE PAGE 45/46 FOR INITIALIZATION SPECIFICATION!
-  // according to datasheet, we need at least 40ms after power rises above 2.7V
-  // before sending commands. Arduino can turn on way befer 4.5V so we'll wait 50
-  _delay_us(50000);
+  // According to datasheet, we need at least 40ms after power rises above 2.7V
+  // (or 15ms after power rises above 4.5V) before sending commands.
+  _delay_us(80000);
   // Now we pull both RS and R/W low to begin commands
   _rs_pin->setLow();
   _cs_pin->setLow();
