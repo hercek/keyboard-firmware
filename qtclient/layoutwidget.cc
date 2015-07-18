@@ -39,14 +39,13 @@ void LayoutWidget::paintEvent(QPaintEvent *ev) {
 			QString keyLabel =
 				QString(HIDTables::nameUsage(mMapping[logicalKeycode])).replace('_', '\n');
 			QRectF keyBounds(keyRect);
-			while (!keyBounds.contains(painter.boundingRect(keyRect,
-															keyLabel,
-															buttonTextOption)))
-			{
-				QFont f = painter.font();
-				f.setPointSize(f.pointSize() - 1);
-				painter.setFont(f);
-			}
+			// TODO: this loop never finishes on linux (find out why and fix better later)
+			//while (!keyBounds.contains(
+			//		painter.boundingRect(keyRect, keyLabel, buttonTextOption))) {
+			//	QFont f = painter.font();
+			//	f.setPointSize(f.pointSize() - 1);
+			//	painter.setFont(f);
+			//}
 
 			painter.drawText(keyRect, keyLabel, buttonTextOption);
 			painter.setFont(defaultFont);
