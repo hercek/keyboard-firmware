@@ -333,6 +333,7 @@ void config_reset_program_defaults(){
 		uint8_t step = (sz > EEEXT_PAGE_SIZE) ? EEEXT_PAGE_SIZE : sz;
 		serial_eeprom_write_page(p, buf, step);
 		USB_KeepAlive(true);
+		serial_eeprom_wait_for_last_write_end();
 		p += step;
 		sz -= step;
 	}

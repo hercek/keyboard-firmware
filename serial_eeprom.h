@@ -64,13 +64,18 @@ typedef enum _serial_eeprom_err {
 
 extern serial_eeprom_err serial_eeprom_errno;
 
+/**
+ * The caller must ensure that this is called late enough after the last write.
+ */
 serial_eeprom_err serial_eeprom_start_write(uint8_t* addr);
 //int8_t serial_eeprom_continue_write(const uint8_t* buf, uint8_t len);
 //static inline void serial_eeprom_end_write(void);
+void serial_eeprom_wait_for_last_write_end(void);
 
 /**
  * Write len bytes within an eeprom page. The caller is responsible
- * for ensuring 0 < len <= 16 and aligned within the 16 byte page.
+ * for ensuring 0 < len <= EEEXT_PAGE_SIZE and aligned within the page
+ * and that this is called late enough after the last write.
  * returns bytes written: if < len, an error occurred.
  */
 int8_t serial_eeprom_write_page(uint8_t* addr, const uint8_t* buf, uint8_t len);
@@ -96,6 +101,9 @@ int16_t serial_eeprom_write(uint8_t* dst, const uint8_t* buf, uint16_t count);
  */
 serial_eeprom_err serial_eeprom_write_step(uint8_t* addr, uint8_t* data, uint8_t len, uint8_t last);
 
+/**
+ * The caller must ensure that this is called late enough after the last write.
+ */
 int16_t serial_eeprom_read(const uint8_t* addr, uint8_t* buf, uint16_t len);
 
 serial_eeprom_err serial_eeprom_memmove(uint8_t* dst, uint8_t* src, size_t count);

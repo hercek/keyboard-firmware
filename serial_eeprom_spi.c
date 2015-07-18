@@ -39,131 +39,136 @@ returning it via get_spi_eeprom_errno() function.
 #define SPI_PORT_SS PORTE
 #define SPI_BIT_SS  PORTE2
 
-typedef enum _SPI_COMMAND
-{
-    WRSR  = 0b0001,
-    WRITE = 0b0010,
-    READ  = 0b0011,
-    WRDI  = 0b0100,
-    RDSR  = 0b0101,
-    WREN  = 0b0110
+#define SPI_STATUS_WRITE_IN_PROGRESS_MASK 1
+#define SPI_STATUS_WRITE_DISABLED_MASK 0b01100
+typedef enum _SPI_COMMAND {
+	WRSR  = 0b0001,
+	WRITE = 0b0010,
+	READ  = 0b0011,
+	WRDI  = 0b0100,
+	RDSR  = 0b0101,
+	WREN  = 0b0110
 } SPI_COMMAND;
 
-static inline void spi_slave_on(void)
-{
-    // SS is active low.
-    SPI_PORT_SS &= ~_BV(SPI_BIT_SS);
+static inline void spi_slave_on(void) {
+	SPI_PORT_SS &= ~_BV(SPI_BIT_SS); // SS is active low.
+	// SS setup time is 100 ns -> one NOP here and one instruction to actually use SPI will do.
+	asm volatile( "nop\n\t" ::);
 }
 
-static inline void spi_slave_off(void)
-{
-    // SS is active low.
-    SPI_PORT_SS |= _BV(SPI_BIT_SS);
+static inline void spi_slave_off(void) {
+	// SS hold time is 200 ns -> 3 instructions and 2 instructions here will do.
+	SPI_PORT_SS |= _BV(SPI_BIT_SS); // SS is active low.
 }
 
-static inline uint8_t spi_transfer(volatile uint8_t byte_data)
-{
-    SPDR = byte_data;
-    while (!(SPSR & _BV(SPIF)));
-    return SPDR;
+static inline uint8_t spi_transfer(volatile uint8_t byte_data) {
+	SPDR = byte_data;
+	while (!(SPSR & _BV(SPIF)));
+	return SPDR;
 }
 
-// 1787108.pdf:9
-static void spi_enable_write(void)
-{
-    spi_slave_on();
-    (void) spi_transfer(WREN);
-    spi_slave_off();
-    _delay_ms(1); // KATY-TODO: fine tune this
+// WriteEnableLatch must be set to HIGH before each page write.
+// When a page write is fininshed the chip sets WriteEnableLatch to LOW.
+// A page write can be in progress internally even after we deactivated SS.
+static void spi_enable_write(void) {
+	spi_slave_on();
+	(void) spi_transfer(WREN);
+	spi_slave_off();
 }
 
-// writes one chunk of data that fits the page size.
-static int8_t serial_eeprom_continue_write(const uint8_t* buf, uint8_t len)
-{
-    // prerequisites:
-    // - write is within page boundary
-    for (int i = 0; i < len; ++i)
-    {
-        (void) spi_transfer(buf[i]);
-    }
-
-    return len;
+// Writes one chunk of data that fits the page size.
+// This cannot write behind page end. If we try to write behind page end
+// then we will instead continue writing from the page start. (The internal
+// address counder wraps at page boundaries.)
+static int8_t serial_eeprom_continue_write(const uint8_t* buf, uint8_t len) {
+	for (uint8_t i = 0; i < len; ++i)
+		(void) spi_transfer(buf[i]);
+	return len;
 }
 
 // Errno for SPI EEPROM functions.
 serial_eeprom_err serial_eeprom_errno;
 
+// Read eeprom status register.
+// Usefull to check whether the last write finished internally.
+static uint8_t serial_eeprom_read_status(void) {
+	spi_slave_on();
+	(void) spi_transfer(RDSR);
+	uint8_t rv = spi_transfer(0xff);
+	spi_slave_off();
+	return rv;
+}
+
+// Write eeprom status register.
+static void serial_eeprom_write_status(uint8_t new_status) {
+	spi_slave_on();
+	(void) spi_transfer(WRSR);
+	(void) spi_transfer(new_status);
+	spi_slave_off();
+}
+
 // Called from:
 // - ergodox.c
-void serial_eeprom_init(void)
-{
-    // Initialize Pins.
-    SPI_DDR_SS |= _BV(SPI_DD_SS);      //OUTPUT
-    SPI_DDR_SCK |= _BV(SPI_DD_SCK);    //OUTPUT
-    SPI_DDR_MOSI |= _BV(SPI_DD_MOSI);  //OUTPUT
-    SPI_DDR_MISO &= ~_BV(SPI_DD_MISO); //INPUT
-
-    // Keep slave inactive.
-    spi_slave_off();
-
-    // Make sure that original ATMega32u4 SS (PB0) is set to output, otherwise
-    // we could get MSTR bit reset to 0 (see ATMega32U4.pdf, page 182).
-    DDRB |= _BV(DDB0); // for KATY, PB0 is CLK1
-
-    // Initialize SPI subsystem in master mode, clock set to 4MHz
-    SPCR = _BV(SPE) | _BV(MSTR); //ATMega32U4.pdf:182
-    SPSR &= ~_BV(SPI2X);
+void serial_eeprom_init(void) {
+	// Initialize Pins.
+	SPI_DDR_SS |= _BV(SPI_DD_SS);      //OUTPUT
+	SPI_DDR_SCK |= _BV(SPI_DD_SCK);    //OUTPUT
+	SPI_DDR_MOSI |= _BV(SPI_DD_MOSI);  //OUTPUT
+	SPI_DDR_MISO &= ~_BV(SPI_DD_MISO); //INPUT
+	// Keep slave inactive.
+	spi_slave_off();
+	// Make sure that original ATMega32u4 SS (PB0) is set to output, otherwise
+	// we could get MSTR bit reset to 0 (see ATMega32U4.pdf, page 182).
+	DDRB |= _BV(DDB0); // for KATY, PB0 is CLK1, which is output, so this is OK
+	// Initialize SPI subsystem in master mode, clock set to 4 MHz
+	SPCR = _BV(SPE) | _BV(MSTR); //ATMega32U4.pdf:182
+	SPSR &= ~_BV(SPI2X); // do not raise clock from 4 to 8 MHz
+	// check writing is enabled into to whole EEPROM
+	uint8_t rv = serial_eeprom_read_status();
+	if ( rv & SPI_STATUS_WRITE_DISABLED_MASK )
+		serial_eeprom_write_status(0); // enable write to the whole EEPROM
 }
 
-// Called from:
-// - lufa/eext_endpoint_stream.c
-serial_eeprom_err serial_eeprom_start_write(uint8_t* addr)
-{
-    // Precondition:
-    // - the spi_slave_off() was called prior this call
-
-    // The write/read was executed, we need to enable write latch before any
-    // writing can take place.
-    spi_enable_write();
-    // Begin write sequence now...
-    spi_slave_on();
-    (void) spi_transfer(WRITE);
-    // at this point, SS is low, write is in progress...
-    return SUCCESS;
+// Wait till internal EEPROM write cycle finishes.
+// Notice that the internal write cycle can last as much
+// as 6 ms after SS from the last write was deactivated.
+void serial_eeprom_wait_for_last_write_end() {
+	for(;;) {
+		uint8_t rv = serial_eeprom_read_status();
+		if (! ( rv & SPI_STATUS_WRITE_IN_PROGRESS_MASK ) ) break;
+		_delay_us(1); // wait a bit and check again
+	}
 }
 
-// Called from:
-// - lufa/eext_endpoint_stream.c
-serial_eeprom_err serial_eeprom_write_step(uint8_t* addr, uint8_t* data, uint8_t len, uint8_t last)
-{
-    // Precondition:
-    // - buffer doesn't cross page boundary (because it is written in one go
-    //   without checking for page boundary within
-    //   seriall_eeprom_continue_write() function)
+// Initializes an eeprom page for a write operation.
+// Called from: lufa/eext_endpoint_stream.c
+// Precondition: * SS is not active.
+//               * caller must call this at least 6 ms after the last write or
+//                 it must call serial_eeprom_wait_for_last_write_end() before this
+serial_eeprom_err serial_eeprom_start_write(uint8_t* addr) {
+	spi_enable_write();
+	spi_slave_on();
+	(void) spi_transfer(WRITE);
+	(void) spi_transfer((uint8_t)((uint16_t)(addr) >> 8));//high part of 16bit address
+	(void) spi_transfer((uint8_t)((uint16_t)(addr) & 0xFF));//low part of 16bit address
+	// at this point, SS is active (LOW), the write is in progress ...
+	// ... only the data needs to be sent and then SS deactivated
+	return SUCCESS;
+}
 
-    serial_eeprom_err result;
-
-    if (((intptr_t)addr & (EEEXT_PAGE_SIZE-1)) == 0)
-    {
-        // page aligned, start write
-        if (result = serial_eeprom_start_write(addr), result != SUCCESS)
-        {
-            return result;
-        }
-    }
-
-    if (len != serial_eeprom_continue_write(data, len))
-    {
-        return serial_eeprom_errno;
-    }
-
-    if (last || ((((intptr_t)addr+len) & (EEEXT_PAGE_SIZE-1)) == 0))
-    {
-        // enforce page write cycle
-        spi_slave_off();
-    }
-
-    return DATA_ERROR;
+// Called from: lufa/eext_endpoint_stream.c
+// Precondition: buffer doesn't cross page boundary
+serial_eeprom_err serial_eeprom_write_step(uint8_t* addr, uint8_t* data, uint8_t len, uint8_t last) {
+	if ( (((intptr_t)addr) & (EEEXT_PAGE_SIZE-1)) == 0 ) {
+		// start write at each page start
+		serial_eeprom_err result;
+		serial_eeprom_wait_for_last_write_end();
+		if ( SUCCESS != (result = serial_eeprom_start_write(addr)) ) return result;
+	}
+	if (len != serial_eeprom_continue_write(data, len)) return serial_eeprom_errno;
+	if (last || ((((intptr_t)addr+len) & (EEEXT_PAGE_SIZE-1)) == 0))
+		spi_slave_off(); // enforce page write cycle
+	return SUCCESS;
 }
 
 // Called from:
@@ -171,122 +176,105 @@ serial_eeprom_err serial_eeprom_write_step(uint8_t* addr, uint8_t* data, uint8_t
 // - interpreter.c
 // - interpreter_harness.c
 // - vusb/vusb_main.c
-int16_t serial_eeprom_read(const uint8_t* addr, uint8_t* buf, uint16_t len)
-{
-    spi_slave_on();
-
-    (void) spi_transfer(READ);
-    (void) spi_transfer((uint8_t)((uint16_t)(addr) >> 8));//high part of 16bit address
-    (void) spi_transfer((uint8_t)((uint16_t)(addr) & 0xFF));//low part of 16bit address
-
-    int16_t i;
-    for (i = 0; i < len; ++i)
-    {
-        buf[i] = spi_transfer(0xff);
-    }
-
-    spi_slave_off();
-
-    return i;
+// Note: this can read through page boundaries.
+// Precondition: caller must call this at least 6 ms after the last write or
+//               it must call serial_eeprom_wait_for_last_write_end() before this
+int16_t serial_eeprom_read(const uint8_t* addr, uint8_t* buf, uint16_t len) {
+	spi_slave_on();
+	(void) spi_transfer(READ);
+	(void) spi_transfer((uint8_t)((uint16_t)(addr) >> 8));//high part of 16bit address
+	(void) spi_transfer((uint8_t)((uint16_t)(addr) & 0xFF));//low part of 16bit address
+	for (int16_t i = 0; i < len; ++i)
+		buf[i] = spi_transfer(0xff);
+	spi_slave_off();
+	return len;
 }
 
-// Called from:
-// - config.c
+// Called from: config.c
+// Precondition: caller must call this at least 6 ms after the last write or
+//               it must call serial_eeprom_wait_for_last_write_end() before this
 // tag: higher level function
-int8_t serial_eeprom_write_page(uint8_t* addr, const uint8_t* buf, uint8_t len)
-{
-    int8_t result;
-
-    if (result = serial_eeprom_start_write(addr), result != SUCCESS)
-    {
-        serial_eeprom_errno = result;
-        result = 0;
-    }
-    else
-    {
-        result = serial_eeprom_continue_write(buf, len);
-    }
-    // Finish the page write by invoking of write cycle.
-    spi_slave_off();
-
-    return result;
+int8_t serial_eeprom_write_page(uint8_t* addr, const uint8_t* buf, uint8_t len) {
+	int8_t result;
+	if ( SUCCESS != (result = serial_eeprom_start_write(addr)) ) {
+		serial_eeprom_errno = result; result = 0;
+	} else
+		result = serial_eeprom_continue_write(buf, len);
+	spi_slave_off(); // Finish the page write by invoking of write cycle.
+	return result;
 }
 
-// Called from:
-// - macro.c
+// Called from: macro.c
 // Implementation equal to the one in serial_eeprom.c file.
 // tag: higher level function
-int16_t serial_eeprom_write(uint8_t* dst, const uint8_t* buf, uint16_t count)
-{
-    int16_t written = 0;
-    while(count){
-        uint8_t dst_page_off = ((intptr_t) dst) & (EEEXT_PAGE_SIZE - 1);
-        uint8_t dst_page_remaining = EEEXT_PAGE_SIZE - dst_page_off;
-        uint8_t n = (count < dst_page_remaining) ? (uint8_t)count : dst_page_remaining;
-
-        int8_t w = serial_eeprom_write_page(dst, buf, n);
-        written += w;
-        if(w != n){
-            // error: incomplete write
-            return (written == 0) ? written : -1;
-        }
-        buf += n;
-        dst += n;
-        count -= n;
-        USB_KeepAlive(true);
-    }
-    return written;
+int16_t serial_eeprom_write(uint8_t* dst, const uint8_t* buf, uint16_t count) {
+	int16_t written = 0;
+	while (count) {
+		uint8_t dst_page_off = ((intptr_t)dst) & (EEEXT_PAGE_SIZE-1);
+		uint8_t dst_page_remaining = EEEXT_PAGE_SIZE - dst_page_off;
+		uint8_t n = (count < dst_page_remaining) ? (uint8_t)count : dst_page_remaining;
+		serial_eeprom_wait_for_last_write_end();
+		int8_t w = serial_eeprom_write_page(dst, buf, n);
+		written += w;
+		if(w != n)
+			return (written==0) ? written : -1; // error: incomplete write
+		buf += n;
+		dst += n;
+		count -= n;
+		USB_KeepAlive(true);
+	}
+	return written;
 }
 
-// Called from:
-// - macro.c
+// Called from: macro.c
 // Implementation equal to the one in serial_eeprom.c file.
 // tag: higher level function
-serial_eeprom_err serial_eeprom_memmove(uint8_t* dst, uint8_t* src, size_t count)
-{
-    uint8_t buf[EEEXT_PAGE_SIZE];
-    // copy in page aligned chunks
-
-    int8_t direction = src < dst ? -1 : 1;
-
-    while(count){
-        // offset into page
-        uint8_t dst_page_off = ((intptr_t) dst) & (EEEXT_PAGE_SIZE - 1);
-        // either (0..page_off) or (page_off..15) inclusive
-        uint8_t dst_page_remaining = direction > 0 ? (EEEXT_PAGE_SIZE - dst_page_off) : (dst_page_off + 1);
-        uint8_t n = count < dst_page_remaining ? count : dst_page_remaining;
-        if(direction < 0){
-            src -= n;
-            dst -= n;
-        }
-        if(serial_eeprom_read(src, buf, n) != n){
-            return serial_eeprom_errno;
-        }
-        if(serial_eeprom_write_page(dst, buf, n) != n){
-            return serial_eeprom_errno;
-        }
-        if(direction > 0){
-            src += n;
-            dst += n;
-        }
-        count -= n;
-        USB_KeepAlive(true);
-    }
-    return SUCCESS;
+serial_eeprom_err serial_eeprom_memmove(uint8_t* dst, uint8_t* src, size_t count) {
+	uint8_t buf[EEEXT_PAGE_SIZE];
+	// copy in page aligned chunks
+	int8_t direction = src < dst ? -1 : 1;
+	while (count) {
+		// offset into page
+		uint8_t dst_page_off = ((intptr_t)dst) & (EEEXT_PAGE_SIZE-1);
+		// either (0..page_off) or (page_off..EEEXT_PAGE_SIZE-1) inclusive
+		uint8_t dst_page_remaining = direction > 0 ? (EEEXT_PAGE_SIZE - dst_page_off) : (dst_page_off + 1);
+		uint8_t n = count < dst_page_remaining ? count : dst_page_remaining;
+		if(direction < 0){
+			src -= n;
+			dst -= n;
+		}
+		serial_eeprom_wait_for_last_write_end();
+		if(serial_eeprom_read(src, buf, n) != n)
+			return serial_eeprom_errno;
+		if(serial_eeprom_write_page(dst, buf, n) != n)
+			return serial_eeprom_errno;
+		if(direction > 0){
+		    src += n;
+		    dst += n;
+		}
+		count -= n;
+		USB_KeepAlive(true);
+	}
+	return SUCCESS;
 }
+
 
 // KATY-TODO: remove in release
-
 uint8_t serial_eeprom_test_read(void){
-	static uint8_t* addr = 0;
+	static uint8_t* next_addr = 0;
 	static uint8_t buf[8]; // read 8 at a time to prove multi-read
-	static uint8_t bufp = sizeof(buf);
+	static uint8_t bufp = 0;
+	if (0 == bufp && 0 == next_addr) {
+		uint8_t rv = serial_eeprom_read_status();
+		printing_set_buffer(byte_to_str(rv|0x70), BUF_MEM);
+		bufp = sizeof(buf);
+		return 1;
+	}
 
-	uint8_t next_byte;
 	if(bufp >= sizeof(buf)){
-		int16_t r = serial_eeprom_read(addr, buf, sizeof(buf));
+		int16_t r = serial_eeprom_read(next_addr, buf, sizeof(buf));
 		if(r != sizeof(buf)){
-			addr = 0;
+			next_addr = 0;
 			switch(serial_eeprom_errno){
 			case RSELECT_ERROR:
 				printing_set_buffer(PGM_MSG("RSELECT_ERROR"), BUF_PGM);
@@ -308,21 +296,21 @@ uint8_t serial_eeprom_test_read(void){
 			}
 			return 0;
 		}
-		addr += sizeof(buf);
+		next_addr += sizeof(buf);
 		bufp = 0;
 	}
 
-	next_byte = buf[bufp++];
-
-	printing_set_buffer(byte_to_str(next_byte), BUF_MEM);
+	uint8_t this_byte = buf[bufp++];
+	printing_set_buffer(byte_to_str(this_byte), BUF_MEM);
 	return 1;
 }
 
 // KATY-TODO: remove in release
-static uint16_t block[8] = { 0x00, 0x02, 0x04, 0x06, 0x08, 0x0a, 0x0c, 0x0e };
 uint8_t serial_eeprom_test_write(void){
+	static uint16_t block[8] = { 0x00, 0x02, 0x04, 0x06, 0x08, 0x0a, 0x0c, 0x0e };
 	static uint8_t* addr = 0;
 
+	//spi_enable_write(); return 1;
 	int8_t r = serial_eeprom_write_page(addr, (uint8_t*)block, 16);
 	if(r != 16){
 		addr = 0;
@@ -356,3 +344,4 @@ uint8_t serial_eeprom_test_write(void){
 		return 1;
 	}
 }
+

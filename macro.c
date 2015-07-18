@@ -71,9 +71,11 @@
 #define macro_eeprom_read_var(var, ptr)  \
 	if(serial_eeprom_read((uint8_t*)(ptr), (uint8_t*)&(var), sizeof(typeof(var))) != sizeof(typeof(var))){ goto err; }
 #define macro_eeprom_write_var(ptr, var)  \
-	if(serial_eeprom_write((uint8_t*)(ptr), (uint8_t*)&(var), sizeof(typeof(var))) != sizeof(typeof(var))){ goto err; }
+	{int16_t rv = serial_eeprom_write((uint8_t*)(ptr), (uint8_t*)&(var), sizeof(typeof(var))); \
+	 serial_eeprom_wait_for_last_write_end(); if (rv!=sizeof(typeof(var))) goto err; }
 #define macro_eeprom_memmove(dst, src, len)  \
-	if(serial_eeprom_memmove(dst, src, len) != SUCCESS){ goto err; }
+	{serial_eeprom_err rv = serial_eeprom_memmove(dst, src, len); \
+	 serial_eeprom_wait_for_last_write_end(); if( rv != SUCCESS) goto err; }
 #endif
 
 // The macro data itself is in external eeprom

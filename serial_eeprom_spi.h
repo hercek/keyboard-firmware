@@ -14,5 +14,6 @@
  Initialize serial eeprom. Usually called from hardware specific file.
  */
 void serial_eeprom_init(void);
+
 uint8_t serial_eeprom_test_read(void);
 uint8_t serial_eeprom_test_write(void);

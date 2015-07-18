@@ -10,6 +10,7 @@ static uint8_t serial_eeprom_read_byte(const uint8_t* addr){
 // caller isn't starting a page, it needs to start the write itself.
 static void serial_eeprom_start_write_if_unaligned(void* const addr){
 	if(((intptr_t)addr & (EEEXT_PAGE_SIZE-1)) != 0){
+		serial_eeprom_wait_for_last_write_end();
 		serial_eeprom_start_write(addr);
 	}
 }
