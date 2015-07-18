@@ -1,1 +1,1 @@
-Makefile.lufa
+Makefile.lufa-xmega

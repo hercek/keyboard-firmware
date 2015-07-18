@@ -52,8 +52,14 @@
 
 // But define different descriptive strings
 #define USB_MANUFACTURER_STRING L"andreae.gen.nz"
-#define USB_PRODUCT_STRING L"K80CS - Programmable USB Keyboard"
 #define USB_SERIAL_NUMBER_STRING L"andreae.gen.nz:katy"
+#if (ARCH == ARCH_AVR8)
+#define USB_PRODUCT_STRING L"K80CS USB Keyboard (ATMega)"
+#elif (ARCH == ARCH_XMEGA)
+#define USB_PRODUCT_STRING L"K80CS USB Keyboard (ATXMega)"
+#else
+# error "Unknown architecture."
+#endif
 
 // Unique identifier representing this keyboard's layout and
 // definition of logical_keycode values.  Is reported to the

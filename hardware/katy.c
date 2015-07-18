@@ -406,6 +406,8 @@ void ports_init(void){
 		LEFT_CLK0_HIGH;
 		LEFT_CLK0_LOW;
 	}
+	#define LED_PORT_DIRSET(m) /* nothing (ATmega board does not have LEDS) */
+	#define LED_PORT_DIRCLR(m) /* nothing (ATmega board does not have LEDS) */
 #elif (ARCH == ARCH_XMEGA)
 	// Katy on atxmega uses PD0-PD4 (5 pins) for rows (input) and shares
 	// columns with LCD as output, lines LcdD0-LcdD7.
@@ -462,14 +464,16 @@ void ports_init(void){
 	TCD1.CTRLA = TC_CLKSEL_DIV1_gc;
 
 	// Setup LEDs
-	PORTE.DIRSET = PIN0_bm | PIN1_bm | PIN2_bm | PIN3_bm;
+	//PORTE.DIRSET = PIN0_bm | PIN1_bm | PIN2_bm | PIN3_bm;
 	TCE0.CTRLB = TC_WGMODE_DS_B_gc | TC0_CCAEN_bm | TC0_CCBEN_bm | TC0_CCCEN_bm | TC0_CCDEN_bm;
 	TCE0.PER = 0xFFFF;
 	TCE0.CCA = 0x0800;
 	TCE0.CCB = 0x0800;
-	TCE0.CCC = 0x0200;
-	TCE0.CCD = 0x0600;
-	//TCE0.CTRLA = TC_CLKSEL_DIV1_gc;
+	TCE0.CCC = 0x01C0;
+	TCE0.CCD = 0x0500;
+	TCE0.CTRLA = TC_CLKSEL_DIV1_gc;
+	#define LED_PORT_DIRSET(m) PORTE.DIRSET=m
+	#define LED_PORT_DIRCLR(m) PORTE.DIRCLR=m
 
 	// Set up Photo Transistor
 	photoresistor_init();
@@ -644,16 +648,22 @@ void set_all_leds(uint8_t led_mask){
 		return;
 	}
 	// decode Layer
-	if (led_mask & LED_KEYPAD)
-		lcd_print_position(0, 0, "Keypad  ");
-	else
-		lcd_print_position(0, 0, "Normal  ");
+	if (led_mask & LED_KEYPAD) {
+		lcd_print_position(0, 0, "Keypad  "); LED_PORT_DIRSET(PIN3_bm); }
+	else {
+		lcd_print_position(0, 0, "Normal  "); LED_PORT_DIRCLR(PIN3_bm); }
 	// decode Lock LEDs
 	char ledMsg[9];
 	uint8_t i = 0;
-	if (led_mask & LED_CAPS)   ledMsg[i++] = 'C';
-	if (led_mask & LED_NUM)    ledMsg[i++] = 'N';
-	if (led_mask & LED_SCROLL) ledMsg[i++] = 'S';
+	if (led_mask & LED_CAPS) {
+		ledMsg[i++] = 'C'; LED_PORT_DIRSET(PIN0_bm);
+	} else LED_PORT_DIRCLR(PIN0_bm);
+	if (led_mask & LED_NUM) {
+		ledMsg[i++] = 'N'; LED_PORT_DIRSET(PIN1_bm);
+	} else LED_PORT_DIRCLR(PIN1_bm);
+	if (led_mask & LED_SCROLL) {
+		ledMsg[i++] = 'S'; LED_PORT_DIRSET(PIN2_bm);
+	} else LED_PORT_DIRCLR(PIN2_bm);
 	while( i<4 ) ledMsg[i++] = ' ';
 	// decode remap/macro state
 	switch ( led_mask & 0xf0 ) {
