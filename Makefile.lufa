@@ -25,6 +25,9 @@ LUFA_PATH    = lufa/LUFA
 CC_FLAGS     = -DUSE_LUFA_CONFIG_HEADER -IConfig
 LD_FLAGS     =
 
+AVRDUDE_PROGRAMMER = dragon_jtag
+AVRDUDE_PORT = usb
+
 # Default target
 all:
 
@@ -39,5 +42,5 @@ include $(LUFA_PATH)/Build/lufa_build.mk
 #include $(LUFA_PATH)/Build/lufa_doxygen.mk
 #include $(LUFA_PATH)/Build/lufa_dfu.mk
 #include $(LUFA_PATH)/Build/lufa_hid.mk
-#include $(LUFA_PATH)/Build/lufa_avrdude.mk
+include $(LUFA_PATH)/Build/lufa_avrdude.mk
 #include $(LUFA_PATH)/Build/lufa_atprogram.mk
