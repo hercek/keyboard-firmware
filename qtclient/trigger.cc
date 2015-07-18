@@ -2,6 +2,7 @@
 #include <QtEndian>
 #include <QMap>
 #include <QPair>
+#include <QString>
 #include <QByteArray>
 
 #include "keyboardcomm.h"
