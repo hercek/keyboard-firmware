@@ -200,7 +200,11 @@ void EVENT_USB_Device_ControlRequest(void)
 			Endpoint_Write_Control_EStream_LE(macro_idx_get_storage(), USB_ControlRequest.wLength);
 			goto ack_write_status;
 		case READ_MACRO_STORAGE:
+#ifdef MACROS_IN_INTERNAL_STORAGE
+			Endpoint_Write_Control_EStream_LE(macros_get_storage(), USB_ControlRequest.wLength);
+#else
 			Endpoint_Write_Control_SEStream_LE(macros_get_storage(), USB_ControlRequest.wLength);
+#endif
 			goto ack_write_status;
 		case READ_DEFAULT_MAPPING:
 			Endpoint_Write_Control_PStream_LE((uint8_t*)logical_to_hid_map_default, USB_ControlRequest.wLength);
@@ -231,7 +235,11 @@ void EVENT_USB_Device_ControlRequest(void)
 			Endpoint_Read_Control_EStream_LE(macro_idx_get_storage(), USB_ControlRequest.wLength);
 			goto ack_read_status;
 		case WRITE_MACRO_STORAGE:
+#ifdef MACROS_IN_INTERNAL_STORAGE
+			Endpoint_Read_Control_EStream_LE(macros_get_storage(), USB_ControlRequest.wLength);
+#else
 			Endpoint_Read_Control_SEStream_LE(macros_get_storage(), USB_ControlRequest.wLength);
+#endif
 			goto ack_read_status;
 		case WRITE_MAPPING:
 			Endpoint_Read_Control_EStream_LE(config_get_mapping(), USB_ControlRequest.wLength);

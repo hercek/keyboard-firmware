@@ -52,13 +52,17 @@
 
 #include "macro_index.h"
 
-#ifndef NO_EXTERNAL_STORAGE
+#ifdef NO_EXTERNAL_STORAGE
+#ifdef MACROS_IN_INTERNAL_STORAGE
 	/**
 	 * Size in bytes of macro storage (including end offset)
 	 */
-	#define MACROS_SIZE 1024
+	#define MACROS_SIZE 508
 #else
 	#define MACROS_SIZE 0
+#endif
+#else
+	#define MACROS_SIZE 1024
 #endif
 
 typedef struct _macro_data {
