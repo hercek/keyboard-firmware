@@ -36,19 +36,41 @@ typedef enum _SPI_COMMAND {
 } SPI_COMMAND;
 
 static inline void spi_slave_on(void) {
-	SPI_PORT_SS &= ~_BV(SPI_BIT_SS); // SS is active low.
+	// SS is active low.
+#if (ARCH == ARCH_AVR8)
+	SPI_PORT_SS &= ~_BV(SPI_BIT_SS);
+#elif (ARCH == ARCH_XMEGA)
+	SPI_PORT_SS.OUTCLR = SPI_BIT_SS_bm;
+#else
+#  error "Unknown architecture."
+#endif
 	SPI_EEPROM_CS_SETUP_DELAY;
 }
 
 static inline void spi_slave_off(void) {
-	SPI_PORT_SS |= _BV(SPI_BIT_SS); // SS is active low.
+	// SS is inactive high.
+#if (ARCH == ARCH_AVR8)
+	SPI_PORT_SS |= _BV(SPI_BIT_SS);
+#elif (ARCH == ARCH_XMEGA)
+	SPI_PORT_SS.OUTSET = SPI_BIT_SS_bm;
+#else
+#  error "Unknown architecture."
+#endif
 	SPI_EEPROM_CS_HOLD_DELAY;
 }
 
 static inline uint8_t spi_transfer(volatile uint8_t byte_data) {
+#if (ARCH == ARCH_AVR8)
 	SPDR = byte_data;
 	while (!(SPSR & _BV(SPIF)));
 	return SPDR;
+#elif (ARCH == ARCH_XMEGA)
+	SPIC_DATA = byte_data;
+	while (!(SPIC_STATUS & SPI_IF_bm));
+	return SPIC_DATA;
+#else
+#   error "Unknown architecture."
+#endif
 }
 
 // WriteEnableLatch must be set to HIGH before each page write.

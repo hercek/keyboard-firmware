@@ -54,6 +54,7 @@
 unsigned long hfPwmPeriod = 0;
 
 static void initHfPwm(void) {
+#if (ARCH == ARCH_AVR8)
 	// Init the internal PLL (ATMega32U4.pdf:40)
 	// However, since LUFA sets the PLL to 96MHz due to USB, just properly set up
 	// the PLLTM0:1 prescaler bits.
@@ -71,24 +72,49 @@ static void initHfPwm(void) {
 	TCCR4E = _BV(ENHC4);   // set to enhanced compare/PWM mode (10 bit mode)
 	TCCR4D = _BV(WGM40);   // use phase and frequency correct mode
 	                       // ATMeta32u4.pdf:152
+#elif (ARCH == ARCH_XMEGA)
+	PORTC.DIRSET = PIN4_bm; // PORTC, PIN4 set to output
+	TCC1.CTRLB = TC_WGMODE_DS_B_gc | TC1_CCAEN_bm; // dual slope, CCA enable
+#else
+#   error "Unknown architecture."
+#endif
 }
 
 static void hfPwmStart(void) {
+#if (ARCH == ARCH_AVR8)
 	TCCR4C |= _BV(COM4D0); // enable NOT(OC4D) pin
+#elif (ARCH == ARCH_XMEGA)
+	TCC1.CTRLA = TC_CLKSEL_DIV64_gc;
+#else
+#   error "Unknown architecture."
+#endif
 }
 static void hfPwmStop(void)  {
+#if (ARCH == ARCH_AVR8)
 	TCCR4C &= ~(_BV(COM4D0)); // disable NOT(OC4D) pin
+#elif (ARCH == ARCH_XMEGA)
+	TCC1.CTRLA = TC_CLKSEL_OFF_gc;
+#else
+#   error "Unknown architecture."
+#endif
 }
 
 static void hfPwmSetDuty(unsigned int duty) {
+#if (ARCH == ARCH_AVR8)
 	unsigned long dutyCycle = hfPwmPeriod;
 	dutyCycle *= duty;
 	dutyCycle >>= 9;
 	TC4H = (dutyCycle) >> 8;   // high 2 bits of duty cycle (comparator OCR4D)
 	OCR4D = (dutyCycle) & 255; // low 8 bits of duty cycle (comparator OCR4D)
+#elif (ARCH == ARCH_XMEGA)
+	TCC1.CCA = duty;
+#else
+#   error "Unknown architecture."
+#endif
 }
 
 static void hfPwmSetPeriod(unsigned long freq)  {
+#if (ARCH == ARCH_AVR8)
 	unsigned long cycles = PLL_FREQ / 2 / freq; // ATMega32U4.pdf:153
 	unsigned char clockSelectBits = 0;
 
@@ -107,6 +133,13 @@ static void hfPwmSetPeriod(unsigned long freq)  {
 	OCR4C = hfPwmPeriod;    // low 8 bits of Timer/Counter TOP value
 							// (ATMega32U4.pdf:{140,152})
 	hfPwmSetDuty((TIMER4_RESOLUTION+1)/2); // hardcoded 50% duty cycle
+#elif (ARCH == ARCH_XMEGA)
+	unsigned long period = F_CPU/2/64/freq;
+	TCC1.PER = period;
+	hfPwmSetDuty(period/2);
+#else
+#   error "Unknown architecture."
+#endif
 }
 
 // Remaining time to keep buzzer on

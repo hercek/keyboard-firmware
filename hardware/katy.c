@@ -66,15 +66,16 @@ const logical_keycode matrix_to_logical_map[MATRIX_ROWS][MATRIX_COLS] PROGMEM =
 	, {LOGICAL_KEY_1,      LOGICAL_KEY_Q,      LOGICAL_KEY_A,      LOGICAL_KEY_Z,      LOGICAL_KEY_LROW2}     // COL 7 | oLoad1 [out]
 	, {LOGICAL_KEY_LCOL1_1,LOGICAL_KEY_LCOL1_2,LOGICAL_KEY_LCOL1_3,LOGICAL_KEY_LCOL1_4,LOGICAL_KEY_LROW1}     // COL 8 | oLoad0 [out]
 	// Right Hand Side
-	// PC6 [in]           PD7 [in]            PE6 [in]              PB4 [in]                 PB7 [in]
-	, {LOGICAL_KEY_TH_RR, LOGICAL_KEY_TH_RL,  LOGICAL_KEY_PGDN,     LOGICAL_KEY_PGUP,   LOGICAL_KEY_R_ALT}   // COL 9  | PF4 [out]
-	, {LOGICAL_KEY_ENTER, LOGICAL_KEY_R_CTRL, LOGICAL_KEY_RCOL2_3,  LOGICAL_KEY_RCOL2_2,LOGICAL_KEY_RCOL2_1} // COL 10 | PF5 [out]
-	, {LOGICAL_KEY_SPACE, LOGICAL_KEY_N,      LOGICAL_KEY_H,        LOGICAL_KEY_Y,      LOGICAL_KEY_6}       // COL 11 | PF6 [out]
-	, {LOGICAL_KEY_RROW5, LOGICAL_KEY_M,      LOGICAL_KEY_J,        LOGICAL_KEY_U,      LOGICAL_KEY_7}       // COL 12 | PF7 [out]
-	, {LOGICAL_KEY_RROW4, LOGICAL_KEY_COMMA,  LOGICAL_KEY_K,        LOGICAL_KEY_I,      LOGICAL_KEY_8}       // COL 13 | PD0 [out]
-	, {LOGICAL_KEY_RROW3, LOGICAL_KEY_PERIOD, LOGICAL_KEY_L,        LOGICAL_KEY_O,      LOGICAL_KEY_9}       // COL 14 | PD1 [out]
-	, {LOGICAL_KEY_RROW2, LOGICAL_KEY_SLASH,  LOGICAL_KEY_SEMICOLON,LOGICAL_KEY_P,      LOGICAL_KEY_0}       // COL 15 | PD2 [out]
-	, {LOGICAL_KEY_RROW1, LOGICAL_KEY_RCOL1_4,LOGICAL_KEY_RCOL1_3,  LOGICAL_KEY_RCOL1_2,LOGICAL_KEY_RCOL1_1} // COL 16 | PD3 [out]
+	// PC6 [in]           PD7 [in]            PE6 [in]              PB4 [in]            PB7 [in]
+	// XD0 [in]           XD1 [in]            XD2 [in]              XD3 [in]            XD4 [in]
+	, {LOGICAL_KEY_TH_RR, LOGICAL_KEY_TH_RL,  LOGICAL_KEY_PGDN,     LOGICAL_KEY_PGUP,   LOGICAL_KEY_R_ALT}   // COL 9  | PF4 XA0 [out]
+	, {LOGICAL_KEY_ENTER, LOGICAL_KEY_R_CTRL, LOGICAL_KEY_RCOL2_3,  LOGICAL_KEY_RCOL2_2,LOGICAL_KEY_RCOL2_1} // COL 10 | PF5 XA1 [out]
+	, {LOGICAL_KEY_SPACE, LOGICAL_KEY_N,      LOGICAL_KEY_H,        LOGICAL_KEY_Y,      LOGICAL_KEY_6}       // COL 11 | PF6 XA2 [out]
+	, {LOGICAL_KEY_RROW5, LOGICAL_KEY_M,      LOGICAL_KEY_J,        LOGICAL_KEY_U,      LOGICAL_KEY_7}       // COL 12 | PF7 XA3 [out]
+	, {LOGICAL_KEY_RROW4, LOGICAL_KEY_COMMA,  LOGICAL_KEY_K,        LOGICAL_KEY_I,      LOGICAL_KEY_8}       // COL 13 | PD0 XA4 [out]
+	, {LOGICAL_KEY_RROW3, LOGICAL_KEY_PERIOD, LOGICAL_KEY_L,        LOGICAL_KEY_O,      LOGICAL_KEY_9}       // COL 14 | PD1 XA5 [out]
+	, {LOGICAL_KEY_RROW2, LOGICAL_KEY_SLASH,  LOGICAL_KEY_SEMICOLON,LOGICAL_KEY_P,      LOGICAL_KEY_0}       // COL 15 | PD2 XA6 [out]
+	, {LOGICAL_KEY_RROW1, LOGICAL_KEY_RCOL1_4,LOGICAL_KEY_RCOL1_3,  LOGICAL_KEY_RCOL1_2,LOGICAL_KEY_RCOL1_1} // COL 16 | PD3 XA7 [out]
 	};
 #undef KEY_NONE
 
@@ -250,14 +251,28 @@ const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] PROGMEM = {
 
 
 // SPI EEPROM related stuf:
-#define SPI_DD_SS   DDE2
-#define SPI_DD_SCK  DDB1
-#define SPI_DD_MOSI DDB2
-#define SPI_DD_MISO DDB3
-#define SPI_DDR_SS   DDRE
-#define SPI_DDR_SCK  DDRB
-#define SPI_DDR_MOSI DDRB
-#define SPI_DDR_MISO DDRB
+#if (ARCH == ARCH_AVR8)
+#  define SPI_DD_SS   DDE2
+#  define SPI_DD_SCK  DDB1
+#  define SPI_DD_MOSI DDB2
+#  define SPI_DD_MISO DDB3
+#  define SPI_DDR_SS   DDRE
+#  define SPI_DDR_SCK  DDRB
+#  define SPI_DDR_MOSI DDRB
+#  define SPI_DDR_MISO DDRB
+#elif  (ARCH == ARCH_XMEGA)
+#  define SPI_DD_SS    PIN1_bp
+#  define SPI_DD_SCK   PIN7_bp
+#  define SPI_DD_MOSI  PIN5_bp
+#  define SPI_DD_MISO  PIN6_bp
+#  define SPI_DDR_SS   PORTB_DIR
+#  define SPI_DDR_SCK  PORTC_DIR
+#  define SPI_DDR_MOSI PORTC_DIR
+#  define SPI_DDR_MISO PORTC_DIR
+#else
+#  error "Unknown architecture."
+#endif
+
 
 static void serial_eeprom_init(void) {
 	// Initialize Pins.
@@ -265,24 +280,102 @@ static void serial_eeprom_init(void) {
 	SPI_DDR_SCK |= _BV(SPI_DD_SCK);    //OUTPUT
 	SPI_DDR_MOSI |= _BV(SPI_DD_MOSI);  //OUTPUT
 	SPI_DDR_MISO &= ~_BV(SPI_DD_MISO); //INPUT
-	// Keep slave inactive (set EEPROM CS to high).
-	SPI_PORT_SS |= _BV(SPI_BIT_SS);
+#if (ARCH == ARCH_AVR8)
+	SPI_PORT_SS |= _BV(SPI_BIT_SS); // Keep slave inactive (set EEPROM CS to high).
 	// Make sure that original ATMega32u4 SS (PB0) is set to output, otherwise
 	// we could get MSTR bit reset to 0 (see ATMega32U4.pdf, page 182).
 	DDRB |= _BV(DDB0); // for KATY, PB0 is CLK1, which is output, so this is OK
 	// Initialize SPI subsystem in master mode, clock set to 4 MHz
 	SPCR = _BV(SPE) | _BV(MSTR); //ATMega32U4.pdf:182
 	SPSR &= ~_BV(SPI2X); // do not raise clock from 4 to 8 MHz
+#elif  (ARCH == ARCH_XMEGA)
+	SPI_PORT_SS.OUTSET = SPI_BIT_SS_bm; // Keep slave inactive (set EEPROM CS to high).
+	// Initialize SPI subsystem: master, 8 MHz (DIV4_gc)
+	SPIC_CTRL = SPI_ENABLE_bm \
+	          | SPI_MASTER_bm \
+	          | SPI_CLK2X_bm \
+	          | SPI_PRESCALER_DIV4_gc \
+	          | SPI_MODE_0_gc;
+#else
+#  error "Unknown architecture."
+#endif
 	// check writing is enabled into to whole EEPROM
 	serial_eeprom_enable_write_everywhere();
 }
 
-void ports_init(void){
-	// Set up input
-//	// we want to enable internal pull-ups on all of these pins: we're scanning by pulling low.
-//	RIGHT_MATRIX_IN_DDR  &= ~RIGHT_MATRIX_IN_MASK; // 0 = input pin
-//	RIGHT_MATRIX_IN_PORT |=  RIGHT_MATRIX_IN_MASK; // 1 = pull-up enabled
 
+#if (ARCH == ARCH_XMEGA)
+
+static uint8_t read_calibration_byte(uint8_t index) {
+	uint8_t result;
+	NVM_CMD = NVM_CMD_READ_CALIB_ROW_gc;
+	result = pgm_read_byte(index);
+	NVM_CMD = NVM_CMD_NO_OPERATION_gc;
+	return result;
+}
+
+static void photoresistor_init(void) {
+	PORTB.DIRSET = PIN0_bm; // photoPwr is output
+	PORTB.OUTSET = PIN0_bm; // Turn on 3.3V on photoPwr
+	//PORTB.DIRCLR = PIN2_bm; // photoSns is input
+	//PORTB.PIN2CTRL = PORT_OPC_TOTEM_gc; // No pull up nor pull down on photoSns
+	// First read is wrong, discard it
+	ADCA.CALL = read_calibration_byte(offsetof(NVM_PROD_SIGNATURES_t, ADCACAL0));
+	ADCA.CALL = read_calibration_byte(offsetof(NVM_PROD_SIGNATURES_t, ADCACAL0));
+	ADCA.CALH = read_calibration_byte(offsetof(NVM_PROD_SIGNATURES_t, ADCACAL1));
+	ADCA.CALH = read_calibration_byte(offsetof(NVM_PROD_SIGNATURES_t, ADCACAL1));
+	//ADCA.REFCTRL = ADC_REFSEL_INTVCC_gc;
+	// Set up ADC for photoSns
+	ADCA.CH0.CTRL = ADC_CH_INPUTMODE_SINGLEENDED_gc;
+	ADCA.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN10_gc; //PB2 == ADC10 (a4u datasheet, page 58)
+	ADCA.CTRLA = ADC_ENABLE_bm;
+	//_delay_us(3); // wait at least 24 ADC clocks (24*4/32MHz = 3us)
+}
+
+static void photoresistor_test(void) {
+	static float moving_average = 0.0f;
+	static uint16_t ma[32] = {0};
+	static uint8_t index = 0;
+	const uint8_t array_size = sizeof(ma)/sizeof(ma[0]);
+	char adc_string[9] = {0};
+
+	ADCA.CH0.CTRL |= ADC_CH_START_bm; // start the ADC
+	while (!(ADCA.CH0.INTFLAGS & ADC_CH0IF_bm)); // Wait for conversion to be finished.
+	uint16_t adc_result = ADCA.CH0RES & 0x0FFF; // get the 12bit value
+
+	moving_average -= ma[index]/array_size;
+	ma[index] = adc_result;
+	moving_average += adc_result/array_size;
+	index = (index + 1) % array_size;
+
+/*
+	uint16_t adc_average = 0;
+	for (uint8_t i = 0; i < array_size; ++i) {
+		adc_average += ma[i];
+	}
+	adc_average /= array_size;
+*/
+
+	/*TODO remove this:*/
+	sprintf(adc_string, "%8d", (uint16_t)moving_average);
+
+	//uint8_t reset_status = RST.STATUS;
+	//RST.STATUS = 0x01;
+	//sprintf(adc_string, "0x%02x", reset_status);
+
+	//sprintf(adc_string, "%8d", adc_average);
+	//sprintf(adc_string, "%8d", adc_result);
+	lcd_print_position(1, 0, adc_string);
+	sprintf(adc_string, "%8d", adc_result);
+	lcd_print_position(0, 0, adc_string);
+	_delay_ms(500); // wait a second to be able to read what's on LCD
+}
+
+#endif
+
+
+void ports_init(void){
+#if (ARCH == ARCH_AVR8)
 	// Set up internal pull-ups for input pins, scanning by pulling low
 	RIGHT_MATRIX_IN_1_DDR  &= ~RIGHT_MATRIX_IN_1_MASK;
 	RIGHT_MATRIX_IN_1_PORT |=  RIGHT_MATRIX_IN_1_MASK;
@@ -313,6 +406,76 @@ void ports_init(void){
 		LEFT_CLK0_HIGH;
 		LEFT_CLK0_LOW;
 	}
+#elif (ARCH == ARCH_XMEGA)
+	// Katy on atxmega uses PD0-PD4 (5 pins) for rows (input) and shares
+	// columns with LCD as output, lines LcdD0-LcdD7.
+
+	// First, set up rows.
+	PORTD.DIRCLR = 0b00011111;           // PD0-PD4 as input
+	PORTCFG.MPCMASK = 0b00011111;        // Set up multi-pin port configuration.
+	PORTD.PIN0CTRL = PORT_OPC_PULLUP_gc; // Set pull-up on input pins.
+
+	// Now set up columns. Columns share pins with LCD, lines LcdD0-LcdD7.
+	PORTA.DIRCLR = 0b11111111;             // PA0-PA7 as input.
+	PORTCFG.MPCMASK = 0b11111111;          // Multi pin configuration...
+
+	// Set up left hand side.
+	// Set oLoad as output ...
+	PORTC.DIRSET = PIN0_bm;
+	// ... and set it to high (do not reset register 165)
+	PORTC.OUTSET = PIN0_bm;
+	// Set up iData as input with internal pullup
+	PORTC.DIRCLR = PIN3_bm;
+	PORTC.PIN3CTRL = PORT_OPC_PULLUP_gc;
+	// Set up CLK0 and CLK1 as output pins ...
+	PORTC.DIRSET = PIN1_bm | PIN2_bm;
+	PORTC.OUTCLR = PIN1_bm | PIN2_bm;
+	for (int8_t i = 0; i <= 7; ++i) {
+		PORTC.OUTSET = PIN1_bm;
+		PORTC.OUTCLR = PIN1_bm;
+	}
+	// Set up ATXMEGA related to LCD
+	// Set up LcdV
+	PORTB.DIRSET = PIN3_bm;
+	//PORTB.OUTCLR = PIN3_bm;
+
+	DACB.CTRLA = DAC_CH1EN_bm | DAC_LPMODE_bm | DAC_ENABLE_bm;
+	DACB.CTRLB = DAC_CHSEL1_bm;
+	DACB.CTRLC = DAC_REFSEL0_bm;
+	//DACB.CH1DATA = 0x0000; // 0.0308V - display is readable, too black however
+	DACB.CH1DATA = 0x0300; // 0.5925V - display is well readable
+	//DACB.CH1DATA = 0x0380; // 0.6944V - display is readable
+	//DACB.CH1DATA = 0x0400; // 0.7960V - display is readable ok
+	//DACB.CH1DATA = 0x0480; // 0.8979V - visible, not ideal
+	//DACB.CH1DATA = 0x0500; // 0.9995V - badly visible
+	//DACB.CH1DATA = 0x0600; // 1.2033V - veeery badly visible
+	//DACB.CH1DATA = 0x0800; // too high, 1.6108V - display is empty
+	//DACB.CH1DATA = 0x0FFF;
+
+	// Set up LcdLED
+	PORTD.DIRSET = PIN5_bm;
+	//PORTD.OUTSET = PIN5_bm;
+	//PORTD.OUTCLR = PIN5_bm;
+	TCD1.CTRLB = TC_WGMODE_DS_B_gc | TC1_CCBEN_bm;
+	TCD1.PER = 0xFFFF;
+	TCD1.CCB = 0x1000;
+	TCD1.CTRLA = TC_CLKSEL_DIV1_gc;
+
+	// Setup LEDs
+	PORTE.DIRSET = PIN0_bm | PIN1_bm | PIN2_bm | PIN3_bm;
+	TCE0.CTRLB = TC_WGMODE_DS_B_gc | TC0_CCAEN_bm | TC0_CCBEN_bm | TC0_CCCEN_bm | TC0_CCDEN_bm;
+	TCE0.PER = 0xFFFF;
+	TCE0.CCA = 0x0800;
+	TCE0.CCB = 0x0800;
+	TCE0.CCC = 0x0200;
+	TCE0.CCD = 0x0600;
+	//TCE0.CTRLA = TC_CLKSEL_DIV1_gc;
+
+	// Set up Photo Transistor
+	photoresistor_init();
+#else
+# error "Unknown architecture."
+#endif
 
 	// Set up LEDs.
 	lcd_init();
@@ -330,6 +493,7 @@ void ports_init(void){
 static uint8_t processing_row = 0;
 
 void matrix_select_row(uint8_t matrix_row){
+#if (ARCH == ARCH_AVR8)
 	// KATY: we actually select cols here (replace rows with cols here)
 	if (matrix_row < MATRIX_ROWS/2) {
 		// handle left hand side
@@ -359,6 +523,32 @@ void matrix_select_row(uint8_t matrix_row){
 			RIGHT_MATRIX_OUT_2_PORT &= ~(1 << (matrix_row - 12)); // set to low
 		}
 	}
+#elif (ARCH == ARCH_XMEGA)
+	// /*TODO REMOVE ME*/ photoresistor_test();
+	if (matrix_row < MATRIX_ROWS/2) {
+		// handling lef hand side of the keyboard
+		if (matrix_row == 0) {
+			PORTC.OUTCLR = PIN0_bm; // oLoad low
+			PORTC.OUTSET = PIN1_bm; // CLK0 high
+			PORTC.OUTCLR = PIN1_bm; // CLK0 low
+			_delay_us(1);
+		}
+		PORTC.OUTCLR = PIN0_bm; // oLoad low
+		PORTC.OUTSET = PIN0_bm; // oLoad high
+		PORTC.OUTSET = PIN1_bm; // CLK0 high
+		PORTC.OUTCLR = PIN1_bm; // CLK0 low
+	} else {
+		// handling right hand side of the keyboard
+		uint8_t pin = (1 << (matrix_row - (MATRIX_ROWS/2)));
+		// Set all pins to input.
+		PORTA.DIRCLR = 0b11111111;
+		// And only selected pin to output driven to low.
+		PORTA.DIRSET = pin;
+		PORTA.OUTCLR = pin;
+	}
+#else
+# error "Unknown architecture."
+#endif
 	// Used in matrix_read_column() to determine handling of L or R side
 	processing_row = matrix_row;
 }
@@ -366,6 +556,7 @@ void matrix_select_row(uint8_t matrix_row){
 uint8_t matrix_read_column(uint8_t matrix_column){
 	// KATY: we actually read rows here...
 	uint8_t value;
+#if (ARCH == ARCH_AVR8)
 	if (processing_row < MATRIX_ROWS/2) {
 		// handling left hand side
 		static uint8_t register_165_state = 0; // parallel to serial state
@@ -405,6 +596,29 @@ uint8_t matrix_read_column(uint8_t matrix_column){
 				break;
 		}
 	}
+#elif (ARCH == ARCH_XMEGA)
+	if (processing_row < MATRIX_ROWS/2) {
+		// handling left hand side
+		static uint8_t register_165_state = 0; // parallel to serial state
+		if (matrix_column == 0) {
+			// read 7th bit of register 165
+			register_165_state = (PORTC.IN & PIN3_bm) ? 1 : 0;
+			// 0, 1, 2 bits of register 165 are not used
+			for (int8_t i = 6; i > 2; --i) {
+				PORTC.OUTSET = PIN2_bm; // CLK1 high
+				PORTC.OUTCLR = PIN2_bm; // CLK1 low
+				register_165_state <<= 1;
+				register_165_state |= (PORTC.IN & PIN3_bm) ? 1 : 0;
+			}
+		}
+		value = ((1 << matrix_column) & register_165_state) ? 1 : 0;
+	} else {
+		// handling right hand side
+		value = (PORTD.IN >> matrix_column) & 0x01;
+	}
+#else
+# error "Unknown architecture."
+#endif
 	return (value == 0); // Key is pressed when pin is low (inverse logic)
 }
 

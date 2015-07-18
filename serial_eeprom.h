@@ -52,7 +52,14 @@
 
 #define EEEXT __attribute__((section(".eeexternal")))
 
+#if (ARCH == ARCH_AVR8)
 #define EEEXT_PAGE_SIZE 32
+#elif (ARCH == ARCH_XMEGA)
+#define EEEXT_PAGE_SIZE 64
+#else
+#error "Unknwon architecture."
+#endif
+
 
 typedef enum _serial_eeprom_err {
 	SUCCESS = 0,

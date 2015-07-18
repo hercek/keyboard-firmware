@@ -105,19 +105,19 @@
 //		#define NO_CLASS_DRIVER_AUTOFLUSH
 
 		/* General USB Driver Related Tokens: */
-//		#define USE_STATIC_OPTIONS               {Insert Value Here}
+		#define USE_STATIC_OPTIONS               USB_DEVICE_OPT_FULLSPEED
 //		#define USB_STREAM_TIMEOUT_MS            {Insert Value Here}
 //		#define NO_LIMITED_CONTROLLER_CONNECT
 //		#define NO_SOF_EVENTS
 
 		/* USB Device Mode Driver Related Tokens: */
 //		#define USE_RAM_DESCRIPTORS
-//		#define USE_FLASH_DESCRIPTORS
+		#define USE_FLASH_DESCRIPTORS
 //		#define USE_EEPROM_DESCRIPTORS
 //		#define NO_INTERNAL_SERIAL
-//		#define FIXED_CONTROL_ENDPOINT_SIZE      {Insert Value Here}
+		#define FIXED_CONTROL_ENDPOINT_SIZE      8
 //		#define DEVICE_STATE_AS_GPIOR            {Insert Value Here}
-//		#define FIXED_NUM_CONFIGURATIONS         {Insert Value Here}
+		#define FIXED_NUM_CONFIGURATIONS         1
 //		#define CONTROL_ONLY_DEVICE
 // 		#define MAX_ENDPOINT_INDEX               {Insert Value Here}
 //		#define NO_DEVICE_REMOTE_WAKEUP

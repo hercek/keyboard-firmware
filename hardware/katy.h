@@ -216,7 +216,7 @@ extern const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] PROGMEM;
 // For now, no eeprom.
 
 ////////////////////////////////////////////////////////////////////////////////////////
-
+#if (ARCH == ARCH_AVR8)
 #define RIGHT_MATRIX_IN_1_PORT PORTC
 #define RIGHT_MATRIX_IN_1_DDR  DDRC
 #define RIGHT_MATRIX_IN_1_MASK (1<<6)
@@ -263,6 +263,11 @@ extern const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] PROGMEM;
 #define LEFT_CLK1_MASK _BV(PB0)
 #define LEFT_CLK1_HIGH LEFT_CLK1_PORT |=  LEFT_CLK1_MASK; //_delay_us(1);
 #define LEFT_CLK1_LOW  LEFT_CLK1_PORT &= ~LEFT_CLK1_MASK; //_delay_us(1);
+#elif (ARCH == ARCH_XMEGA)
+// no stuff here (yet)
+#else
+# error "Unknown architecture."
+#endif
 
 #define USE_BUZZER 1
 
@@ -274,15 +279,28 @@ extern const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] PROGMEM;
 
 void ports_init(void);
 
-#define SPI_PORT_SS PORTE
-#define SPI_BIT_SS  PORTE2
-// SS setup time is 100 ns ->
-//   spi_slave_on() will use one instruction => one nop here is enough
-#define SPI_EEPROM_CS_SETUP_DELAY asm volatile( "nop\n\t" ::)
-// SS hold time is 200 ns from last spi_transfer ->
-//   the spi_transfer will have at least 3 instructions and 2 instructions will
-//   be used by spi_slave_off() => this delay can be empty
-#define SPI_EEPROM_CS_HOLD_DELAY
+#if (ARCH == ARCH_AVR8)
+#  define SPI_PORT_SS PORTE
+#  define SPI_BIT_SS  PORTE2
+   // SS setup time is 100 ns, frequency is 16 MHz ->
+   //   spi_slave_on() will use one instruction => one nop here is enough
+#  define SPI_EEPROM_CS_SETUP_DELAY asm volatile( "nop\n\t" ::)
+   // SS hold time is 200 ns from the last spi_transfer, frequency is 16 MHz ->
+   //   the spi_transfer will have at least 3 instructions and 2 instructions will
+   //   be used by spi_slave_off() => this delay can be empty
+#  define SPI_EEPROM_CS_HOLD_DELAY
+#elif  (ARCH == ARCH_XMEGA)
+#  define SPI_PORT_SS    PORTB
+#  define SPI_BIT_SS_bm  PIN1_bm
+   // SS setup time is 100 ns, frequency is 32 MHz ->
+   //   1 instruction in spi_slave_on plus this
+#  define SPI_EEPROM_CS_SETUP_DELAY asm volatile( "nop\n\tnop\n\tnop\n\t" ::)
+   // SS hold time is 100 ns from the last spi_transfer, frequency is 32 MHz
+   //   3 instructions in spi_transfer and 1 instruction in spi_slave_off is enough
+#  define SPI_EEPROM_CS_HOLD_DELAY
+#else
+#  error "Unknown architecture."
+#endif
 void serial_eeprom_enable_write_everywhere(void); // just a prototype; defined in serial_eeprom.c
 
 /**
