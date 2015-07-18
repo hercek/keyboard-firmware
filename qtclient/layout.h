@@ -42,7 +42,7 @@ public:
 	}
 
 	LogicalKeycode physicalKeycodeToLogical(PhysicalKeycode pKey, bool keypadLayer) const {
-		if(keypadLayer && pKey > keypad.layerStart){
+		if(keypadLayer && pKey >= keypad.layerStart){
 			pKey += keypad.layerSize;
 		}
 		return pKey;
