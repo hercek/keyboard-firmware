@@ -14,9 +14,6 @@ returning it via get_spi_eeprom_errno() function.
 /* Include generic serial eeprom interface. */
 #include "serial_eeprom.h"
 
-/* Include specific spic eeprom interface. */
-#include "serial_eeprom_spi.h"
-
 #include "usb.h"
 #include "printing.h"
 
@@ -26,18 +23,6 @@ returning it via get_spi_eeprom_errno() function.
    - DDR_SCK  - DDR SPI clock
    - DDR_SS   - DDR slave/chip select
 */
-
-/* Following defines should be in hardware specific header file */
-#define SPI_DD_SS   DDE2
-#define SPI_DD_SCK  DDB1
-#define SPI_DD_MOSI DDB2
-#define SPI_DD_MISO DDB3
-#define SPI_DDR_SS   DDRE
-#define SPI_DDR_SCK  DDRB
-#define SPI_DDR_MOSI DDRB
-#define SPI_DDR_MISO DDRB
-#define SPI_PORT_SS PORTE
-#define SPI_BIT_SS  PORTE2
 
 #define SPI_STATUS_WRITE_IN_PROGRESS_MASK 1
 #define SPI_STATUS_WRITE_DISABLED_MASK 0b01100
@@ -52,13 +37,12 @@ typedef enum _SPI_COMMAND {
 
 static inline void spi_slave_on(void) {
 	SPI_PORT_SS &= ~_BV(SPI_BIT_SS); // SS is active low.
-	// SS setup time is 100 ns -> one NOP here and one instruction to actually use SPI will do.
-	asm volatile( "nop\n\t" ::);
+	SPI_EEPROM_CS_SETUP_DELAY;
 }
 
 static inline void spi_slave_off(void) {
-	// SS hold time is 200 ns -> 3 instructions and 2 instructions here will do.
 	SPI_PORT_SS |= _BV(SPI_BIT_SS); // SS is active low.
+	SPI_EEPROM_CS_HOLD_DELAY;
 }
 
 static inline uint8_t spi_transfer(volatile uint8_t byte_data) {
@@ -107,23 +91,8 @@ static void serial_eeprom_write_status(uint8_t new_status) {
 	spi_slave_off();
 }
 
-// Called from:
-// - ergodox.c
-void serial_eeprom_init(void) {
-	// Initialize Pins.
-	SPI_DDR_SS |= _BV(SPI_DD_SS);      //OUTPUT
-	SPI_DDR_SCK |= _BV(SPI_DD_SCK);    //OUTPUT
-	SPI_DDR_MOSI |= _BV(SPI_DD_MOSI);  //OUTPUT
-	SPI_DDR_MISO &= ~_BV(SPI_DD_MISO); //INPUT
-	// Keep slave inactive.
-	spi_slave_off();
-	// Make sure that original ATMega32u4 SS (PB0) is set to output, otherwise
-	// we could get MSTR bit reset to 0 (see ATMega32U4.pdf, page 182).
-	DDRB |= _BV(DDB0); // for KATY, PB0 is CLK1, which is output, so this is OK
-	// Initialize SPI subsystem in master mode, clock set to 4 MHz
-	SPCR = _BV(SPE) | _BV(MSTR); //ATMega32U4.pdf:182
-	SPSR &= ~_BV(SPI2X); // do not raise clock from 4 to 8 MHz
-	// check writing is enabled into to whole EEPROM
+// Makes sure we can write to whole EEPROM address range.
+void serial_eeprom_enable_write_everywhere(void) {
 	uint8_t rv = serial_eeprom_read_status();
 	if ( rv & SPI_STATUS_WRITE_DISABLED_MASK )
 		serial_eeprom_write_status(0); // enable write to the whole EEPROM

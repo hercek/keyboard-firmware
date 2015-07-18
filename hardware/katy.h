@@ -272,9 +272,18 @@ extern const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] PROGMEM;
 #define LED_KEYPAD 8
 #define ALL_LEDS (LED_CAPS | LED_NUM | LED_SCROLL)
 
-// EEPROM not initially installed.
-
 void ports_init(void);
+
+#define SPI_PORT_SS PORTE
+#define SPI_BIT_SS  PORTE2
+// SS setup time is 100 ns ->
+//   spi_slave_on() will use one instruction => one nop here is enough
+#define SPI_EEPROM_CS_SETUP_DELAY asm volatile( "nop\n\t" ::)
+// SS hold time is 200 ns from last spi_transfer ->
+//   the spi_transfer will have at least 3 instructions and 2 instructions will
+//   be used by spi_slave_off() => this delay can be empty
+#define SPI_EEPROM_CS_HOLD_DELAY
+void serial_eeprom_enable_write_everywhere(void); // just a prototype; defined in serial_eeprom.c
 
 /**
  * Gets the current physical input for a given physical position

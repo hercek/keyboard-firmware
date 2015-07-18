@@ -108,10 +108,10 @@ int16_t serial_eeprom_read(const uint8_t* addr, uint8_t* buf, uint16_t len);
 
 serial_eeprom_err serial_eeprom_memmove(uint8_t* dst, uint8_t* src, size_t count);
 
-#ifdef DEBUG
+//#ifdef DEBUG
 // test code (not normally linked)
 uint8_t serial_eeprom_test_read(void);
 uint8_t serial_eeprom_test_write(void);
-#endif
+//#endif
 
 #endif // __SERIAL_EEPROM_H

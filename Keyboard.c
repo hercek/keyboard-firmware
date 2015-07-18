@@ -54,7 +54,6 @@
 #include "buzzer.h"
 
 #include "serial_eeprom.h"
-#include "serial_eeprom_spi.h"
 #include "printing.h"
 #include "interpreter.h"
 #include "macro_index.h"
