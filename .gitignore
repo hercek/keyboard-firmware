@@ -15,3 +15,7 @@ TAGS
 *.s#?
 .DS_Store
 compiler/dist
+.*.swp
+*.d
+*.bin
+.avr-gdbinit
