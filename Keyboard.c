@@ -262,12 +262,12 @@ static void handle_state_normal(void){
 				logical_keycode keys[3];
 				keystate_get_keys(keys, PHYSICAL);
 
-				// save/load/delete state : PGM + {S/L/D} + {0-9}
-				logical_keycode type = NO_KEY; // S/L/D
+				// save/load/delete state : PGM + {SAVE/LOAD/DELETE} + {0-9}
+				logical_keycode type = NO_KEY; // SAVE/LOAD/DELETE
 				logical_keycode pos = NO_KEY;  //0-9
 				for(int i = 0; i < 3; ++i){
 					logical_keycode ki = keys[i];
-					if(ki == LOGICAL_KEY_S || ki == LOGICAL_KEY_L || ki == LOGICAL_KEY_D){
+					if(ki == SPECIAL_LKEY_CONFIG_SAVE || ki == SPECIAL_LKEY_CONFIG_LOAD || ki == SPECIAL_LKEY_CONFIG_DELETE){
 						type = ki;
 					}
 					else if(ki >= LOGICAL_KEY_1 && ki <= LOGICAL_KEY_0){
@@ -277,11 +277,11 @@ static void handle_state_normal(void){
 				if(type == NO_KEY || pos == NO_KEY) break;
 				int index = pos - LOGICAL_KEY_1;
 				int r;
-				if(type == LOGICAL_KEY_S) {
+				if(type == SPECIAL_LKEY_CONFIG_SAVE) {
 					r = config_save_layout(index);
-				} else if(type == LOGICAL_KEY_L) {
+				} else if(type == SPECIAL_LKEY_CONFIG_LOAD) {
 					r = config_load_layout(index);
-				} else {
+				} else { // SPECIAL_LKEY_CONFIG_DELETE
 					r = config_delete_layout(index);
 				}
 				if(r){

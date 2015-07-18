@@ -180,6 +180,9 @@ enum logical_keys {
 };
 
 // Which logical keys to use for special in-built combinations
+#define SPECIAL_LKEY_CONFIG_LOAD   LOGICAL_KEY_E
+#define SPECIAL_LKEY_CONFIG_SAVE   LOGICAL_KEY_S
+#define SPECIAL_LKEY_CONFIG_DELETE LOGICAL_KEY_D
 #define SPECIAL_LKEY_MACRO_RECORD  LOGICAL_KEY_W
 #define SPECIAL_LKEY_REMAP         LOGICAL_KEY_R
 #define SPECIAL_LKEY_REBOOT        LOGICAL_KEY_B
