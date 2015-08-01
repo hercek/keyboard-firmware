@@ -119,7 +119,7 @@
 //		#define DEVICE_STATE_AS_GPIOR            {Insert Value Here}
 		#define FIXED_NUM_CONFIGURATIONS         1
 //		#define CONTROL_ONLY_DEVICE
-// 		#define MAX_ENDPOINT_INDEX               {Insert Value Here}
+		#define MAX_ENDPOINT_INDEX               3 /* control, keyboard, mouse */
 //		#define NO_DEVICE_REMOTE_WAKEUP
 //		#define NO_DEVICE_SELF_POWER
 
