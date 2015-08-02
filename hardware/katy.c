@@ -477,7 +477,9 @@ void ports_init(void){
 	#define LED_PORT_DIRCLR(m) PORTE.DIRCLR=m
 
 	// Set up Photo Transistor
+#ifdef KATY_DEBUG
 	photosensor_init();
+#endif
 #else
 # error "Unknown architecture."
 #endif
