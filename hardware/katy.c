@@ -424,12 +424,12 @@ void ports_init(void){
 
 	// Set up left hand side.
 	// Set oLoad as output ...
-	PORTC.DIRSET = PIN0_bm;
+	PORTC.DIRSET = PIN3_bm;
 	// ... and set it to high (do not reset register 165)
-	PORTC.OUTSET = PIN0_bm;
+	PORTC.OUTSET = PIN3_bm;
 	// Set up iData as input with internal pullup
-	PORTC.DIRCLR = PIN3_bm;
-	PORTC.PIN3CTRL = PORT_OPC_PULLUP_gc;
+	PORTC.DIRCLR = PIN0_bm;
+	PORTC.PIN0CTRL = PORT_OPC_PULLUP_gc;
 	// Set up CLK0 and CLK1 as output pins ...
 	PORTC.DIRSET = PIN1_bm | PIN2_bm;
 	PORTC.OUTCLR = PIN1_bm | PIN2_bm;
@@ -532,13 +532,13 @@ void matrix_select_row(uint8_t matrix_row){
 	if (matrix_row < MATRIX_ROWS/2) {
 		// handling lef hand side of the keyboard
 		if (matrix_row == 0) {
-			PORTC.OUTCLR = PIN0_bm; // oLoad low
+			PORTC.OUTCLR = PIN3_bm; // oLoad low
 			PORTC.OUTSET = PIN1_bm; // CLK0 high
 			PORTC.OUTCLR = PIN1_bm; // CLK0 low
 			_delay_us(1);
 		}
-		PORTC.OUTCLR = PIN0_bm; // oLoad low
-		PORTC.OUTSET = PIN0_bm; // oLoad high
+		PORTC.OUTCLR = PIN3_bm; // oLoad low
+		PORTC.OUTSET = PIN3_bm; // oLoad high
 		PORTC.OUTSET = PIN1_bm; // CLK0 high
 		PORTC.OUTCLR = PIN1_bm; // CLK0 low
 	} else {
@@ -606,13 +606,13 @@ uint8_t matrix_read_column(uint8_t matrix_column){
 		static uint8_t register_165_state = 0; // parallel to serial state
 		if (matrix_column == 0) {
 			// read 7th bit of register 165
-			register_165_state = (PORTC.IN & PIN3_bm) ? 1 : 0;
+			register_165_state = (PORTC.IN & PIN0_bm) ? 1 : 0; // read iData
 			// 0, 1, 2 bits of register 165 are not used
 			for (int8_t i = 6; i > 2; --i) {
 				PORTC.OUTSET = PIN2_bm; // CLK1 high
 				PORTC.OUTCLR = PIN2_bm; // CLK1 low
 				register_165_state <<= 1;
-				register_165_state |= (PORTC.IN & PIN3_bm) ? 1 : 0;
+				register_165_state |= (PORTC.IN & PIN0_bm) ? 1 : 0; // read iData
 			}
 		}
 		value = ((1 << matrix_column) & register_165_state) ? 1 : 0;
