@@ -119,7 +119,8 @@ void __attribute__((noreturn)) Keyboard_Main(void)
 			ledstate_update();
 			update.keys = 0;
 #ifdef KATY_DEBUG
-			test_photosensor();
+			if (test_photosensor()) {
+				next_state = current_state; current_state = STATE_PRINTING; }
 #endif //KATY_DEBUG
 		}
 		else if(!update.keys && slice){
