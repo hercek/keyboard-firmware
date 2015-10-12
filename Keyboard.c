@@ -118,14 +118,12 @@ void __attribute__((noreturn)) Keyboard_Main(void)
 			keystate_update();
 			ledstate_update();
 			update.keys = 0;
-#ifdef KATY_DEBUG
-			if (test_photosensor()) {
-				next_state = current_state; current_state = STATE_PRINTING; }
-#endif //KATY_DEBUG
 		}
 		else if(!update.keys && slice){
 			update.keys = 1;
 		}
+		if (run_photosensor(uptimems())) {
+			next_state = current_state; current_state = STATE_PRINTING; }
 
 		// in all non-wait states we want to handle the keypad layer button
 #ifdef KEYPAD_LAYER

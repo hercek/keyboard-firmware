@@ -315,11 +315,15 @@ static uint8_t read_calibration_byte(uint8_t index) {
 	return result;
 }
 
-EMPTY_INTERRUPT(ADCA_CH0_vect)
-
 static void photosensor_init(void) {
-	PORTB.DIRSET = PIN2_bm; // photoPwr is output
-	PORTB.OUTSET = PIN2_bm; // Turn on 3.3V on photoPwr
+	// we need to know time progression to ramp-up photoPwr -> use TCC0
+	TCC0.CTRLA = TC_CLKSEL_DIV64_gc; // increment time every 2 µs
+	TCC0.PER = 0xffff; // wrap timer every 65536*2 µs
+	// setup photoDrv (preserve the original DAC-CH1 settings
+	PORTB.DIRSET = PIN2_bm; // photoDrv is output
+	DACB.CTRLA |= DAC_CH0EN_bm; // enable channel 0 too
+	DACB.CTRLB = DAC_CHSEL1_bm; // dual channel operation
+	DACB.CH0DATA = 0x0; // photoPwr is switched off at boot
 	// Set up ADC for photoSns
 	//PORTB.DIRCLR = PIN0_bm; // photoSns is input
 	//PORTB.PIN0CTRL = PORT_OPC_TOTEM_gc; // No pull up nor pull down on photoSns
@@ -328,51 +332,151 @@ static void photosensor_init(void) {
 	ADCA.CALL = read_calibration_byte(offsetof(NVM_PROD_SIGNATURES_t, ADCACAL0));
 	ADCA.CALH = read_calibration_byte(offsetof(NVM_PROD_SIGNATURES_t, ADCACAL1));
 	ADCA.CALH = read_calibration_byte(offsetof(NVM_PROD_SIGNATURES_t, ADCACAL1));
-	ADCA.PRESCALER = ADC_PRESCALER_DIV8_gc; // slow down a bit to increas precision
+	ADCA.PRESCALER = ADC_PRESCALER_DIV512_gc; // slow down to increas precision
 	ADCA.REFCTRL = ADC_REFSEL_INTVCC_gc; // set ADC reference to Vcc/1.6
 	ADCA.CH0.CTRL = ADC_CH_INPUTMODE_SINGLEENDED_gc; // single-ended, no gain
 	ADCA.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN8_gc; //PB0 == ADC8 (a4u datasheet, page 58)
-	ADCA.CH0.INTCTRL = (ADC_CH_INTMODE_COMPLETE_gc | ADC_CH_INTLVL_HI_gc); // interrupt on
 	ADCA.CTRLA = ADC_ENABLE_bm;
-	SLEEP.CTRL = 1; // set sleep to idle mode
 }
 
-bool test_photosensor(void) {
-	static uint16_t ma[8];
-	static uint8_t index = 0;
-	static char adc_string[12];
-	const uint8_t array_size = sizeof(ma)/sizeof(ma[0]);
+enum photosensor_state {
+	PHOTOSENSOR_OFF,
+	PHOTOSENSOR_STARTING,
+	PHOTOSENSOR_STARTED,
+	PHOTOSENSOR_WAITING,
+	PHOTOSENSOR_RUNNING
+};
 
-	if (index < array_size) {
+void set_all_leds_ex(uint8_t led_mask, int16_t lux_val);
+inline uint16_t get_photoDrv_voltage_code( float u ) {
+	return (uint16_t)( u * 4096.0f / 3.3f );
+}
+
+bool run_photosensor(uint32_t cur_time_ms) {
+	static enum photosensor_state state = PHOTOSENSOR_OFF;
+	static uint32_t next_step_time_ms = 500;
+	static uint16_t next_step_time_2us;
+	static uint16_t adc_rv[20];
+	static uint8_t index;
+	const uint8_t adc_rv_array_size = sizeof(adc_rv)/sizeof(adc_rv[0]);
+	const uint16_t time_2us_inc = 7; // 14 µs time increment
+
+	switch (state) {
+	case PHOTOSENSOR_OFF:
+		if (cur_time_ms < next_step_time_ms) return false;
+		DACB.CH0DATA = get_photoDrv_voltage_code(1.1f);
+		next_step_time_2us = TCC0.CNT + time_2us_inc;
+		state = PHOTOSENSOR_STARTING;
+		return false;
+	case PHOTOSENSOR_STARTING:
+		if ( TCC0.CNT < next_step_time_2us ) return false;
+		if ( TCC0.CNT - next_step_time_2us > 0x8000 ) return false;
+		if ( DACB.CH0DATA >= get_photoDrv_voltage_code(2.6f) ) {
+			DACB.CH0DATA = 0xfff;
+			next_step_time_2us = TCC0.CNT + 51; // 102 ms increment
+			state = PHOTOSENSOR_STARTED;
+			return false; }
+		DACB.CH0DATA += get_photoDrv_voltage_code(0.115f);
+		next_step_time_2us = TCC0.CNT + time_2us_inc;
+		return false;
+	case PHOTOSENSOR_STARTED:
+		if ( TCC0.CNT < next_step_time_2us ) return false;
+		if ( TCC0.CNT - next_step_time_2us > 0x8000 ) return false;
+		index = 0;
+		next_step_time_ms = cur_time_ms + 1;
+		state = PHOTOSENSOR_WAITING;
+		return false;
+	case PHOTOSENSOR_WAITING:
+		if (cur_time_ms < next_step_time_ms) return false;
 		ADCA.CH0.CTRL |= ADC_CH_START_bm; // start the ADC
-		asm volatile( "sleep\n\t" ::); // wait for conversion to finish
-		ma[index] = ADCA.CH0RES & 0x0FFF; // get the 12bit value
-		index += 1;
-
-		if (index == array_size) {
+		next_step_time_ms = cur_time_ms + 1;
+		state = PHOTOSENSOR_RUNNING;
+		return false;
+	case PHOTOSENSOR_RUNNING:
+		if (!(ADCA.CH0.INTFLAGS & ADC_CH0IF_bm)) return false; // Wait for conversion to be finished.
+		adc_rv[index] = ADCA.CH0RES & 0x0FFF; // get the 12bit value
+		if (++index < adc_rv_array_size) {
+			next_step_time_ms = cur_time_ms + 1;
+			state = PHOTOSENSOR_WAITING;
+			return false;
+		}
+		// OK, we finished reading the whole photo sensor data set
+		{
 			uint32_t adc_average = 0;
+#ifdef KATY_DEBUG
 			uint16_t adc_max = 0;
 			uint16_t adc_min = -1;
-			for (uint8_t i = 0; i < array_size; ++i) {
-				adc_average += ma[i];
-				if (adc_max < ma[i]) adc_max = ma[i];
-				if (adc_min > ma[i]) adc_min = ma[i];
+			static char adc_string[12];
+#endif
+			for (uint8_t i = 0; i < adc_rv_array_size; ++i) {
+				adc_average += adc_rv[i];
+#ifdef KATY_DEBUG
+				if (adc_max < adc_rv[i]) adc_max = adc_rv[i];
+				if (adc_min > adc_rv[i]) adc_min = adc_rv[i];
+#endif
 			}
-			adc_average /= array_size;
-			sprintf(adc_string, "%d %d\n", (uint16_t)adc_average, adc_max-adc_min);
+			adc_average /= adc_rv_array_size;
+			//int16_t lux_val = (int16_t)(adc_average*0.54945055f - 100.0f); // lux estimate from spec
+			int16_t lux_val = adc_average - 182; // use raw value (remove only the ADC zero shift)
+			set_all_leds_ex(LEDMASK_NOP, lux_val);
+#ifdef KATY_DEBUG
+			sprintf(adc_string, "%d %d\n", lux_val, adc_max-adc_min);
 			printing_set_buffer(adc_string,BUF_MEM);
-			PORTE.DIRTGL=PIN3_bm;
-			return true;
+			PORTE.DIRTGL = PIN3_bm;
+#endif
 		}
-	}
-
-	if (!(uptimems() & 0x1ff))
-		index = 0;
+		DACB.CH0DATA = get_photoDrv_voltage_code(1.1f); // power down the photosensor
+		next_step_time_ms = cur_time_ms + 1000; // plan reading of the next data set in 1 second
+		state = PHOTOSENSOR_OFF;
+#ifdef KATY_DEBUG
+		return true;
+#else
+		return false;
+#endif
+	}//switch
 	return false;
 }
 
 #endif
 
+#if (ARCH == ARCH_AVR8)
+#define red_led_off()
+#define lit_red_led(l)
+#define yellow_led_off()
+#define lit_yellow_led(l)
+#define green_led_off()
+#define lit_green_led(l)
+#define blue_led_off()
+#define lit_blue_led(l)
+#elif (ARCH == ARCH_XMEGA)
+float const lux_val_q = 0.96;
+float const lux_val_k = 40;
+float const red_led_base = 128;
+float const yellow_led_base = 144;
+float const green_led_base = 21;
+float const blue_led_base = 69;
+
+inline uint16_t round_to_uint16( float x ) {
+	if (x < 0) return 0;
+	if (x > 0xffff) return 0xffff;
+	return (uint16_t)(x+0.5);
+}
+
+inline void red_led_off(void) {PORTE.DIRCLR=PIN0_bm;}
+inline void lit_red_led(uint16_t lux_val) {
+	TCE0.CCA = round_to_uint16(lux_val * red_led_base/lux_val_k + red_led_base*lux_val_q); PORTE.DIRSET=PIN0_bm; }
+inline void yellow_led_off(void) {PORTE.DIRCLR=PIN1_bm;}
+inline void lit_yellow_led(uint16_t lux_val) {
+	TCE0.CCB = round_to_uint16(lux_val * yellow_led_base/lux_val_k + yellow_led_base*lux_val_q); PORTE.DIRSET=PIN1_bm; }
+inline void green_led_off(void) {PORTE.DIRCLR=PIN2_bm;}
+inline void lit_green_led(uint16_t lux_val) {
+	TCE0.CCC = round_to_uint16(lux_val * green_led_base/lux_val_k + green_led_base*lux_val_q); PORTE.DIRSET=PIN2_bm; }
+inline void blue_led_off(void) {PORTE.DIRCLR=PIN3_bm;}
+inline void lit_blue_led(uint16_t lux_val) {
+	TCE0.CCD = round_to_uint16(lux_val * blue_led_base/lux_val_k + blue_led_base*lux_val_q); PORTE.DIRSET=PIN3_bm; }
+#else
+# error "Unknown architecture."
+#endif
 
 void ports_init(void){
 #if (ARCH == ARCH_AVR8)
@@ -406,8 +510,6 @@ void ports_init(void){
 		LEFT_CLK0_HIGH;
 		LEFT_CLK0_LOW;
 	}
-	#define LED_PORT_DIRSET(m) /* nothing (ATmega board does not have LEDS) */
-	#define LED_PORT_DIRCLR(m) /* nothing (ATmega board does not have LEDS) */
 #elif (ARCH == ARCH_XMEGA)
 	// Katy on atxmega uses PD0-PD4 (5 pins) for rows (input) and shares
 	// columns with LCD as output, lines LcdD0-LcdD7.
@@ -438,12 +540,15 @@ void ports_init(void){
 	}
 	// Set up ATXMEGA related to LCD
 	// Set up LcdV
-	PORTB.DIRSET = PIN3_bm;
-	//PORTB.OUTCLR = PIN3_bm;
-
+	DACB.CH0OFFSETCAL = read_calibration_byte(offsetof(NVM_PROD_SIGNATURES_t, DACB0OFFCAL));
+	DACB.CH0GAINCAL   = read_calibration_byte(offsetof(NVM_PROD_SIGNATURES_t, DACB0GAINCAL));
+	// channel 1 calibration data are not valid
+	//DACB.CH1OFFSETCAL = read_calibration_byte(offsetof(NVM_PROD_SIGNATURES_t, DACB1OFFCAL));
+	//DACB.CH1GAINCAL   = read_calibration_byte(offsetof(NVM_PROD_SIGNATURES_t, DACB1GAINCAL));
+	PORTB.DIRSET = PIN3_bm; //PORTB.OUTCLR = PIN3_bm;
 	DACB.CTRLA = DAC_CH1EN_bm | DAC_LPMODE_bm | DAC_ENABLE_bm;
-	DACB.CTRLB = DAC_CHSEL1_bm;
-	DACB.CTRLC = DAC_REFSEL0_bm;
+	DACB.CTRLB = DAC_CHSEL0_bm; // single channel operation on channel 1
+	DACB.CTRLC = DAC_REFSEL0_bm; // DAC reference set to AVcc
 	//DACB.CH1DATA = 0x0000; // 0.0308V - display is readable, too black however
 	DACB.CH1DATA = 0x0300; // 0.5925V - display is well readable
 	//DACB.CH1DATA = 0x0380; // 0.6944V - display is readable
@@ -467,18 +572,14 @@ void ports_init(void){
 	//PORTE.DIRSET = PIN0_bm | PIN1_bm | PIN2_bm | PIN3_bm;
 	TCE0.CTRLB = TC_WGMODE_DS_B_gc | TC0_CCAEN_bm | TC0_CCBEN_bm | TC0_CCCEN_bm | TC0_CCDEN_bm;
 	TCE0.PER = 0xFFFF;
-	TCE0.CCA = 0x0800;
-	TCE0.CCB = 0x0800;
-	TCE0.CCC = 0x01C0;
-	TCE0.CCD = 0x0500;
+	lit_red_led(lux_val_k);
+	lit_yellow_led(lux_val_k);
+	lit_green_led(lux_val_k);
+	lit_blue_led(lux_val_k);
 	TCE0.CTRLA = TC_CLKSEL_DIV1_gc;
-	#define LED_PORT_DIRSET(m) PORTE.DIRSET=m
-	#define LED_PORT_DIRCLR(m) PORTE.DIRCLR=m
 
 	// Set up Photo Transistor
-#ifdef KATY_DEBUG
 	photosensor_init();
-#endif
 #else
 # error "Unknown architecture."
 #endif
@@ -628,10 +729,49 @@ uint8_t matrix_read_column(uint8_t matrix_column){
 }
 
 
-void set_all_leds(uint8_t led_mask){
+void set_all_leds(uint8_t led_mask){ set_all_leds_ex(led_mask, -1); }
+
+char const * uitoa(uint16_t x) {
+	static char buff[6] = {'\0'};
+	if (x == 0) { buff[4]='0'; return buff+4; }
+	uint8_t i = 5;
+	do {
+		buff[--i] = '0' + x % 10;
+		x /= 10;
+	}while ( x > 0 );
+	return buff+i;
+}
+
+char const * get_lux_str(int16_t l) {
+	static char rv[5];
+	if (l < 0) {
+		strcpy(rv, "    "); return rv; }
+	if ( l <= 9999) {
+		char const* raw_rv = uitoa((uint16_t)l);
+		uint8_t raw_rv_len = 4 - strlen(raw_rv);
+		uint8_t i = 0;
+		for (; i < raw_rv_len; ++i) rv[i] = ' ';
+		strcpy(rv+i, raw_rv);
+	} else {
+		char const* raw_rv = uitoa((uint16_t)(l/100));
+		rv[0] = raw_rv[0];
+		rv[1] = raw_rv[1];
+		rv[2] = 'k';
+		rv[3] = raw_rv[2];
+		rv[4] = '\0';
+	}
+	return rv;
+}
+
+void set_all_leds_ex(uint8_t led_mask, int16_t lux_val){
 	static uint8_t prev_led_mask = 0;
-	if (prev_led_mask == led_mask) return;
-	prev_led_mask = led_mask;
+	static int16_t prev_lux_val = 0;
+	bool no_led_change = led_mask == prev_led_mask || led_mask == LEDMASK_NOP;
+	bool no_lux_change = lux_val == prev_lux_val || lux_val < 0;
+	if ( no_led_change && no_lux_change ) return;
+	if ( no_led_change ) led_mask = prev_led_mask;
+	if ( no_lux_change ) lux_val = prev_lux_val;
+	prev_led_mask = led_mask; prev_lux_val = lux_val;
 	// decode USB status
 	if ( led_mask & 0x80 ) {
 		switch (led_mask) {
@@ -650,26 +790,26 @@ void set_all_leds(uint8_t led_mask){
 	}
 	// decode Layer
 	if (led_mask & LED_KEYPAD) {
-		lcd_print_position(0, 0, "Keypad  "); } // LED_PORT_DIRSET(PIN3_bm); }
+		lcd_print_position(0, 0, "Keypad  "); lit_blue_led(lux_val); }
 	else {
-		lcd_print_position(0, 0, "Normal  "); } // LED_PORT_DIRCLR(PIN3_bm); }
+		lcd_print_position(0, 0, "Normal  "); blue_led_off(); }
 	// decode Lock LEDs
 	char ledMsg[9];
 	uint8_t i = 0;
 	if (led_mask & LED_CAPS) {
-		ledMsg[i++] = 'C'; LED_PORT_DIRSET(PIN0_bm);
-	} else LED_PORT_DIRCLR(PIN0_bm);
+		ledMsg[i++] = 'C'; lit_red_led(lux_val);
+	} else red_led_off();
 	if (led_mask & LED_NUM) {
-		ledMsg[i++] = 'N'; LED_PORT_DIRSET(PIN1_bm);
-	} else LED_PORT_DIRCLR(PIN1_bm);
+		ledMsg[i++] = 'N'; lit_yellow_led(lux_val);
+	} else yellow_led_off();
 	if (led_mask & LED_SCROLL) {
-		ledMsg[i++] = 'S'; LED_PORT_DIRSET(PIN2_bm);
-	} else LED_PORT_DIRCLR(PIN2_bm);
+		ledMsg[i++] = 'S'; lit_green_led(lux_val);
+	} else green_led_off();
 	while( i<4 ) ledMsg[i++] = ' ';
 	// decode remap/macro state
 	switch ( led_mask & 0xf0 ) {
 		case 0:
-			strcpy(&ledMsg[i], "    "); break;
+			strcpy(&ledMsg[i], get_lux_str(lux_val)); break;
 		case LEDMASK_PROGRAMMING_SRC:
 			strcpy(&ledMsg[i], "Src?"); break;
 		case LEDMASK_PROGRAMMING_DST:

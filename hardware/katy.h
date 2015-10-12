@@ -328,6 +328,9 @@ uint8_t matrix_read_column(uint8_t matrix_column);
 /** LED mask for the library LED driver, to indicate that an error has occurred in the USB interface. */
 #define LEDMASK_USB_ERROR        0xf3
 
+/** LED mask for the library LED driver, to indicate NOP (no change to the LEDs themselves). */
+#define LEDMASK_NOP              0xff
+
 #define LEDMASK_CAPS       LED_CAPS
 #define LEDMASK_NUMLOCK    LED_NUM
 #define LEDMASK_SCROLLLOCK LED_SCROLL
@@ -343,6 +346,6 @@ uint8_t matrix_read_column(uint8_t matrix_column);
 void set_all_leds(uint8_t led_mask);
 
 void test_leds(void);
-bool test_photosensor(void);
+bool run_photosensor(uint32_t cur_time_ms);
 
 #endif // __KINESIS_H
