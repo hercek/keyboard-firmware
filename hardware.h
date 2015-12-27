@@ -64,4 +64,12 @@
 	#error "Unknown hardware variant selected"
 #endif
 
+// relative sort order of reset config and reset fully
+#if SPECIAL_HKEY_RESET_CONFIG < SPECIAL_HKEY_RESET_FULLY
+	#define SPECIAL_HKEY_RESET_CONFIG_POS 0
+#else
+    #define SPECIAL_HKEY_RESET_CONFIG_POS 1
+#endif
+
+
 #endif // __HARDWARE_H

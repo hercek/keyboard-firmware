@@ -243,9 +243,9 @@ static const char *usages[] = {
 	"Prog_6",                           //0xf6
 	"Macro",                          //0xf7
 	"", "", "", "",                   // F8-Fb Reserved
-	"Keypad_Shift",                   // 0xfc (Non-Remappable)
-	"Prog-_ram",                      // 0xfe (Non-Remapable)
-	"Keypad_Switch",                  // 0xfe (Non-Remappable)
+	"Keypad_Shift",                   // 0xfc (Not Remappable Interactively)
+	"Keypad_Toggle",                  // 0xfd (Not Remappable Interactively)
+	"Prog-_ram",                      // 0xfe (Not Remappable Interactively)
 	"No_Key"                          // 0xff
 };
 

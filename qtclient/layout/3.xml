@@ -2,10 +2,10 @@
 <!-- We have a keypad layer. the @layersize keys after index    -->
 <!-- @layerstart are duplicated as a keypad layer with separate -->
 <!-- definitions  -->
-  <keypad keyindex="0" layerstart="4" layersize="76"/>
+  <keypad keyindex="1" layerstart="0" layersize="80"/>
   <layout>
-	<key name="KEYPAD"	  w="43" h="43"  x="820" y="240"/>
 	<key name="PROGRAM"	  w="43" h="43"  x="7"   y="240"/>
+	<key name="KEYPAD"	  w="43" h="43"  x="820" y="240"/>
 	<key name="L_KP_SH"	  w="43" h="43"  x="258" y="285"/>
 	<key name="R_KP_SH"	  w="43" h="43"  x="570" y="285"/>
 

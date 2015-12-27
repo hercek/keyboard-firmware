@@ -81,11 +81,12 @@ const logical_keycode matrix_to_logical_map[MATRIX_ROWS][MATRIX_COLS] PROGMEM =
 #undef KEY_NONE
 
 const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] PROGMEM = {
-	SPECIAL_HID_KEY_KEYPAD,							   //	LOGICAL_KEY_RROW1, // right bottom row (outer)
+	// non-keypad layer
 	SPECIAL_HID_KEY_PROGRAM,						   //	LOGICAL_KEY_LROW1, // left bottom row (outer)
+	SPECIAL_HID_KEY_KEYPAD_TOGGLE,					   //	LOGICAL_KEY_RROW1, // right bottom row (outer)
 	SPECIAL_HID_KEY_KEYPAD_SHIFT,					   //	LOGICAL_KEY_TH_LL, // extra left side left thumb key
 	SPECIAL_HID_KEY_KEYPAD_SHIFT,					   //	LOGICAL_KEY_TH_RR, // extra right side right thumb key
-	// non-keypad layer
+	//---------------------------------------------- on-the-fly remapable
 	HID_KEYBOARD_SC_A,								   //	LOGICAL_KEY_A
 	HID_KEYBOARD_SC_B,								   //	LOGICAL_KEY_B
 	HID_KEYBOARD_SC_C,								   //	LOGICAL_KEY_C
@@ -168,6 +169,11 @@ const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] PROGMEM = {
 	HID_KEYBOARD_SC_RIGHT_GUI,						   //	LOGICAL_KEY_TH_RL, // extra right side left thumb key
 	/////////////////////////////////////////////////
 	// keypad layer									   //	***/### keypad mode default differs to base layer
+	NO_KEY,		//SPECIAL_HID_KEY_PROGRAM
+	NO_KEY,		//SPECIAL_HID_KEY_KEYPAD_TOGGLE
+	NO_KEY,		//SPECIAL_HID_KEY_KEYPAD_SHIFT
+	NO_KEY,		//SPECIAL_HID_KEY_KEYPAD_SHIFT
+	//---------------------------------------------- on-the-fly remapable
 	SPECIAL_HID_KEY_MOUSE_BTN1,						   //	LOGICAL_KEY_A ###
 	HID_KEYBOARD_SC_B,								   //	LOGICAL_KEY_B
 	HID_KEYBOARD_SC_C,								   //	LOGICAL_KEY_C

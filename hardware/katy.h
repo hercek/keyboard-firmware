@@ -66,13 +66,10 @@
 // configuration program over USB to identify the layout.
 #define LAYOUT_ID 3
 
-// For conditional compilation: Do we use keypad layer?
-#define KEYPAD_LAYER 1
-
 // if the keypad mode is selected, and a logical key greater than KEYPAD_LAYER_START
 // is read, add KEYPAD_LAYER_SIZE to look up the mapping.
-#define KEYPAD_LAYER_START 4
-#define KEYPAD_LAYER_SIZE  76
+#define KEYPAD_LAYER_START 0
+#define KEYPAD_LAYER_SIZE  80
 
 //80 physical keys, 78 of which (all but keypad/program) have a separate keypad layer mapping
 #define NUM_LOGICAL_KEYS (KEYPAD_LAYER_START + (KEYPAD_LAYER_SIZE * 2))
@@ -92,8 +89,8 @@
 #define LOGICAL_KEY_LEFT_LAYER_SHIFT LOGICAL_KEY_TH_LL
 #define LOGICAL_KEY_RIGHT_LAYER_SHIFT LOGICAL_KEY_TH_RR
 enum logical_keys {
-	LOGICAL_KEY_RROW1, // right bottom row (outer)         //keypad
 	LOGICAL_KEY_LROW1, // left bottom row (outer)          //program
+	LOGICAL_KEY_RROW1, // right bottom row (outer)         //keypad
 	LOGICAL_KEY_TH_LL, // extra left side left thumb key   // keypadShift
 	LOGICAL_KEY_TH_RR, // extra right side right thumb key // keypadShift
 	// Main key blocks
@@ -182,22 +179,22 @@ enum logical_keys {
 	LOGICAL_KEY_SPACE,
 	LOGICAL_KEY_TH_RL, // extra right side left thumb key
 
-	// The keypad layer duplicates the previous 78 keys
+	// The keypad layer duplicates all the previous keys
 };
 
 // Which logical keys to use for special in-built combinations
-#define SPECIAL_LKEY_CONFIG_LOAD   LOGICAL_KEY_E
-#define SPECIAL_LKEY_CONFIG_SAVE   LOGICAL_KEY_S
-#define SPECIAL_LKEY_CONFIG_DELETE LOGICAL_KEY_D
-#define SPECIAL_LKEY_MACRO_RECORD  LOGICAL_KEY_W
-#define SPECIAL_LKEY_REMAP         LOGICAL_KEY_R
-#define SPECIAL_LKEY_REBOOT        LOGICAL_KEY_B
-#define SPECIAL_LKEY_RESET_CONFIG  LOGICAL_KEY_C
-#define SPECIAL_LKEY_RESET_FULLY   LOGICAL_KEY_F
-#define SPECIAL_LKEY_TOGGLE_BUZZER LOGICAL_KEY_RCOL1_1 // minus
-#define SPECIAL_LKEY_READ_EEPROM   LOGICAL_KEY_I
-#define SPECIAL_LKEY_WRITE_EEPROM  LOGICAL_KEY_O
-#define SPECIAL_LKEY_TEST_LEDS     LOGICAL_KEY_L
+#define SPECIAL_HKEY_CONFIG_LOAD   HID_KEYBOARD_SC_E
+#define SPECIAL_HKEY_CONFIG_SAVE   HID_KEYBOARD_SC_S
+#define SPECIAL_HKEY_CONFIG_DELETE HID_KEYBOARD_SC_D
+#define SPECIAL_HKEY_MACRO_RECORD  HID_KEYBOARD_SC_W
+#define SPECIAL_HKEY_REMAP         HID_KEYBOARD_SC_R
+#define SPECIAL_HKEY_REBOOT        HID_KEYBOARD_SC_B
+#define SPECIAL_HKEY_RESET_CONFIG  HID_KEYBOARD_SC_C
+#define SPECIAL_HKEY_RESET_FULLY   HID_KEYBOARD_SC_F
+#define SPECIAL_HKEY_TOGGLE_BUZZER HID_KEYBOARD_SC_Z
+#define SPECIAL_HKEY_READ_EEPROM   HID_KEYBOARD_SC_I
+#define SPECIAL_HKEY_WRITE_EEPROM  HID_KEYBOARD_SC_O
+#define SPECIAL_HKEY_TEST_LEDS     HID_KEYBOARD_SC_L
 
 extern const logical_keycode matrix_to_logical_map[MATRIX_ROWS][MATRIX_COLS] PROGMEM;
 
