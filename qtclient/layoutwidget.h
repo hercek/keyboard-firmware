@@ -57,6 +57,9 @@ public:
 	void paintEvent(QPaintEvent *ev);
 	void mousePressEvent(QMouseEvent *ev);
 
+public slots:
+	void setKeypadLayerSelected(int isKeypadSelected);
+
 signals:
 	void logicalKeyClicked (LogicalKeycode logicalKeycode);
 	void physicalKeyClicked(PhysicalKeycode physicalKeycode);

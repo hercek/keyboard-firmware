@@ -27,7 +27,6 @@ public:
 			mLayout.imageName = atts.value("image");
 		}
 		else if (localName == "keypad") {
-			mLayout.keypad.keyIndex = atts.value("keyindex").toInt();
 			mLayout.keypad.layerStart = atts.value("layerstart").toInt();
 			mLayout.keypad.layerSize = atts.value("layersize").toInt();
 		}

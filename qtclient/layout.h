@@ -25,7 +25,6 @@ public:
 	QString imageName;
 	QList<Layout::Key> keys;
 	struct {
-		PhysicalKeycode keyIndex;
 		PhysicalKeycode layerStart;
 		uint8_t layerSize;
 	} keypad;

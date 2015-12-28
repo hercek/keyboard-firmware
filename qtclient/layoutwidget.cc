@@ -76,12 +76,8 @@ void LayoutWidget::mousePressEvent(QMouseEvent *ev) {
 	{
 		if (scaleRect(it->rect).contains(ev->pos())) {
 			unsigned int physicalIndex = it - mLayout->keys.constBegin();
-			if(physicalIndex == mLayout->keypad.keyIndex){
-				// keypad button pressed, switch to keypad mode
-				mKeypadLayerSelected = !mKeypadLayerSelected;
-				update();
-			}
-			else{
+			if(physicalIndex >= mLayout->keypad.layerStart){
+				// we clicked a key which can be redefined
 				unsigned int logicalIndex = 
 					mLayout->physicalKeycodeToLogical(physicalIndex, mKeypadLayerSelected);
 				emit logicalKeyClicked(logicalIndex);
@@ -89,6 +85,11 @@ void LayoutWidget::mousePressEvent(QMouseEvent *ev) {
 			}
 		}
 	}
+}
+
+void LayoutWidget::setKeypadLayerSelected(int isKeypadSelected) {
+	mKeypadLayerSelected = 0 != isKeypadSelected;
+	update();
 }
 
 void LayoutWidget::setSelection(const QSet<LogicalKeycode>& selectedKeys) {
