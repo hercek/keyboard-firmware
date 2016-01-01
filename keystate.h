@@ -60,7 +60,8 @@ typedef keycode hid_keycode;
 typedef struct _key_state {
 	logical_keycode l_key;
 	unsigned char state:1;
-	unsigned char debounce:7; // bit vector of last n physical reports: debounced state asserted when they're all the same
+	unsigned char hidden:1;
+	unsigned char debounce:6; // bit vector of last n physical reports: debounced state asserted when they're all the same
 } key_state;
 
 // constants
@@ -120,6 +121,12 @@ bool keystate_is_keypad_mode(void);
  * HID:      `hid_keycode` in the current mapping for a given key
  */
 typedef enum _keycode_type { PHYSICAL, LOGICAL, HID } keycode_type;
+
+/**
+ * Marks given logical_key as hidden so that it does not appear in
+ * the KeyboardReport till it is not released and pressed again. */
+void keystate_hide_key(keycode logical_key);
+bool keystate_is_key_hidden(keycode logical_key);
 
 /** Checks if the argument key is down. */
 bool keystate_check_key(keycode l_key, keycode_type ktype);

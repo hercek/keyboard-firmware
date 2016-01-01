@@ -69,6 +69,7 @@ void keystate_init(void){
 	for(uint8_t i = 0 ; i < KEYSTATE_COUNT; ++i){
 		key_states[i].l_key    = NO_KEY;
 		key_states[i].state    = 0;
+		key_states[i].hidden   = 0;
 		key_states[i].debounce = 0;
 	}
 }
@@ -98,6 +99,7 @@ static inline uint8_t keystate_clear_key(key_state* key){
 
 	key->l_key = NO_KEY;
 	key->state = 0;
+	key->hidden = 0;
 
 	if(old_state){ // if it had been pressed
 		key_press_count--;
@@ -225,7 +227,6 @@ void keystate_update(void){
 			if(reading && free_slot != NO_KEY){
 				key_state* key = &key_states[free_slot];
 				key->l_key = l_key;
-				key->state = 0;
 				key->debounce = 0x1;
 			}
 		next_matrix:;
@@ -246,6 +247,19 @@ static inline keycode keystate_process_keycode(logical_keycode raw_key, keycode_
 		break;
 	}
 	return key;
+}
+
+void keystate_hide_key(keycode logical_key){
+	for(int8_t i = 0; i < KEYSTATE_COUNT; ++i)
+		if (logical_key == key_states[i].l_key) {
+			key_states[i].hidden = 1; break; }
+}
+
+bool keystate_is_key_hidden(keycode logical_key){
+	for(int8_t i = 0; i < KEYSTATE_COUNT; ++i)
+		if (logical_key == key_states[i].l_key)
+			return key_states[i].hidden;
+	return true;
 }
 
 bool keystate_check_key(keycode target_key, keycode_type ktype){
@@ -322,7 +336,7 @@ void keystate_Fill_KeyboardReport(KeyboardReport_Data_t* KeyboardReport){
 	uint8_t rollover = false;
 	// check key state
 	for(int i = 0; i < KEYSTATE_COUNT; ++i){
-		if(key_states[i].state){
+		if(key_states[i].state && !(key_states[i].hidden)){
 			if(UsedKeyCodes == KEYBOARDREPORT_KEY_COUNT){
 				rollover = true;
 				break;
@@ -365,7 +379,7 @@ void keystate_Fill_MouseReport(MouseReport_Data_t* MouseReport){
 	// check key state
 	bool moving = false;
 	for(uint8_t i = 0; i < KEYSTATE_COUNT; ++i){
-		if(key_states[i].state){
+		if(key_states[i].state && !(key_states[i].hidden)){
 			logical_keycode l_key = key_states[i].l_key;
 			hid_keycode h_key = config_get_definition(l_key);
 			if(h_key >= SPECIAL_HID_KEYS_MOUSE_START && h_key <= SPECIAL_HID_KEYS_MOUSE_END){

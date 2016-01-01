@@ -168,6 +168,13 @@ void __attribute__((noreturn)) Keyboard_Main(void)
 	}
 }
 
+static logical_keycode select_main_trigger_key(macro_idx_key const * macro_key) {
+	for(uint8_t i = 0; i < MACRO_MAX_KEYS; ++i)
+		if (config_get_definition(macro_key->keys[i]) < HID_KEYBOARD_SC_LEFT_CONTROL)
+			return macro_key->keys[i]; // first non-modifier key is the main one
+	return macro_key->keys[0]; // ... or default to the first modifier key
+}
+
 static void handle_state_normal(void){
 	if(key_press_count == 0 || key_press_count > MACRO_MAX_KEYS){
 		return;
@@ -313,7 +320,11 @@ static void handle_state_normal(void){
 		switch(md.type){
 		case PROGRAM: {
 #if PROGRAMS_SIZE > 0
-			vm_start(md.data, macro_key.keys[0]); // TODO: l_key is no longer relevant, is not great to use just the first.
+			if (!(keystate_is_key_hidden(macro_key.keys[0]))) {
+				for(uint8_t j = 0; j < MACRO_MAX_KEYS; ++j)
+					keystate_hide_key(macro_key.keys[j]);
+				vm_start(md.data, select_main_trigger_key(&macro_key));
+			}
 			break;
 #endif
 		}
