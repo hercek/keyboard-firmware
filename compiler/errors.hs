@@ -1,5 +1,4 @@
 module Errors where
-import Control.Monad.Error
 import BasicTypes
 
 -- Error handling
@@ -25,25 +24,12 @@ data CompileError = Redefine String
                   | NoMainError
                   deriving Show
 
-instance Error CompileError where
-  noMsg = DefaultError "An error has occurred"
-  strMsg = DefaultError
-
 type ThrowsError = Either CompileError
 
-extractValue :: ThrowsError a -> a
-extractValue (Right val) = val
-
-extractError :: ThrowsError a -> CompileError
-extractError (Left val) = val
-
-maybeToError :: Error e => e -> Maybe a -> Either e a
+maybeToError :: e -> Maybe a -> Either e a
 maybeToError _ (Just x)  = Right x
 maybeToError c (Nothing) = Left c
 
-errorToMaybe :: ThrowsError a -> Maybe a
-errorToMaybe (Right val) = Just val
-errorToMaybe (Left _)    = Nothing
 
 isError :: ThrowsError a -> Bool
 isError (Right _) = False
