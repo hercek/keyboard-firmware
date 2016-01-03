@@ -210,15 +210,22 @@ static void handle_state_normal(void){
 					uint8_t i = BUZZER_DEFAULT_TONE;
 					// cause watchdog reboot (into bootloader if progm is still pressed)
 					while(1){
-#if USE_BUZZER
 						// Beep until rebooted
 						buzzer_start_f(100, i);
-#endif
 						i -= 10;
 						_delay_ms(100);
 						Update_Millis(100);
 						_delay_ms(100);
 					}
+				}
+				case SPECIAL_HKEY_MACROS_ENABLE: {
+					configuration_flags flags = config_get_flags();
+					flags.macros_enabled = !flags.macros_enabled;
+					config_save_flags(flags);
+					buzzer_start_f(100, flags.macros_enabled ? BUZZER_ON_TONE : BUZZER_OFF_TONE);
+					current_state = STATE_WAITING;
+					next_state = STATE_NORMAL;
+					return;
 				}
 #if USE_BUZZER
 				case SPECIAL_HKEY_TOGGLE_BUZZER: {
@@ -310,6 +317,7 @@ static void handle_state_normal(void){
 		}
 	}
 
+	if (!(config_get_flags().macros_enabled)) return;
 	// otherwise, check macro/program triggers
 	bool valid = macro_idx_format_key(&macro_key, key_press_count);
 	if(!valid) return;
