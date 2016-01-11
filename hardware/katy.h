@@ -344,6 +344,12 @@ uint8_t matrix_read_column(uint8_t matrix_column);
 void set_all_leds(uint8_t led_mask);
 
 void test_leds(void);
-bool run_photosensor(uint32_t cur_time_ms);
+#if (ARCH == ARCH_AVR8)
+  inline bool run_photosensor(uint32_t cur_time_ms) {return false;}
+#elif  (ARCH == ARCH_XMEGA)
+  bool run_photosensor(uint32_t cur_time_ms);
+#else
+#  error "Unknown architecture."
+#endif
 
 #endif // __KINESIS_H

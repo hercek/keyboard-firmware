@@ -735,8 +735,6 @@ uint8_t matrix_read_column(uint8_t matrix_column){
 }
 
 
-void set_all_leds(uint8_t led_mask){ set_all_leds_ex(led_mask, -1); }
-
 char const * uitoa(uint16_t x) {
 	static char buff[6] = {'\0'};
 	if (x == 0) { buff[4]='0'; return buff+4; }
@@ -829,6 +827,8 @@ void set_all_leds_ex(uint8_t led_mask, int16_t lux_val){
 	}
 	lcd_print_position(1, 0, ledMsg);
 }
+
+void set_all_leds(uint8_t led_mask){ set_all_leds_ex(led_mask, -1); }
 
 void test_leds(void){
 	for(int8_t i = 0; i < 2; ++i){
