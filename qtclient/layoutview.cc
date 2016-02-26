@@ -3,27 +3,24 @@
 #include <QDebug>
 #include <QLayout>
 #include <QPushButton>
-#include <QCheckBox>
 #include "layoutview.h"
 #include "layoutpresenter.h"
 #include "layout.h"
 #include "layoutwidget.h"
+#include "layeredlayoutwidget.h"
 #include "keyselectionview.h"
 #include "hidtables.h"
 
 LayoutView::LayoutView(LayoutPresenter *presenter)
 	: mPresenter(presenter)
-	, mLayoutWidget(new LayoutWidget)
+	, mLayoutWidget(new LayeredLayoutWidget)
 	, mKeySelectionView(NULL)
-	, mShowingMainLayer(true)
 {
 	QPushButton *loadDefaultsButton = new QPushButton(tr("Load Defaults"));
-	QCheckBox* keypadCheckBox = new QCheckBox(tr("Show Keypad"));
 
 	QGridLayout *layout = new QGridLayout;
 	layout->addWidget(loadDefaultsButton, 0, 1, 1, 1);
 	layout->addWidget(mLayoutWidget, 1, 0, 1, 3);
-	layout->addWidget(keypadCheckBox, 2, 1, 1, 1, Qt::AlignTop|Qt::AlignHCenter);
 	setLayout(layout);
 
 	mUpdatingLogicalKeyIndex = Layout::NO_KEY;
@@ -33,9 +30,6 @@ LayoutView::LayoutView(LayoutPresenter *presenter)
 
 	connect(loadDefaultsButton, SIGNAL(clicked()),
 	        mPresenter, SLOT(loadDefaults()));
-
-	connect(keypadCheckBox, SIGNAL(stateChanged(int)),
-	        mLayoutWidget, SLOT(setKeypadLayerSelected(int)));
 }
 
 void LayoutView::setKeyboardLayout(const Layout& layout) {

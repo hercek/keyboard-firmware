@@ -1,8 +1,4 @@
 <keyboard layout="katy" layoutid="3" image="katy.png">
-<!-- We have a keypad layer. the @layersize keys after index    -->
-<!-- @layerstart are duplicated as a keypad layer with separate -->
-<!-- definitions  -->
-  <keypad layerstart="0" layersize="80"/>
   <layout>
 	<key name="PROGRAM"	  w="43" h="43"  x="7"   y="240"/>
 	<key name="KEYPAD"	  w="43" h="43"  x="820" y="240"/>
