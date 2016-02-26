@@ -17,8 +17,8 @@ mapLookup s k = (maybeToError (MapLookupError s (show k))) . (Map.lookup k)
 
 nestedMapLookup :: (Ord a, Show a) => String -> a -> [(Map a b)] -> ThrowsError b
 nestedMapLookup s k [] = throwError $ MapLookupError s (show k)
-nestedMapLookup s k (m:ms) = let rv = (mapLookup s k m) in
-  if isError rv then (nestedMapLookup s k ms) else rv
+nestedMapLookup s k (m:ms) = (mapLookup s k m)
+                             `catchError` (\_ -> nestedMapLookup s k ms)
 
 -- Index type (int-indexed map with append)
 

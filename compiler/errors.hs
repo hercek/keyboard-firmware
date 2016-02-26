@@ -51,6 +51,7 @@ instance Show CompileError where
   showsPrec d (NoReturnError ctx)       = showHdr d "NoReturnError" $ showString ctx
   showsPrec d (NoMainError)             = showHdr d "NoReturnError" $ showString "(missing function main)"
 
+
 type ThrowsError = Either CompileError
 
 maybeToError :: e -> Maybe a -> Either e a
