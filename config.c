@@ -79,11 +79,17 @@ hid_keycode* config_get_mapping(void){
 // These (variable sized) mappings are stored in the fixed-size buffer saved_key_mappings,
 // indexed by saved_key_mapping_indices. The buffer is kept packed (subsequent mappings
 // moved down on removal)
-struct { uint8_t start; uint8_t end; } saved_key_mapping_indices[NUM_KEY_MAPPING_INDICES] STORAGE(SAVED_MAPPING_STORAGE);
+typedef struct _key_mapping_idx { uint8_t start; uint8_t end; } key_mapping_idx;
+key_mapping_idx saved_key_mapping_indices[NUM_KEY_MAPPING_INDICES] STORAGE(SAVED_MAPPING_STORAGE);
 
 // Key mappings are saved as a list of (logical_keycode, hid_keycode)
 // pairs. Indexed by uint8_t, so must be <= 256 long.
-struct { logical_keycode l_key; hid_keycode h_key; } saved_key_mappings[SAVED_MAPPING_COUNT] STORAGE(SAVED_MAPPING_STORAGE);
+typedef struct _key_mapping { logical_keycode l_key; hid_keycode h_key; } key_mapping;
+key_mapping saved_key_mappings[SAVED_MAPPING_COUNT] STORAGE(SAVED_MAPPING_STORAGE);
+
+_Static_assert(sizeof(key_mapping_idx)==sizeof(int16_t), "Config key mapping index saving/reading needs code update." );
+_Static_assert(sizeof(key_mapping)==sizeof(int16_t), "Config key mapping data saving/reading needs code update." );
+#define AS_SHORT(x) (*(uint16_t*)&x)
 
 // Programs are stored in external eeprom.
 static uint8_t programs[PROGRAM_SIZE] STORAGE(PROGRAM_STORAGE);
@@ -189,32 +195,29 @@ bool config_delete_layout(uint8_t num){
 	uint8_t length = end - start + 1;
 
 	// clear this entry
-	storage_write_byte(SAVED_MAPPING_STORAGE, &saved_key_mapping_indices[num].start, NO_KEY);
-	storage_write_byte(SAVED_MAPPING_STORAGE, &saved_key_mapping_indices[num].end, NO_KEY);
+	storage_write_short(SAVED_MAPPING_STORAGE, (uint16_t*)&saved_key_mapping_indices[num], -1);
 
 	// now scan the other entries, subtracting length from each entry indexed after end
 	// update the end position so we can move down only necessary data.
 	uint8_t max_end = end;
 	for(int i = 0; i < NUM_KEY_MAPPING_INDICES; ++i){
-		uint8_t i_start = storage_read_byte(SAVED_MAPPING_STORAGE, &saved_key_mapping_indices[i].start);
-		if(i_start != NO_KEY && i_start > end){
-			uint8_t i_end = storage_read_byte(SAVED_MAPPING_STORAGE, &saved_key_mapping_indices[i].end);
-			if(i_end > max_end) max_end = i_end;
-
-			storage_write_byte(SAVED_MAPPING_STORAGE, &saved_key_mapping_indices[i].start, i_start - length);
-			storage_write_byte(SAVED_MAPPING_STORAGE, &saved_key_mapping_indices[i].end,   i_end - length);
+		key_mapping_idx idx;
+		idx.start = storage_read_byte(SAVED_MAPPING_STORAGE, &saved_key_mapping_indices[i].start);
+		if(idx.start != NO_KEY && idx.start > end){
+			idx.end = storage_read_byte(SAVED_MAPPING_STORAGE, &saved_key_mapping_indices[i].end);
+			if (idx.end > max_end) max_end = idx.end;
+			idx.start -= length; idx.end -= length;
+			storage_write_short(SAVED_MAPPING_STORAGE, (uint16_t*)&saved_key_mapping_indices[i], AS_SHORT(idx));
 			USB_KeepAlive(false);
 		}
 	}
 
 	// and move down the data.
-	for(int i = end+1; i <= max_end; ++i){
-		uint8_t lk = storage_read_byte(SAVED_MAPPING_STORAGE, &saved_key_mappings[i].l_key);
-		uint8_t hk = storage_read_byte(SAVED_MAPPING_STORAGE, &saved_key_mappings[i].h_key);
-		storage_write_byte(SAVED_MAPPING_STORAGE, &saved_key_mappings[i - length].l_key, lk);
-		storage_write_byte(SAVED_MAPPING_STORAGE, &saved_key_mappings[i - length].h_key, hk);
-		USB_KeepAlive(false);
-	}
+	if ( end < max_end )
+		storage_memmove( SAVED_MAPPING_STORAGE,
+			&saved_key_mappings[end+1-length],
+			&saved_key_mappings[end+1],
+			(max_end-end)*sizeof(key_mapping) );
 
 	return true;
 }
@@ -248,15 +251,15 @@ bool config_save_layout(uint8_t num){
 				printing_set_buffer(CONST_MSG("Fail: no space"), CONSTANT_STORAGE);
 				return false; // no space!
 			}
-			storage_write_byte(SAVED_MAPPING_STORAGE, &saved_key_mappings[cursor].l_key, l);
-			storage_write_byte(SAVED_MAPPING_STORAGE, &saved_key_mappings[cursor].h_key, h);
+			key_mapping m = { .l_key = l, .h_key = h };
+			storage_write_short(SAVED_MAPPING_STORAGE, (uint16_t*)&saved_key_mappings[cursor], AS_SHORT(m));
 			USB_KeepAlive(false);
 			++cursor;
 		}
 	}
 	if(start != cursor){
-		storage_write_byte(SAVED_MAPPING_STORAGE, &saved_key_mapping_indices[num].start, start);
-		storage_write_byte(SAVED_MAPPING_STORAGE, &saved_key_mapping_indices[num].end,   cursor - 1);
+		key_mapping_idx idx = { .start = start, .end = cursor-1 };
+		storage_write_short(SAVED_MAPPING_STORAGE, (uint16_t*)&saved_key_mapping_indices[num], AS_SHORT(idx));
 		return true;
 	}
 	else{
@@ -281,22 +284,21 @@ bool config_load_layout(uint8_t num){
 
 	uint8_t offset = start;
 
-	logical_keycode next_key = storage_read_byte(SAVED_MAPPING_STORAGE, &saved_key_mappings[offset].l_key);
-	logical_keycode next_val = storage_read_byte(SAVED_MAPPING_STORAGE, &saved_key_mappings[offset].h_key);
+	key_mapping m;
+	AS_SHORT(m) = storage_read_short(SAVED_MAPPING_STORAGE, (uint16_t*)&saved_key_mappings[offset]);
 	++offset;
 
 	for(logical_keycode lkey = 0; lkey < NUM_LOGICAL_KEYS; ++lkey){
-		if(lkey != next_key){
+		if(lkey != m.l_key){
 			// use default
 			hid_keycode def_val = storage_read_byte(CONSTANT_STORAGE, &logical_to_hid_map_default[lkey]);
 			storage_write_byte(MAPPING_STORAGE, &logical_to_hid_map[lkey], def_val);
 		}
 		else{
 			// use saved
-			storage_write_byte(MAPPING_STORAGE, &logical_to_hid_map[lkey], next_val);
+			storage_write_byte(MAPPING_STORAGE, &logical_to_hid_map[lkey], m.h_key);
 			if(offset <= end){
-				next_key = storage_read_byte(SAVED_MAPPING_STORAGE, &saved_key_mappings[offset].l_key);
-				next_val = storage_read_byte(SAVED_MAPPING_STORAGE, &saved_key_mappings[offset].h_key);
+				AS_SHORT(m) = storage_read_short(SAVED_MAPPING_STORAGE, (uint16_t*)&saved_key_mappings[offset]);
 				++offset;
 			}
 		}
