@@ -307,7 +307,7 @@ static void serial_eeprom_init(void) {
 #  error "Unknown architecture."
 #endif
 	// check writing is enabled into to whole EEPROM
-	serial_eeprom_enable_write_everywhere();
+	spi_eeprom_enable_write_everywhere();
 }
 
 

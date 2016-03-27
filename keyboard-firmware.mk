@@ -7,7 +7,6 @@ SRC += \
     printing.c \
     keystate.c \
     config.c \
-    serial_eeprom_spi.c \
     buzzer.c \
     hardware.c \
     interpreter.c \
@@ -15,8 +14,12 @@ SRC += \
     macro.c \
     extrareport.c \
     sort.c \
+    storage.c \
+    storage/spi_eeprom.c \
+    storage/avr_eeprom.c \
+    storage/avr_pgm.c \
     lufa/lufa_main.c \
-    lufa/eeext_endpoint_stream.c \
+    lufa/spi_eeprom_endpoint_stream.c \
     LiquidCrystal/WString.cpp \
     LiquidCrystal/Print.cpp \
     LiquidCrystal/LiquidCrystal.cpp \
@@ -28,8 +31,8 @@ CC_FLAGS += \
     -DBUILD_FOR_LUFA \
     -DHARDWARE_VARIANT=KATY
 #    -DKATY_DEBUG
-#    -DNO_EXTERNAL_STORAGE \
-#    -DMACROS_IN_INTERNAL_STORAGE
+#    -DNO_EXTERNAL_STORAGE
+
 
 CPP_FLAGS += \
     -std=c++11 \

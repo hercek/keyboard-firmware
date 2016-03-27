@@ -214,13 +214,13 @@ typedef enum _bytecode {
 typedef int8_t vbyte;
 typedef int16_t vshort;
 
-typedef struct __attribute__((__packed__)) _method { // Lives in EEEXT
+typedef struct __attribute__((__packed__)) _method { // Lives in EEPROM
 	uint8_t nargs;
 	uint8_t nlocals;
 	uint16_t code_offset;
 } method;
 
-typedef struct __attribute__((__packed__)) _program { // lives in EEEXT
+typedef struct __attribute__((__packed__)) _program { // lives in EEPROM
 	uint8_t nglobals;
 	uint8_t nmethods;
 	method methods[1]; // ...

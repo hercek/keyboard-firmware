@@ -52,26 +52,13 @@
 
 #include "macro_index.h"
 
-#ifdef NO_EXTERNAL_STORAGE
-#ifdef MACROS_IN_INTERNAL_STORAGE
-	/**
-	 * Size in bytes of macro storage (including end offset)
-	 */
-	#define MACROS_SIZE 508
-#else
-	#define MACROS_SIZE 0
-#endif
-#else
-	#define MACROS_SIZE 1024
-#endif
-
 typedef struct _macro_data {
 	uint16_t length;
 	hid_keycode events[1]; // When encountering a key event, if not pressed, press, else release.
 } macro_data;
 
 /**
- * Get the underlying macro data in EEEXT. (To be read/written as a
+ * Get the underlying macro data in EEPROM. (To be read/written as a
  * whole by the client application)
  */
 uint8_t* macros_get_storage(void);

@@ -50,36 +50,16 @@
 
 #include "usb.h"
 #include "printing.h"
+#include "storage.h"
 #include "buzzer.h"
 
 #include <stdint.h>
 #include <stdlib.h>
 #include <util/delay.h>
 
-#ifdef MACROS_IN_INTERNAL_STORAGE
-#include <avr/eeprom.h>
-#define MACROMEM EEMEM
-#define macro_eeprom_read_var(var, ptr)  \
-	eeprom_read_block((void*)&(var), (void*)(ptr), sizeof(typeof(var))); if(0) goto err;
-#define macro_eeprom_write_var(ptr, var)  \
-	eeprom_write_block((void*)&(var), (void*)(ptr), sizeof(typeof(var))); if(0) goto err;
-#define macro_eeprom_memmove(dst, src, len)  \
-	for(int i = 0; i<len; ++i) { eeprom_write_byte((dst)+i, eeprom_read_byte((src)+i)); } //needs page align???
-#else
-#include "serial_eeprom.h"
-#define MACROMEM EEEXT
-#define macro_eeprom_read_var(var, ptr)  \
-	if(serial_eeprom_read((uint8_t*)(ptr), (uint8_t*)&(var), sizeof(typeof(var))) != sizeof(typeof(var))){ goto err; }
-#define macro_eeprom_write_var(ptr, var)  \
-	{int16_t rv = serial_eeprom_write((uint8_t*)(ptr), (uint8_t*)&(var), sizeof(typeof(var))); \
-	 serial_eeprom_wait_for_last_write_end(); if (rv!=sizeof(typeof(var))) goto err; }
-#define macro_eeprom_memmove(dst, src, len)  \
-	{serial_eeprom_err rv = serial_eeprom_memmove(dst, src, len); \
-	 serial_eeprom_wait_for_last_write_end(); if( rv != SUCCESS) goto err; }
-#endif
-
 // The macro data itself is in external eeprom
-static uint8_t macros_storage[MACROS_SIZE] MACROMEM;
+static uint8_t macros_storage[MACROS_SIZE] STORAGE(MACROS_STORAGE);
+
 static uint16_t *const macros_end_offset = (uint16_t*)macros_storage;
 static uint8_t  *const macros = macros_storage + sizeof(uint16_t);
 
@@ -106,13 +86,19 @@ uint8_t* macros_get_storage(){
 
 void macros_reset_defaults(){
 	volatile uint16_t zero = 0x0;
-	macro_eeprom_write_var(macros_end_offset, zero);
-err: return;
+	storage_write(MACROS_STORAGE, (uint8_t*)macros_end_offset, (uint8_t*)&zero, sizeof(uint16_t));
 }
 
 static macro_data* macros_get_macro_pointer(uint16_t offset){
 	return (macro_data*) &macros[offset];
 }
+
+// convenience macro for reading from eeprom and handling errors
+#define macro_storage_read_var(var, ptr)										\
+	if(storage_read(MACROS_STORAGE, (uint8_t*)ptr, (uint8_t*)&var, sizeof(typeof(var))) != sizeof(typeof(var))){ goto err; }
+
+#define macro_storage_write_var(ptr, var)										\
+	if(storage_write(MACROS_STORAGE, (uint8_t*)ptr, (uint8_t*)&var, sizeof(typeof(var))) != sizeof(typeof(var))){ goto err; }
 
 
 typedef struct {
@@ -144,11 +130,11 @@ static bool delete_macro_data(macro_idx_entry* idx_entry){
 
 	// read the macro space end offset
 	uint16_t end_offset;
-	macro_eeprom_read_var(end_offset, macros_end_offset);
+	macro_storage_read_var(end_offset, macros_end_offset);
 
 	// Read the length of the macro to be deleted
 	uint16_t entry_len;
-	macro_eeprom_read_var(entry_len, &entry->length);
+	macro_storage_read_var(entry_len, &entry->length);
 	entry_len += 2; // length header
 
 	uint16_t rest_offset = entry_offset + entry_len;
@@ -156,7 +142,7 @@ static bool delete_macro_data(macro_idx_entry* idx_entry){
 	if(rest_len){
 		// if there is data after the entry, move rest_len bytes of
 		// macro data down to entry_offset from rest_offset
-		macro_eeprom_memmove(&macros[entry_offset], &macros[rest_offset], rest_len);
+		if(storage_memmove(MACROS_STORAGE, &macros[entry_offset], &macros[rest_offset], rest_len) != SUCCESS){ goto err; }
 
 		// Now scan the macro index, and move down any entries > entry_offset by entry_len
 		macro_range deleted_range;
@@ -166,7 +152,7 @@ static bool delete_macro_data(macro_idx_entry* idx_entry){
 	}
 	// and update the saved macro end offset
 	end_offset -= entry_len;
-	macro_eeprom_write_var(macros_end_offset, end_offset);
+	macro_storage_write_var(macros_end_offset, end_offset);
 
 	return true;
  err:
@@ -197,7 +183,7 @@ bool macros_start_macro(macro_idx_key* key){
 	// Now store the data in the entry:
 	macro_idx_entry_data new_entry_data;
 	new_entry_data.type = MACRO;
-	macro_eeprom_read_var(new_entry_data.data, macros_end_offset);
+	macro_storage_read_var(new_entry_data.data, macros_end_offset);
 	macro_idx_set_data(entry, new_entry_data);
 
 	// and set up the new macro for recording content
@@ -229,11 +215,11 @@ void macros_commit_macro(){
 		macro_idx_remove(recording_state.index_entry);
 	}
 	else{
-		macro_eeprom_write_var(&recording_state.macro->length, macro_len);
+		macro_storage_write_var(&recording_state.macro->length, macro_len);
 		uint16_t end_offset;
-		macro_eeprom_read_var(end_offset, macros_end_offset);
+		macro_storage_read_var(end_offset, macros_end_offset);
 		end_offset += macro_len + 2; // length header + data
-		macro_eeprom_write_var(macros_end_offset, end_offset);
+		macro_storage_write_var(macros_end_offset, end_offset);
 		buzzer_start_f(200, BUZZER_SUCCESS_TONE);
 	}
 
@@ -250,7 +236,7 @@ void macros_abort_macro(){
 }
 
 bool macros_append(hid_keycode event){
-	macro_eeprom_write_var(recording_state.cursor++, event);
+	macro_storage_write_var(recording_state.cursor++, event);
 	return true;
  err:
 	return false;
@@ -263,7 +249,7 @@ bool macros_start_playback(uint16_t macro_offset){
 	macro_data* macro = macros_get_macro_pointer(macro_offset);
 	ExtraKeyboardReport_clear(&playback_state.report);
 	playback_state.cursor = &macro->events[0];
-	macro_eeprom_read_var(playback_state.remaining, &macro->length);
+	macro_storage_read_var(playback_state.remaining, &macro->length);
 	return true;
 
  err:
@@ -274,7 +260,7 @@ bool macros_fill_next_report(KeyboardReport_Data_t* report){
 	if(playback_state.remaining){
 		--playback_state.remaining;
 		hid_keycode event;
-		macro_eeprom_read_var(event, playback_state.cursor++);
+		macro_storage_read_var(event, playback_state.cursor++);
 		ExtraKeyboardReport_toggle(&playback_state.report, event);
 		ExtraKeyboardReport_append(&playback_state.report, report);
 	}

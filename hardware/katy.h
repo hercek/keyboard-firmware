@@ -66,6 +66,21 @@
 // configuration program over USB to identify the layout.
 #define LAYOUT_ID 3
 
+/* Storage layout */
+#define CONSTANT_STORAGE           avr_pgm
+#define MAPPING_STORAGE            avr_eeprom
+
+#define SAVED_MAPPING_STORAGE      avr_eeprom
+#define SAVED_MAPPING_COUNT        256          // 2-byte entries
+#define MACRO_INDEX_STORAGE        avr_eeprom
+#define MACRO_INDEX_COUNT          32           // 6-byte entries
+#define MACROS_STORAGE             spi_eeprom
+#define MACROS_SIZE                1024
+#define PROGRAM_STORAGE            spi_eeprom
+#define PROGRAM_SIZE               1024
+#define PROGRAM_COUNT              6
+#define NUM_KEY_MAPPING_INDICES    10 // this can be at most 10
+
 // if the keypad mode is selected, and a logical key greater than KEYPAD_LAYER_START
 // is read, add KEYPAD_LAYER_SIZE to look up the mapping.
 #define KEYPAD_LAYER_START 0
@@ -305,7 +320,7 @@ void ports_init(void);
 #else
 #  error "Unknown architecture."
 #endif
-void serial_eeprom_enable_write_everywhere(void); // just a prototype; defined in serial_eeprom.c
+void spi_eeprom_enable_write_everywhere(void); // just a prototype; defined in spi_eeprom.c
 
 /**
  * Gets the current physical input for a given physical position

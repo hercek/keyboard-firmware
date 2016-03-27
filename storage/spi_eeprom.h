@@ -43,80 +43,68 @@
   this software.
 */
 
-#ifndef __SERIAL_EEPROM_H
-#define __SERIAL_EEPROM_H
+#ifndef __SPI_EEPROM_H
+#define __SPI_EEPROM_H
 
 #include "hardware.h"
+#include "storage.h"
 
-//#include "twi.h"
 
-#define EEEXT __attribute__((section(".eeexternal")))
+#define SPIMEM __attribute__((section(".spieeprom")))
 
 #if (ARCH == ARCH_AVR8)
-#define EEEXT_PAGE_SIZE 32
+#define SPI_MEM_PAGE_SIZE 32
 #elif (ARCH == ARCH_XMEGA)
-#define EEEXT_PAGE_SIZE 64
+#define SPI_MEM_PAGE_SIZE 64
 #else
 #error "Unknwon architecture."
 #endif
 
-
-typedef enum _serial_eeprom_err {
-	SUCCESS = 0,
-	WSELECT_ERROR,
-	RSELECT_ERROR,
-	ADDRESS_ERROR,
-	DATA_ERROR
-} serial_eeprom_err;
-
-extern serial_eeprom_err serial_eeprom_errno;
-
-/**
- * The caller must ensure that this is called late enough after the last write.
- */
-serial_eeprom_err serial_eeprom_start_write(uint8_t* addr);
-//int8_t serial_eeprom_continue_write(const uint8_t* buf, uint8_t len);
-//static inline void serial_eeprom_end_write(void);
-void serial_eeprom_wait_for_last_write_end(void);
-
-/**
- * Write len bytes within an eeprom page. The caller is responsible
- * for ensuring 0 < len <= EEEXT_PAGE_SIZE and aligned within the page
- * and that this is called late enough after the last write.
- * returns bytes written: if < len, an error occurred.
- */
-int8_t serial_eeprom_write_page(uint8_t* addr, const uint8_t* buf, uint8_t len);
+#define STORAGE_SECTION_spi_eeprom SPIMEM
 
 /**
  * Writes count bytes to serial eeprom address dst, potentially using
  * multiple page writes. Returns number of bytes written if any bytes
  * were successfully written, otherwise -1. A return value of less
- * than count indicates that an error occurred and serial_eeprom_errno
+ * than count indicates that an error occurred and spi_eeprom_errno
  * is set to indicate the error.
  */
-int16_t serial_eeprom_write(uint8_t* dst, const uint8_t* buf, uint16_t count);
+int16_t spi_eeprom_write(void* dst, const void* data, size_t count);
 
 /**
- * Repeatedly called to incrementally write chunks of data to eeprom.
- * The caller is responsible for ensuring that the range to be written
- * does not cross a page boundary, and that writing begins at a page
- * boundary.  Function automatically starts a page write if addr is at
- * a page boundary, and stops the page write after writing if addr+len
- * is a page boundary, or if 'last' is set.
- *
- * Returns serial_eeprom_err.
+ * Writes the argument byte to serial eeprom address dst
  */
-serial_eeprom_err serial_eeprom_write_step(uint8_t* addr, uint8_t* data, uint8_t len, uint8_t last);
+storage_err spi_eeprom_write_byte(uint8_t* dst, uint8_t b);
 
 /**
- * The caller must ensure that this is called late enough after the last write.
+ * Writes the argument short to serial eeprom address dst
  */
-int16_t serial_eeprom_read(const uint8_t* addr, uint8_t* buf, uint16_t len);
+storage_err spi_eeprom_write_short(uint16_t* dst, uint16_t b);
 
-serial_eeprom_err serial_eeprom_memmove(uint8_t* dst, uint8_t* src, size_t count);
+size_t spi_eeprom_read(const void* addr, void* buf, size_t len);
+
+uint8_t spi_eeprom_read_byte(const uint8_t* addr);
+
+uint16_t spi_eeprom_read_short(const uint16_t* addr);
+
+storage_err spi_eeprom_memmove(void* dst, const void* src, size_t count);
+
+storage_err spi_eeprom_memset(void* dst, uint8_t c, size_t len);
+
+
+// Do not use! These two calls are only for LUFA spi eeprom stream implementation.
+//! Allows to start an unaligned page write.
+void spi_eeprom_checked_start_write(void* addr);
+/** Write page aligned data to eeprom.
+ * D̲s̲t̲ must be aligned to page start or spi_eeprom_checked_start_write must be called first!
+ * Oherwise page write cycle is not started (the address is not set). Page aligned writes
+ * are finished when the data fill the page or l̲a̲s̲t̲ is true.
+ */
+storage_err spi_eeprom_write_step(void* dst, const void* data, uint8_t len, uint8_t last);
+
 
 // test code (not normally linked)
-uint8_t serial_eeprom_test_read(void);
-uint8_t serial_eeprom_test_write(void);
+uint8_t spi_eeprom_test_read(void);
+uint8_t spi_eeprom_test_write(void);
 
-#endif // __SERIAL_EEPROM_H
+#endif // __SPI_EEPROM_H
