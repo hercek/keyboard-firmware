@@ -69,9 +69,6 @@
 /** Buffer to hold the previously generated Keyboard HID report, for comparison purposes inside the HID class driver. */
 KeyboardReport_Data_t PrevKeyboardHIDReportBuffer;
 
-/** Buffer to hold the previously generated Mouse HID report, for comparison purposes inside the HID class driver. */
-MouseReport_Data_t PrevMouseHIDReportBuffer;
-
 // Keyboard
 volatile uint32_t _uptimems;
 

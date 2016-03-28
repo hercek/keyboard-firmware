@@ -83,8 +83,7 @@ void Fill_MouseReport(MouseReport_Data_t* MouseReport);
 void Fill_KeyboardReport(KeyboardReport_Data_t* report);
 void Process_KeyboardLEDReport(uint8_t report);
 
-/** Buffer to hold the previously generated Keyboard/Mouse HID reports, for comparison purposes inside the HID class driver. */
+/** Buffer to hold the previously generated Keyboard HID reports, for comparison purposes inside the HID class driver. */
 extern KeyboardReport_Data_t PrevKeyboardHIDReportBuffer;
-extern MouseReport_Data_t PrevMouseHIDReportBuffer;
 
 #endif

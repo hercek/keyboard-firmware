@@ -82,8 +82,8 @@ USB_ClassInfo_HID_Device_t Mouse_HID_Interface =
 				.ReportINEndpoint.Size         = HID_EPSIZE,
 				.ReportINEndpoint.Banks        = 1,
 
-				.PrevReportINBuffer           = (void*) &PrevMouseHIDReportBuffer,
-				.PrevReportINBufferSize       = sizeof(PrevMouseHIDReportBuffer),
+				.PrevReportINBuffer           = NULL,
+				.PrevReportINBufferSize       = sizeof(MouseReport_Data_t),
 			},
 	};
 
@@ -305,9 +305,17 @@ bool CALLBACK_HID_Device_CreateHIDReport(USB_ClassInfo_HID_Device_t* const HIDIn
 
 	}
 	else{
+		static uint8_t lastMouseButtonStatus = 0;
 		MouseReport_Data_t* MouseReport = (MouseReport_Data_t*)ReportData;
-		*ReportSize = sizeof(MouseReport_Data_t);
 		Fill_MouseReport(MouseReport);
+		if ( lastMouseButtonStatus == MouseReport->Button &&
+				0 == MouseReport->X && 0 == MouseReport->Y && 0 == MouseReport->Wheel )
+			*ReportSize = 0;
+		else {
+			*ReportSize = sizeof(MouseReport_Data_t);
+			lastMouseButtonStatus = MouseReport->Button;
+			return true;
+		}
 	}
 	return false;
 }
