@@ -77,6 +77,7 @@ static state current_state = STATE_NORMAL;
 // state to transition to when next action is complete:
 // used for STATE_WAITING, STATE_PRINTING and STATE_EEWRITE which might transition into multiple states
 static state next_state;
+uint8_t wait_end_key_press_count;
 
 // Predeclarations
 static void handle_state_normal(void);
@@ -121,7 +122,8 @@ void __attribute__((noreturn)) Keyboard_Main(void)
 			handle_state_normal();
 			break;
 		case STATE_WAITING:
-			if(key_press_count == 0){
+			if(key_press_count <= wait_end_key_press_count){
+				wait_end_key_press_count = 0;
 				current_state = next_state;
 				next_state = 0;
 			}
@@ -332,6 +334,7 @@ static void handle_state_normal(void){
 		case MACRO: {
 #if MACROS_SIZE > 0
 			if(macros_start_playback(md.data)){
+				wait_end_key_press_count = key_press_count-1;
 				current_state = STATE_MACRO_PLAY;
 			}
 			else{
