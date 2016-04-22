@@ -211,7 +211,7 @@ const USB_Descriptor_Configuration_t PROGMEM ConfigurationDescriptor =
 		.EndpointAddress        = (ENDPOINT_DIR_IN | KEYBOARD_IN_EPNUM),
 		.Attributes             = (EP_TYPE_INTERRUPT | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA),
 		.EndpointSize           = HID_EPSIZE,
-		.PollingIntervalMS      = 0x01
+		.PollingIntervalMS      = 0x02
 	},
 
 	.HID2_MouseInterface =
@@ -248,7 +248,7 @@ const USB_Descriptor_Configuration_t PROGMEM ConfigurationDescriptor =
 		.EndpointAddress        = (ENDPOINT_DIR_IN | MOUSE_IN_EPNUM),
 		.Attributes             = (EP_TYPE_INTERRUPT | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA),
 		.EndpointSize           = HID_EPSIZE,
-		.PollingIntervalMS      = 0x01
+		.PollingIntervalMS      = 0x02
 	}
 
 };
