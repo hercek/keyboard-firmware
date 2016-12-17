@@ -42,7 +42,7 @@
 */
 
 #include <util/delay.h>     /* for _delay_ms() */
-#include "katy.h"
+#include "k80cs.h"
 #include "../buzzer.h"
 #include "../Lcd.h"
 #include "../printing.h"

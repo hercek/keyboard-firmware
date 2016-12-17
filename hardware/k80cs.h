@@ -41,8 +41,8 @@
   this software.
 */
 
-#ifndef __KATY_H
-#define __KATY_H
+#ifndef __K80CS_H
+#define __K80CS_H
 
 #include "keystate.h"
 
@@ -368,4 +368,4 @@ void test_leds(void);
 #  error "Unknown architecture."
 #endif
 
-#endif // __KINESIS_H
+#endif // __K80CS_H

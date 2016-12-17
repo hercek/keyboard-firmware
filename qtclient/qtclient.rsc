@@ -5,6 +5,6 @@
      <file>layout/2.xml</file>
      <file>layout/ergodox.png</file>
      <file>layout/3.xml</file>
-     <file>layout/katy.png</file>
+     <file>layout/k80cs.png</file>
  </qresource>
  </RCC>

@@ -42,7 +42,7 @@
 ; ========= START USER CONFIGURABLE SECTION ===========
 ; =====================================================
 
-DeviceName = "K80CS Keyboard Management"
+DeviceName = "KATY Keyboard Management"
 ; Make sure "VID_" and "PID_" are always part of the strings below
 VendorID = "VID_1D50"
 ProductID = "PID_6028"

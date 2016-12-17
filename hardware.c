@@ -52,8 +52,8 @@
 	#include "hardware/kinesis110.c"
 #elif HARDWARE_VARIANT == ERGODOX
 	#include "hardware/ergodox.c"
-#elif HARDWARE_VARIANT == KATY
-	#include "hardware/katy.c"
+#elif HARDWARE_VARIANT == K80CS
+	#include "hardware/k80cs.c"
 #else
 	#error "Unknown hardware variant selected"
 #endif

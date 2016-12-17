@@ -570,23 +570,23 @@ static void ledstate_update(void){
 	switch(current_state){
 	case STATE_PROGRAMMING_SRC:
 		// flash quickly - change every 128ms
-		if(HARDWARE_VARIANT==KATY || uptimems() & 128){
+		if(HARDWARE_VARIANT==K80CS || uptimems() & 128){
 			LEDMask |= LEDMASK_PROGRAMMING_SRC;
 		}
 		break;
 	case STATE_PROGRAMMING_DST:
 		// flash slowly - change every 256ms
-		if(HARDWARE_VARIANT==KATY || uptimems() & 256){
+		if(HARDWARE_VARIANT==K80CS || uptimems() & 256){
 			LEDMask |= LEDMASK_PROGRAMMING_DST;
 		}
 		break;
 	case STATE_MACRO_RECORD_TRIGGER:
-		if(HARDWARE_VARIANT==KATY || uptimems() & 128){
+		if(HARDWARE_VARIANT==K80CS || uptimems() & 128){
 			LEDMask |= LEDMASK_MACRO_TRIGGER;
 		}
 		break;
 	case STATE_MACRO_RECORD:
-		if(HARDWARE_VARIANT==KATY || uptimems() & 128){
+		if(HARDWARE_VARIANT==K80CS || uptimems() & 128){
 			LEDMask |= LEDMASK_MACRO_RECORD;
 		}
 		break;
@@ -597,7 +597,7 @@ static void ledstate_update(void){
 		break;
 	}
 
-	if (HARDWARE_VARIANT==KATY || fillFromUsbReport) {
+	if (HARDWARE_VARIANT==K80CS || fillFromUsbReport) {
 		// populate from USB LED report
 		if (USB_LEDReport & HID_KEYBOARD_LED_NUMLOCK)
 			LEDMask |= LEDMASK_NUMLOCK;

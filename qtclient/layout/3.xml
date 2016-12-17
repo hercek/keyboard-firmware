@@ -1,4 +1,4 @@
-<keyboard layout="katy" layoutid="3" image="katy.png">
+<keyboard layout="k80cs" layoutid="3" image="k80cs.png">
   <layout>
 	<key name="PROGRAM"	  w="43" h="43"  x="7"   y="240"/>
 	<key name="KEYPAD"	  w="43" h="43"  x="820" y="240"/>
