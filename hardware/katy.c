@@ -809,10 +809,13 @@ void set_all_leds_ex(uint8_t led_mask, int16_t lux_val){
 	if (led_mask & LED_SCROLL) {
 		ledMsg[i++] = 'S'; lit_green_led(lux_val);
 	} else green_led_off();
-	while( i<4 ) ledMsg[i++] = ' ';
+	while( i<3 ) ledMsg[i++] = ' ';
+	uint8_t add_msg = led_mask & 0xf0;
+	ledMsg[i++] = (LEDMASK_MACROS_ENABLED == add_msg) ? 'Q' : ' ';
 	// decode remap/macro state
-	switch ( led_mask & 0xf0 ) {
+	switch ( add_msg ) {
 		case 0:
+		case LEDMASK_MACROS_ENABLED:
 			strcpy(&ledMsg[i], get_lux_str(lux_val)); break;
 		case LEDMASK_PROGRAMMING_SRC:
 			strcpy(&ledMsg[i], "Src?"); break;

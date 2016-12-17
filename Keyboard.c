@@ -590,8 +590,9 @@ static void ledstate_update(void){
 			LEDMask |= LEDMASK_MACRO_RECORD;
 		}
 		break;
-	case STATE_NORMAL:
 	default:
+		if (config_get_flags().macros_enabled)
+			LEDMask |= LEDMASK_MACROS_ENABLED;
 		fillFromUsbReport = true;
 		break;
 	}
