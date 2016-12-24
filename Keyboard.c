@@ -210,7 +210,6 @@ static void handle_state_normal(void){
 						i -= 10;
 						_delay_ms(100);
 						Update_Millis(100);
-						_delay_ms(100);
 					}
 				}
 				case SPECIAL_HKEY_MACROS_ENABLE: {
@@ -242,13 +241,13 @@ static void handle_state_normal(void){
 #ifdef KATY_DEBUG
 				case SPECIAL_HKEY_READ_EEPROM:
 					buzzer_start_f(100, 200);
-					serial_eeprom_test_read();
+					spi_eeprom_test_read();
 					current_state = STATE_PRINTING;
 					next_state = STATE_NORMAL;
 					return;
 				case SPECIAL_HKEY_WRITE_EEPROM:
 					buzzer_start_f(100, 100);
-					serial_eeprom_test_write();
+					spi_eeprom_test_write();
 					current_state = STATE_PRINTING;
 					next_state = STATE_NORMAL;
 					return;
@@ -570,23 +569,23 @@ static void ledstate_update(void){
 	switch(current_state){
 	case STATE_PROGRAMMING_SRC:
 		// flash quickly - change every 128ms
-		if(HARDWARE_VARIANT==K80CS || uptimems() & 128){
+		if(HARDWARE_VARIANT>=K80CS || uptimems() & 128){
 			LEDMask |= LEDMASK_PROGRAMMING_SRC;
 		}
 		break;
 	case STATE_PROGRAMMING_DST:
 		// flash slowly - change every 256ms
-		if(HARDWARE_VARIANT==K80CS || uptimems() & 256){
+		if(HARDWARE_VARIANT>=K80CS || uptimems() & 256){
 			LEDMask |= LEDMASK_PROGRAMMING_DST;
 		}
 		break;
 	case STATE_MACRO_RECORD_TRIGGER:
-		if(HARDWARE_VARIANT==K80CS || uptimems() & 128){
+		if(HARDWARE_VARIANT>=K80CS || uptimems() & 128){
 			LEDMask |= LEDMASK_MACRO_TRIGGER;
 		}
 		break;
 	case STATE_MACRO_RECORD:
-		if(HARDWARE_VARIANT==K80CS || uptimems() & 128){
+		if(HARDWARE_VARIANT>=K80CS || uptimems() & 128){
 			LEDMask |= LEDMASK_MACRO_RECORD;
 		}
 		break;
@@ -597,7 +596,7 @@ static void ledstate_update(void){
 		break;
 	}
 
-	if (HARDWARE_VARIANT==K80CS || fillFromUsbReport) {
+	if (HARDWARE_VARIANT>=K80CS || fillFromUsbReport) {
 		// populate from USB LED report
 		if (USB_LEDReport & HID_KEYBOARD_LED_NUMLOCK)
 			LEDMask |= LEDMASK_NUMLOCK;

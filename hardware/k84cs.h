@@ -41,8 +41,8 @@
   this software.
 */
 
-#ifndef __K80CS_H
-#define __K80CS_H
+#ifndef __K84CS_H
+#define __K84CS_H
 
 #include "keystate.h"
 
@@ -52,14 +52,8 @@
 
 // But define different descriptive strings
 #define USB_MANUFACTURER_STRING L"andreae.gen.nz"
-#define USB_SERIAL_NUMBER_STRING L"andreae.gen.nz:k80cs"
-#if (ARCH == ARCH_AVR8)
-#define USB_PRODUCT_STRING L"K80CS USB Keyboard (ATMega)"
-#elif (ARCH == ARCH_XMEGA)
-#define USB_PRODUCT_STRING L"K80CS USB Keyboard (ATXMega)"
-#else
-# error "Unknown architecture."
-#endif
+#define USB_SERIAL_NUMBER_STRING L"andreae.gen.nz:k84cs"
+#define USB_PRODUCT_STRING L"K84CS USB Keyboard"
 
 // Unique identifier representing this keyboard's layout and
 // definition of logical_keycode values.  Is reported to the
@@ -84,9 +78,9 @@
 // if the keypad mode is selected, and a logical key greater than KEYPAD_LAYER_START
 // is read, add KEYPAD_LAYER_SIZE to look up the mapping.
 #define KEYPAD_LAYER_START 0
-#define KEYPAD_LAYER_SIZE  80
+#define KEYPAD_LAYER_SIZE  84
 
-//80 physical keys, 78 of which (all but keypad/program) have a separate keypad layer mapping
+//84 physical keys, 78 of which (all but keypad/program) have a separate keypad layer mapping
 #define NUM_LOGICAL_KEYS (KEYPAD_LAYER_START + (KEYPAD_LAYER_SIZE * 2))
 
 // Katy selects columns and reads rows. We're going to reverse the naming convention,
@@ -95,8 +89,8 @@
 // with internal pull-ups).
 
 
-#define MATRIX_COLS 5  // 5 rows on each side, right side direct, left side via shift register)
-#define MATRIX_ROWS 16 // 8 cols on each side
+#define MATRIX_COLS 6  // 5 rows on each side, right side direct, left side via shift register)
+#define MATRIX_ROWS 14 // 7 cols on each side
 
 // Logical keys we have: logical keys represent a key-position+keypad-layer combination.
 #define LOGICAL_KEY_KEYPAD LOGICAL_KEY_RROW1
@@ -104,10 +98,14 @@
 #define LOGICAL_KEY_LEFT_LAYER_SHIFT LOGICAL_KEY_TH_LL
 #define LOGICAL_KEY_RIGHT_LAYER_SHIFT LOGICAL_KEY_TH_RR
 enum logical_keys {
-	LOGICAL_KEY_LROW1, // left bottom row (outer)          //program
-	LOGICAL_KEY_RROW1, // right bottom row (outer)         //keypad
-	LOGICAL_KEY_TH_LL, // extra left side left thumb key   // keypadShift
-	LOGICAL_KEY_TH_RR, // extra right side right thumb key // keypadShift
+	LOGICAL_KEY_PRG,    // program key
+	LOGICAL_KEY_LaLck,  // layer lock key
+	LOGICAL_KEY_L_KpSh, // keypad layer shift
+	LOGICAL_KEY_R_KpSh, // keypad layer shift
+	LOGICAL_KEY_L_FnSh, // function layer shift
+	LOGICAL_KEY_R_FnSh, // function layer shift
+	LOGICAL_KEY_L_PALM, // palm layer shift
+	LOGICAL_KEY_R_PALM, // palm layer shift
 	// Main key blocks
 	LOGICAL_KEY_A,
 	LOGICAL_KEY_B,
@@ -145,55 +143,50 @@ enum logical_keys {
 	LOGICAL_KEY_8,
 	LOGICAL_KEY_9,
 	LOGICAL_KEY_0,
-	LOGICAL_KEY_SEMICOLON,
+	LOGICAL_KEY_SEMICOL,
 	LOGICAL_KEY_COMMA,
 	LOGICAL_KEY_PERIOD,
 	LOGICAL_KEY_SLASH,
-
-	// Left hand extra keys
-	LOGICAL_KEY_LCOL1_1, // outer column (top)
-	LOGICAL_KEY_LCOL1_2,
-	LOGICAL_KEY_LCOL1_3,
-	LOGICAL_KEY_LCOL1_4,
-	LOGICAL_KEY_LROW2, // bottom row (outer)
-	LOGICAL_KEY_LROW3,
-	LOGICAL_KEY_LROW4,
-	LOGICAL_KEY_LROW5,
-	LOGICAL_KEY_LCOL2_1, // inner column (top)
-	LOGICAL_KEY_LCOL2_2,
-	LOGICAL_KEY_LCOL2_3,
-
-	// Right hand extra keys
-	LOGICAL_KEY_RCOL1_1, // outer column (top)
-	LOGICAL_KEY_RCOL1_2,
-	LOGICAL_KEY_RCOL1_3,
-	LOGICAL_KEY_RCOL1_4,
-	LOGICAL_KEY_RROW2, // bottom row (outer)
-	LOGICAL_KEY_RROW3,
-	LOGICAL_KEY_RROW4,
-	LOGICAL_KEY_RROW5,
-	LOGICAL_KEY_RCOL2_1, // inner column (top)
-	LOGICAL_KEY_RCOL2_2,
-	LOGICAL_KEY_RCOL2_3,
-
+	// Left hand extra key well keys
+	LOGICAL_KEY_EQ,
+	LOGICAL_KEY_TAB,
+	LOGICAL_KEY_ESC,
+	LOGICAL_KEY_DEL,
+	LOGICAL_KEY_TILDE,
+	LOGICAL_KEY_IntK,
+	LOGICAL_KEY_LArr,
+	LOGICAL_KEY_RArr,
+	LOGICAL_KEY_VOL,
+	LOGICAL_KEY_CAPS,
+	LOGICAL_KEY_PRINT,
+	// Right hand extra key well keys
+	LOGICAL_KEY_MINUS,
+	LOGICAL_KEY_BSLASH,
+	LOGICAL_KEY_QUOT,
+	LOGICAL_KEY_ENTER,
+	LOGICAL_KEY_ClBrc,
+	LOGICAL_KEY_OpBrc,
+	LOGICAL_KEY_UpArr,
+	LOGICAL_KEY_DnArr,
+	LOGICAL_KEY_INSERT,
+	LOGICAL_KEY_MENU,
+	LOGICAL_KEY_BREAK,
 	// Left hand thumb pad
-	LOGICAL_KEY_L_ALT,
 	LOGICAL_KEY_L_CTRL,
+	LOGICAL_KEY_L_ALT,
 	LOGICAL_KEY_HOME,
 	LOGICAL_KEY_END,
-	LOGICAL_KEY_DELETE,
-	LOGICAL_KEY_BACKSPACE,
-	LOGICAL_KEY_TH_LR, // extra left side right thumb key
-
+	LOGICAL_KEY_L_WIN,
+	LOGICAL_KEY_L_SH,
+	LOGICAL_KEY_BckSp,
 	// Right hand thumb pad
-	LOGICAL_KEY_R_ALT,
 	LOGICAL_KEY_R_CTRL,
+	LOGICAL_KEY_R_ALT,
 	LOGICAL_KEY_PGUP,
 	LOGICAL_KEY_PGDN,
-	LOGICAL_KEY_ENTER,
+	LOGICAL_KEY_R_WIN,
+	LOGICAL_KEY_R_SH,
 	LOGICAL_KEY_SPACE,
-	LOGICAL_KEY_TH_RL, // extra right side left thumb key
-
 	// The keypad layer duplicates all the previous keys
 };
 
@@ -228,65 +221,10 @@ extern const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] PROGMEM;
 // matrix_select_row() and matrix_read_columns() functions.
 
 // Right hand rows and columns
-// 5 rows  (InRRow0-4): PC6 PD7 PE6 PB4 PB7
-// 8 cols (OutRCol0-7): PF4-PF7 + PD0-PD3
-// Note: OutRCol0-3 (PF4-PF7) is disabled when JTAG is being used.
-
-// For now, no eeprom.
+// 5 rows  (InRRow0-4): PD0-PD4,PB2
+// 8 cols (OutRCol0-7): PA0-PA6
 
 ////////////////////////////////////////////////////////////////////////////////////////
-#if (ARCH == ARCH_AVR8)
-#define RIGHT_MATRIX_IN_1_PORT PORTC
-#define RIGHT_MATRIX_IN_1_DDR  DDRC
-#define RIGHT_MATRIX_IN_1_MASK (1<<6)
-#define RIGHT_MATRIX_IN_1_PIN  PINC
-#define RIGHT_MATRIX_IN_2_PORT PORTD
-#define RIGHT_MATRIX_IN_2_DDR  DDRD
-#define RIGHT_MATRIX_IN_2_MASK (1<<7)
-#define RIGHT_MATRIX_IN_2_PIN  PIND
-#define RIGHT_MATRIX_IN_3_PORT PORTE
-#define RIGHT_MATRIX_IN_3_DDR  DDRE
-#define RIGHT_MATRIX_IN_3_MASK (1<<6)
-#define RIGHT_MATRIX_IN_3_PIN  PINE
-#define RIGHT_MATRIX_IN_4_PORT PORTB
-#define RIGHT_MATRIX_IN_4_DDR  DDRB
-#define RIGHT_MATRIX_IN_4_MASK 0b10010000
-#define RIGHT_MATRIX_IN_4_PIN  PINB
-
-#define RIGHT_MATRIX_OUT_1_PORT PORTF
-#define RIGHT_MATRIX_OUT_1_DDR  DDRF
-#define RIGHT_MATRIX_OUT_1_MASK 0b11110000
-#define RIGHT_MATRIX_OUT_2_PORT PORTD
-#define RIGHT_MATRIX_OUT_2_DDR  DDRD
-#define RIGHT_MATRIX_OUT_2_MASK 0b00001111
-
-
-#define LEFT_O_LOAD_DDR  DDRF
-#define LEFT_O_LOAD_PORT PORTF
-#define LEFT_O_LOAD_MASK _BV(PF0)
-#define LEFT_O_LOAD_LOW  LEFT_O_LOAD_PORT &= ~LEFT_O_LOAD_MASK; //_delay_us(1);
-#define LEFT_O_LOAD_HIGH LEFT_O_LOAD_PORT |=  LEFT_O_LOAD_MASK; //_delay_us(1);
-
-#define LEFT_I_DATA_DDR  DDRF
-#define LEFT_I_DATA_PIN  PINF
-#define LEFT_I_DATA_MASK _BV(PF1)
-
-#define LEFT_CLK0_DDR  DDRD
-#define LEFT_CLK0_PORT PORTD
-#define LEFT_CLK0_MASK _BV(PD5)
-#define LEFT_CLK0_HIGH LEFT_CLK0_PORT |=  LEFT_CLK0_MASK; //_delay_us(1);
-#define LEFT_CLK0_LOW  LEFT_CLK0_PORT &= ~LEFT_CLK0_MASK; //_delay_us(1);
-
-#define LEFT_CLK1_DDR  DDRB
-#define LEFT_CLK1_PORT PORTB
-#define LEFT_CLK1_MASK _BV(PB0)
-#define LEFT_CLK1_HIGH LEFT_CLK1_PORT |=  LEFT_CLK1_MASK; //_delay_us(1);
-#define LEFT_CLK1_LOW  LEFT_CLK1_PORT &= ~LEFT_CLK1_MASK; //_delay_us(1);
-#elif (ARCH == ARCH_XMEGA)
-// no stuff here (yet)
-#else
-# error "Unknown architecture."
-#endif
 
 #define USE_BUZZER 1
 
@@ -298,28 +236,14 @@ extern const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] PROGMEM;
 
 void ports_init(void);
 
-#if (ARCH == ARCH_AVR8)
-#  define SPI_PORT_SS PORTE
-#  define SPI_BIT_SS  PORTE2
-   // SS setup time is 100 ns, frequency is 16 MHz ->
-   //   spi_slave_on() will use one instruction => one nop here is enough
-#  define SPI_EEPROM_CS_SETUP_DELAY asm volatile( "nop\n\t" ::)
-   // SS hold time is 200 ns from the last spi_transfer, frequency is 16 MHz ->
-   //   the spi_transfer will have at least 3 instructions and 2 instructions will
-   //   be used by spi_slave_off() => this delay can be empty
-#  define SPI_EEPROM_CS_HOLD_DELAY
-#elif  (ARCH == ARCH_XMEGA)
-#  define SPI_PORT_SS    PORTB
-#  define SPI_BIT_SS_bm  PIN1_bm
-   // SS setup time is 100 ns, frequency is 32 MHz ->
-   //   1 instruction in spi_slave_on plus this
-#  define SPI_EEPROM_CS_SETUP_DELAY asm volatile( "nop\n\tnop\n\tnop\n\t" ::)
-   // SS hold time is 100 ns from the last spi_transfer, frequency is 32 MHz
-   //   3 instructions in spi_transfer and 1 instruction in spi_slave_off is enough
-#  define SPI_EEPROM_CS_HOLD_DELAY
-#else
-#  error "Unknown architecture."
-#endif
+#define SPI_PORT_SS    PORTB
+#define SPI_BIT_SS_bm  PIN1_bm
+// SS setup time is 100 ns, frequency is 32 MHz ->
+//   1 instruction in spi_slave_on plus this
+#define SPI_EEPROM_CS_SETUP_DELAY asm volatile( "nop\n\tnop\n\tnop\n\t" ::)
+// SS hold time is 100 ns from the last spi_transfer, frequency is 32 MHz
+//   3 instructions in spi_transfer and 1 instruction in spi_slave_off is enough
+#define SPI_EEPROM_CS_HOLD_DELAY
 void spi_eeprom_enable_write_everywhere(void); // just a prototype; defined in spi_eeprom.c
 
 /**
@@ -360,12 +284,6 @@ uint8_t matrix_read_column(uint8_t matrix_column);
 void set_all_leds(uint8_t led_mask);
 
 void test_leds(void);
-#if (ARCH == ARCH_AVR8)
-  inline bool run_photosensor(uint32_t cur_time_ms) {return false;}
-#elif  (ARCH == ARCH_XMEGA)
-  bool run_photosensor(uint32_t cur_time_ms);
-#else
-#  error "Unknown architecture."
-#endif
+bool run_photosensor(uint32_t cur_time_ms);
 
-#endif // __K80CS_H
+#endif // __K84CS_H

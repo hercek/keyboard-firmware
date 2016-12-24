@@ -54,6 +54,8 @@
 	#include "hardware/ergodox.c"
 #elif HARDWARE_VARIANT == K80CS
 	#include "hardware/k80cs.c"
+#elif HARDWARE_VARIANT == K84CS
+	#include "hardware/k84cs.c"
 #else
 	#error "Unknown hardware variant selected"
 #endif

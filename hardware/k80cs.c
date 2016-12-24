@@ -427,7 +427,7 @@ bool run_photosensor(uint32_t cur_time_ms) {
 			set_all_leds_ex(LEDMASK_NOP, lux_val);
 #ifdef KATY_DEBUG
 			sprintf(adc_string, "%d %d\n", lux_val, adc_max-adc_min);
-			printing_set_buffer(adc_string,BUF_MEM);
+			printing_set_buffer(adc_string, sram);
 			PORTE.DIRTGL = PIN3_bm;
 #endif
 		}
