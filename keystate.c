@@ -367,18 +367,23 @@ void keystate_Fill_KeyboardReport(KeyboardReport_Data_t* KeyboardReport){
 	 }
 }
 
-static uint8_t mouse_accel(uint16_t time){
-	uint16_t rv = time/20;
-	if (rv < 0) return 1;
-	if (rv > 255) return 255;
-	return rv;
-}
-
 void keystate_Fill_MouseReport(MouseReport_Data_t* MouseReport){
-	static uint16_t mousedown_time = 1;
+	uint8_t const time_inc = 25;
+	static uint16_t cur_time = 0;
+	static uint16_t next_active_time = 0;
+	static uint8_t prev_button = 0;
 
-	// check key state
+	// rate limit mouse reports
+	if (++cur_time < next_active_time) {
+		MouseReport->Button = prev_button; return; }
+	next_active_time += time_inc;
+
 	bool moving = false;
+	// simple linear acceleration
+	uint16_t move_len = cur_time/time_inc;
+	if (move_len > 127) move_len = 127;
+
+	// check mouse key states
 	for(uint8_t i = 0; i < KEYSTATE_COUNT; ++i){
 		if(key_states[i].state && !(key_states[i].hidden)){
 			logical_keycode l_key = key_states[i].l_key;
@@ -403,19 +408,19 @@ void keystate_Fill_MouseReport(MouseReport_Data_t* MouseReport){
 
 				case SPECIAL_HID_KEY_MOUSE_FWD:
 					moving = true;
-					MouseReport->Y -= mouse_accel(mousedown_time);
+					MouseReport->Y = -move_len;
 					break;
 				case SPECIAL_HID_KEY_MOUSE_BACK:
 					moving = true;
-					MouseReport->Y += mouse_accel(mousedown_time);
+					MouseReport->Y = move_len;
 					break;
 				case SPECIAL_HID_KEY_MOUSE_LEFT:
 					moving = true;
-					MouseReport->X -= mouse_accel(mousedown_time);
+					MouseReport->X = -move_len;
 					break;
 				case SPECIAL_HID_KEY_MOUSE_RIGHT:
 					moving = true;
-					MouseReport->X += mouse_accel(mousedown_time);
+					MouseReport->X = move_len;
 					break;
 				default:
 					break;
@@ -424,10 +429,12 @@ void keystate_Fill_MouseReport(MouseReport_Data_t* MouseReport){
 		}
 	}
 
-	if(moving)
-		mousedown_time++;
-	else
-		mousedown_time = 1;
+	// measure key press time for accelration only when moving
+	if(!moving) {
+		cur_time = 0;
+		next_active_time = time_inc;
+	}
+	prev_button = MouseReport->Button;
 }
 
 hid_keycode keystate_check_hid_key(hid_keycode key){
