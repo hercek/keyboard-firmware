@@ -58,7 +58,7 @@
 // Unique identifier representing this keyboard's layout and
 // definition of logical_keycode values.  Is reported to the
 // configuration program over USB to identify the layout.
-#define LAYOUT_ID 3
+#define LAYOUT_ID 4
 
 /* Storage layout */
 #define CONSTANT_STORAGE           avr_pgm
@@ -81,7 +81,7 @@
 #define KEYPAD_LAYER_SIZE  84
 
 //84 physical keys, 78 of which (all but keypad/program) have a separate keypad layer mapping
-#define NUM_LOGICAL_KEYS (KEYPAD_LAYER_START + (KEYPAD_LAYER_SIZE * 2))
+#define NUM_LOGICAL_KEYS (KEYPAD_LAYER_START + (KEYPAD_LAYER_SIZE * 3))
 
 // Katy selects columns and reads rows. We're going to reverse the naming convention,
 // since our convention is that we select "rows" and read "columns".  We select
@@ -221,17 +221,18 @@ extern const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] PROGMEM;
 // matrix_select_row() and matrix_read_columns() functions.
 
 // Right hand rows and columns
-// 5 rows  (InRRow0-4): PD0-PD4,PB2
-// 8 cols (OutRCol0-7): PA0-PA6
+// 6 rows  (InRRow0-4): PD0-PD4,PB2
+// 7 cols (OutRCol0-6): PA0-PA6
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
 #define USE_BUZZER 1
 
-#define LED_CAPS   1
-#define LED_NUM    2
-#define LED_SCROLL 4
-#define LED_KEYPAD 8
+#define LED_CAPS     1
+#define LED_NUM      2
+#define LED_SCROLL   4
+#define LED_KEYPAD   8
+#define LED_FUNCTION 16
 #define ALL_LEDS (LED_CAPS | LED_NUM | LED_SCROLL)
 
 void ports_init(void);
@@ -254,30 +255,31 @@ uint8_t matrix_read_column(uint8_t matrix_column);
 
 /* Macros: */
 /** LED mask for the library LED driver, to indicate that the USB interface is not ready. */
-#define LEDMASK_USB_NOTREADY     0xf0
+#define LEDMASK_USB_NOTREADY     0xE0
 
 /** LED mask for the library LED driver, to indicate that the USB interface is enumerating. */
-#define LEDMASK_USB_ENUMERATING  0xf1
+#define LEDMASK_USB_ENUMERATING  0xE1
 
 /** LED mask for the library LED driver, to indicate that the USB interface is ready. */
-#define LEDMASK_USB_READY        0xf2
+#define LEDMASK_USB_READY        0xE2
 
 /** LED mask for the library LED driver, to indicate that an error has occurred in the USB interface. */
-#define LEDMASK_USB_ERROR        0xf3
+#define LEDMASK_USB_ERROR        0xE3
 
 /** LED mask for the library LED driver, to indicate NOP (no change to the LEDs themselves). */
-#define LEDMASK_NOP              0xff
+#define LEDMASK_NOP              0xEf
 
 #define LEDMASK_CAPS       LED_CAPS
 #define LEDMASK_NUMLOCK    LED_NUM
 #define LEDMASK_SCROLLLOCK LED_SCROLL
 #define LEDMASK_KEYPAD     LED_KEYPAD
+#define LEDMASK_FUNCTION   LED_FUNCTION
 
-#define LEDMASK_MACROS_ENABLED  0x10
-#define LEDMASK_PROGRAMMING_SRC 0x20
-#define LEDMASK_PROGRAMMING_DST 0x30
-#define LEDMASK_MACRO_TRIGGER   0x40
-#define LEDMASK_MACRO_RECORD    0x50
+#define LEDMASK_MACROS_ENABLED  0x20
+#define LEDMASK_PROGRAMMING_SRC 0x40
+#define LEDMASK_PROGRAMMING_DST 0x60
+#define LEDMASK_MACRO_TRIGGER   0x80
+#define LEDMASK_MACRO_RECORD    0xA0
 #define LEDMASK_ALL ALL_LEDS
 #define LEDMASK_NONE 0
 

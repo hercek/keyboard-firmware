@@ -83,7 +83,7 @@ const logical_keycode matrix_to_logical_map[MATRIX_ROWS][MATRIX_COLS] PROGMEM =
 const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] PROGMEM = {
 	// non-keypad layer
 	SPECIAL_HID_KEY_PROGRAM,						   //	LOGICAL_KEY_LROW1, // left bottom row (outer)
-	SPECIAL_HID_KEY_KEYPAD_TOGGLE,					   //	LOGICAL_KEY_RROW1, // right bottom row (outer)
+	SPECIAL_HID_KEY_LAYER_LOCK,						   //	LOGICAL_KEY_RROW1, // right bottom row (outer)
 	SPECIAL_HID_KEY_KEYPAD_SHIFT,					   //	LOGICAL_KEY_TH_LL, // extra left side left thumb key
 	SPECIAL_HID_KEY_KEYPAD_SHIFT,					   //	LOGICAL_KEY_TH_RR, // extra right side right thumb key
 	//---------------------------------------------- on-the-fly remapable
@@ -170,7 +170,7 @@ const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] PROGMEM = {
 	/////////////////////////////////////////////////
 	// keypad layer									   //	***/### keypad mode default differs to base layer
 	SPECIAL_HID_KEY_PROGRAM,						   //	LOGICAL_KEY_LROW1, // left bottom row (outer)
-	SPECIAL_HID_KEY_KEYPAD_TOGGLE,					   //	LOGICAL_KEY_RROW1, // right bottom row (outer)
+	SPECIAL_HID_KEY_LAYER_LOCK,						   //	LOGICAL_KEY_RROW1, // right bottom row (outer)
 	SPECIAL_HID_KEY_KEYPAD_SHIFT,					   //	LOGICAL_KEY_TH_LL, // extra left side left thumb key
 	SPECIAL_HID_KEY_KEYPAD_SHIFT,					   //	LOGICAL_KEY_TH_RR, // extra right side right thumb key
 	//---------------------------------------------- on-the-fly remapable

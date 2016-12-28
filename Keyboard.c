@@ -373,10 +373,10 @@ static void handle_state_programming(void){
 			return;
 		}
 
-		// Check for keypad shift. If not pressed, it's an invalid 2-key
-		// combination: return. Otherwise, we have a single keycode in the
-		// keypad layer: place it in index 0 and continue.
-		if(hkeys[!lesser_idx] != SPECIAL_HID_KEY_KEYPAD_SHIFT){
+		// Check for layer shifts/locks. If not pressed, it's an invalid 2-key combination: return.
+		//Otherwise, we have a single keycode in the a layer: place it in index 0 and continue.
+		if(hkeys[!lesser_idx] != SPECIAL_HID_KEY_KEYPAD_SHIFT &&
+				hkeys[!lesser_idx] != SPECIAL_HID_KEY_FUNCTION_SHIFT ){
 			return;
 		}
 		if(lesser_idx != 0){
@@ -415,7 +415,7 @@ static void handle_state_macro_record_trigger(){
 		next_state = STATE_NORMAL;
 		return;
 	}
-	else if(keystate_check_any_key(2, HID, SPECIAL_HID_KEY_PROGRAM, SPECIAL_HID_KEY_KEYPAD_TOGGLE)){
+	else if(keystate_check_any_key(2, HID, SPECIAL_HID_KEY_PROGRAM, SPECIAL_HID_KEY_LAYER_LOCK)){
 		return; // ignore
 	}
 	else if(key_press_count > MACRO_MAX_KEYS){
@@ -562,8 +562,11 @@ static void ledstate_update(void){
 	uint8_t LEDMask = 0;
 	bool fillFromUsbReport = false;
 
-	if(keystate_is_keypad_mode()){
-		LEDMask |= LEDMASK_KEYPAD;
+	switch (keystate_get_layer_id()){
+	case 1:
+		LEDMask |= LEDMASK_KEYPAD; break;
+	case 2:
+		LEDMask |= LEDMASK_FUNCTION; break;
 	}
 
 	switch(current_state){

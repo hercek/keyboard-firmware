@@ -78,15 +78,15 @@ const logical_keycode matrix_to_logical_map[MATRIX_ROWS][MATRIX_COLS] PROGMEM =
 #undef KEY_NONE
 
 const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] PROGMEM = {
-	// non-keypad layer
-	SPECIAL_HID_KEY_PROGRAM,                            // LOGICAL_KEY_PRG
-	SPECIAL_HID_KEY_KEYPAD_TOGGLE,                      // LOGICAL_KEY_LaLck
-	SPECIAL_HID_KEY_KEYPAD_SHIFT,                       // LOGICAL_KEY_L_KpSh
-	SPECIAL_HID_KEY_KEYPAD_SHIFT,                       // LOGICAL_KEY_R_KpSh
-	SPECIAL_HID_KEY_KEYPAD_SHIFT,                       // LOGICAL_KEY_L_FnSh
-	SPECIAL_HID_KEY_KEYPAD_SHIFT,                       // LOGICAL_KEY_R_FnSh
-	SPECIAL_HID_KEY_KEYPAD_SHIFT,                       // LOGICAL_KEY_L_PALM
-	SPECIAL_HID_KEY_KEYPAD_SHIFT,                       // LOGICAL_KEY_R_PALM
+	// normal layer
+	SPECIAL_HID_KEY_PROGRAM,                             // LOGICAL_KEY_PRG
+	SPECIAL_HID_KEY_LAYER_LOCK,                          // LOGICAL_KEY_LaLck
+	SPECIAL_HID_KEY_KEYPAD_SHIFT,                        // LOGICAL_KEY_L_KpSh
+	SPECIAL_HID_KEY_KEYPAD_SHIFT,                        // LOGICAL_KEY_R_KpSh
+	SPECIAL_HID_KEY_FUNCTION_SHIFT,                      // LOGICAL_KEY_L_FnSh
+	SPECIAL_HID_KEY_FUNCTION_SHIFT,                      // LOGICAL_KEY_R_FnSh
+	SPECIAL_HID_KEY_KEYPAD_SHIFT,                        // LOGICAL_KEY_L_PALM
+	SPECIAL_HID_KEY_KEYPAD_SHIFT,                        // LOGICAL_KEY_R_PALM
 	//---------------------------------------------- on-the-fly remapable
 	HID_KEYBOARD_SC_A,                                   // LOGICAL_KEY_A
 	HID_KEYBOARD_SC_B,                                   // LOGICAL_KEY_B
@@ -171,21 +171,21 @@ const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] PROGMEM = {
 	/////////////////////////////////////////////////
 	// keypad layer                                      // * keypad mode default differs from base
 	SPECIAL_HID_KEY_PROGRAM,                             // LOGICAL_KEY_PRG
-	SPECIAL_HID_KEY_KEYPAD_TOGGLE,                       // LOGICAL_KEY_LaLck
+	SPECIAL_HID_KEY_LAYER_LOCK,                          // LOGICAL_KEY_LaLck
 	SPECIAL_HID_KEY_KEYPAD_SHIFT,                        // LOGICAL_KEY_L_KpSh
 	SPECIAL_HID_KEY_KEYPAD_SHIFT,                        // LOGICAL_KEY_R_KpSh
-	SPECIAL_HID_KEY_KEYPAD_SHIFT,                        // LOGICAL_KEY_L_FnSh
-	SPECIAL_HID_KEY_KEYPAD_SHIFT,                        // LOGICAL_KEY_R_FnSh
+	SPECIAL_HID_KEY_FUNCTION_SHIFT,                      // LOGICAL_KEY_L_FnSh
+	SPECIAL_HID_KEY_FUNCTION_SHIFT,                      // LOGICAL_KEY_R_FnSh
 	SPECIAL_HID_KEY_KEYPAD_SHIFT,                        // LOGICAL_KEY_L_PALM
 	SPECIAL_HID_KEY_KEYPAD_SHIFT,                        // LOGICAL_KEY_R_PALM
 	//---------------------------------------------- on-the-fly remapable
 	SPECIAL_HID_KEY_MOUSE_BTN1,                          // LOGICAL_KEY_A *
-	HID_KEYBOARD_SC_B,                                   // LOGICAL_KEY_B
+	HID_KEYBOARD_SC_B,                                   // LOGICAL_KEY_B *
 	HID_KEYBOARD_SC_C,                                   // LOGICAL_KEY_C
 	SPECIAL_HID_KEY_MOUSE_BACK,                          // LOGICAL_KEY_D *
 	SPECIAL_HID_KEY_MOUSE_FWD,                           // LOGICAL_KEY_E *
 	SPECIAL_HID_KEY_MOUSE_RIGHT,                         // LOGICAL_KEY_F *
-	HID_KEYBOARD_SC_G,                                   // LOGICAL_KEY_G
+	HID_KEYBOARD_SC_G,                                   // LOGICAL_KEY_G *
 	HID_KEYBOARD_SC_KEYPAD_SLASH,                        // LOGICAL_KEY_H *
 	HID_KEYBOARD_SC_KEYPAD_8_AND_UP_ARROW,               // LOGICAL_KEY_I *
 	HID_KEYBOARD_SC_KEYPAD_4_AND_LEFT_ARROW,             // LOGICAL_KEY_J *
@@ -259,6 +259,97 @@ const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] PROGMEM = {
 	HID_KEYBOARD_SC_RIGHT_GUI,                           // LOGICAL_KEY_R_WIN
 	HID_KEYBOARD_SC_RIGHT_SHIFT,                         // LOGICAL_KEY_R_SH
 	HID_KEYBOARD_SC_SPACE,                               // LOGICAL_KEY_SPACE
+	/////////////////////////////////////////////////
+	// function layer                                    // it is a mirror image of the base (for now)
+	SPECIAL_HID_KEY_PROGRAM,                             // LOGICAL_KEY_PRG
+	SPECIAL_HID_KEY_LAYER_LOCK,                          // LOGICAL_KEY_LaLck
+	SPECIAL_HID_KEY_KEYPAD_SHIFT,                        // LOGICAL_KEY_L_KpSh
+	SPECIAL_HID_KEY_KEYPAD_SHIFT,                        // LOGICAL_KEY_R_KpSh
+	SPECIAL_HID_KEY_FUNCTION_SHIFT,                      // LOGICAL_KEY_L_FnSh
+	SPECIAL_HID_KEY_FUNCTION_SHIFT,                      // LOGICAL_KEY_R_FnSh
+	SPECIAL_HID_KEY_KEYPAD_SHIFT,                        // LOGICAL_KEY_L_PALM
+	SPECIAL_HID_KEY_KEYPAD_SHIFT,                        // LOGICAL_KEY_R_PALM
+	//---------------------------------------------- on-the-fly remapable
+	HID_KEYBOARD_SC_SEMICOLON_AND_COLON,                 // LOGICAL_KEY_A
+	HID_KEYBOARD_SC_N,                                   // LOGICAL_KEY_B
+	HID_KEYBOARD_SC_COMMA_AND_LESS_THAN_SIGN,            // LOGICAL_KEY_C
+	HID_KEYBOARD_SC_K,                                   // LOGICAL_KEY_D
+	HID_KEYBOARD_SC_I,                                   // LOGICAL_KEY_E
+	HID_KEYBOARD_SC_J,                                   // LOGICAL_KEY_F
+	HID_KEYBOARD_SC_H,                                   // LOGICAL_KEY_G
+	HID_KEYBOARD_SC_G,                                   // LOGICAL_KEY_H
+	HID_KEYBOARD_SC_E,                                   // LOGICAL_KEY_I
+	HID_KEYBOARD_SC_F,                                   // LOGICAL_KEY_J
+	HID_KEYBOARD_SC_D,                                   // LOGICAL_KEY_K
+	HID_KEYBOARD_SC_S,                                   // LOGICAL_KEY_L
+	HID_KEYBOARD_SC_V,                                   // LOGICAL_KEY_M
+	HID_KEYBOARD_SC_B,                                   // LOGICAL_KEY_N
+	HID_KEYBOARD_SC_W,                                   // LOGICAL_KEY_O
+	HID_KEYBOARD_SC_Q,                                   // LOGICAL_KEY_P
+	HID_KEYBOARD_SC_P,                                   // LOGICAL_KEY_Q
+	HID_KEYBOARD_SC_U,                                   // LOGICAL_KEY_R
+	HID_KEYBOARD_SC_L,                                   // LOGICAL_KEY_S
+	HID_KEYBOARD_SC_Y,                                   // LOGICAL_KEY_T
+	HID_KEYBOARD_SC_R,                                   // LOGICAL_KEY_U
+	HID_KEYBOARD_SC_M,                                   // LOGICAL_KEY_V
+	HID_KEYBOARD_SC_O,                                   // LOGICAL_KEY_W
+	HID_KEYBOARD_SC_DOT_AND_GREATER_THAN_SIGN,           // LOGICAL_KEY_X
+	HID_KEYBOARD_SC_T,                                   // LOGICAL_KEY_Y
+	HID_KEYBOARD_SC_SLASH_AND_QUESTION_MARK,             // LOGICAL_KEY_Z
+	HID_KEYBOARD_SC_0_AND_CLOSING_PARENTHESIS,           // LOGICAL_KEY_1
+	HID_KEYBOARD_SC_9_AND_OPENING_PARENTHESIS,           // LOGICAL_KEY_2
+	HID_KEYBOARD_SC_8_AND_ASTERISK,                      // LOGICAL_KEY_3
+	HID_KEYBOARD_SC_7_AND_AMPERSAND,                     // LOGICAL_KEY_4
+	HID_KEYBOARD_SC_6_AND_CARET,                         // LOGICAL_KEY_5
+	HID_KEYBOARD_SC_5_AND_PERCENTAGE,                    // LOGICAL_KEY_6
+	HID_KEYBOARD_SC_4_AND_DOLLAR,                        // LOGICAL_KEY_7
+	HID_KEYBOARD_SC_3_AND_HASHMARK,                      // LOGICAL_KEY_8
+	HID_KEYBOARD_SC_2_AND_AT,                            // LOGICAL_KEY_9
+	HID_KEYBOARD_SC_1_AND_EXCLAMATION,                   // LOGICAL_KEY_0
+	HID_KEYBOARD_SC_A,                                   // LOGICAL_KEY_SEMICOL
+	HID_KEYBOARD_SC_C,                                   // LOGICAL_KEY_COMMA
+	HID_KEYBOARD_SC_X,                                   // LOGICAL_KEY_PERIOD
+	HID_KEYBOARD_SC_Z,                                   // LOGICAL_KEY_SLASH
+	// Left hand extra key well keys
+	HID_KEYBOARD_SC_MINUS_AND_UNDERSCORE,                // LOGICAL_KEY_EQ
+	HID_KEYBOARD_SC_BACKSLASH_AND_PIPE,                  // LOGICAL_KEY_TAB
+	HID_KEYBOARD_SC_APOSTROPHE_AND_QUOTE,                // LOGICAL_KEY_ESC
+	HID_KEYBOARD_SC_ENTER,                               // LOGICAL_KEY_DEL
+	HID_KEYBOARD_SC_CLOSING_BRACKET_AND_CLOSING_BRACE,   // LOGICAL_KEY_TILDE
+	HID_KEYBOARD_SC_OPENING_BRACKET_AND_OPENING_BRACE,   // LOGICAL_KEY_IntK
+	HID_KEYBOARD_SC_UP_ARROW,                            // LOGICAL_KEY_LArr
+	HID_KEYBOARD_SC_DOWN_ARROW,                          // LOGICAL_KEY_RArr
+	HID_KEYBOARD_SC_INSERT,                              // LOGICAL_KEY_VOL
+	0x65/*WinContextMenu (not in LUFA header)*/,         // LOGICAL_KEY_CAPS
+	HID_KEYBOARD_SC_PAUSE,                               // LOGICAL_KEY_PRINT
+	// Right hand extra key well keys
+	HID_KEYBOARD_SC_EQUAL_AND_PLUS,                      // LOGICAL_KEY_MINUS 
+	HID_KEYBOARD_SC_TAB,                                 // LOGICAL_KEY_BSLASH
+	HID_KEYBOARD_SC_ESCAPE,                              // LOGICAL_KEY_QUOT
+	HID_KEYBOARD_SC_DELETE,                              // LOGICAL_KEY_ENTER
+	HID_KEYBOARD_SC_GRAVE_ACCENT_AND_TILDE,              // LOGICAL_KEY_ClBrc
+	HID_KEYBOARD_SC_NON_US_BACKSLASH_AND_PIPE,           // LOGICAL_KEY_OpBrc
+	HID_KEYBOARD_SC_LEFT_ARROW,                          // LOGICAL_KEY_UpArr
+	HID_KEYBOARD_SC_RIGHT_ARROW,                         // LOGICAL_KEY_DnArr
+	HID_KEYBOARD_SC_VOLUME_DOWN,                         // LOGICAL_KEY_INSERT
+	HID_KEYBOARD_SC_CAPS_LOCK,                           // LOGICAL_KEY_MENU
+	HID_KEYBOARD_SC_PRINT_SCREEN,                        // LOGICAL_KEY_BREAK
+	// Left hand thumbpad
+	HID_KEYBOARD_SC_RIGHT_CONTROL,                       // LOGICAL_KEY_L_CTRL
+	HID_KEYBOARD_SC_RIGHT_ALT,                           // LOGICAL_KEY_L_ALT
+	HID_KEYBOARD_SC_PAGE_UP,                             // LOGICAL_KEY_HOME
+	HID_KEYBOARD_SC_PAGE_DOWN,                           // LOGICAL_KEY_END
+	HID_KEYBOARD_SC_RIGHT_GUI,                           // LOGICAL_KEY_L_WIN
+	HID_KEYBOARD_SC_RIGHT_SHIFT,                         // LOGICAL_KEY_L_SH
+	HID_KEYBOARD_SC_SPACE,                               // LOGICAL_KEY_BckSp
+	// Right hand thumb pad
+	HID_KEYBOARD_SC_LEFT_CONTROL,                        // LOGICAL_KEY_R_CTRL
+	HID_KEYBOARD_SC_LEFT_ALT,                            // LOGICAL_KEY_R_ALT
+	HID_KEYBOARD_SC_HOME,                                // LOGICAL_KEY_PGUP
+	HID_KEYBOARD_SC_END,                                 // LOGICAL_KEY_PGDN
+	HID_KEYBOARD_SC_LEFT_GUI,                            // LOGICAL_KEY_R_WIN
+	HID_KEYBOARD_SC_LEFT_SHIFT,                          // LOGICAL_KEY_R_SH
+	HID_KEYBOARD_SC_BACKSPACE,                           // LOGICAL_KEY_SPACE
 };
 
 
@@ -588,7 +679,7 @@ void set_all_leds_ex(uint8_t led_mask, int16_t lux_val){
 	if ( no_lux_change ) lux_val = prev_lux_val;
 	prev_led_mask = led_mask; prev_lux_val = lux_val;
 	// decode USB status
-	if ( led_mask & 0x80 ) {
+	if ( (led_mask & 0xE0) == 0xE0 ) {
 		switch (led_mask) {
 			case LEDMASK_USB_NOTREADY:
 				lcd_print_position(0, 0, "Usb Wait"); break;
@@ -606,6 +697,8 @@ void set_all_leds_ex(uint8_t led_mask, int16_t lux_val){
 	// decode Layer
 	if (led_mask & LED_KEYPAD) {
 		lcd_print_position(0, 0, "Keypad  "); lit_blue_led(lux_val); }
+	else if (led_mask & LED_FUNCTION) {
+		lcd_print_position(0, 0, "Function"); lit_blue_led(lux_val); }
 	else {
 		lcd_print_position(0, 0, "Normal  "); blue_led_off(); }
 	// decode Lock LEDs
@@ -621,7 +714,7 @@ void set_all_leds_ex(uint8_t led_mask, int16_t lux_val){
 		ledMsg[i++] = 'S'; lit_green_led(lux_val);
 	} else green_led_off();
 	while( i<3 ) ledMsg[i++] = ' ';
-	uint8_t add_msg = led_mask & 0xf0;
+	uint8_t add_msg = led_mask & 0xE0;
 	ledMsg[i++] = (LEDMASK_MACROS_ENABLED == add_msg) ? 'Q' : ' ';
 	// decode remap/macro state
 	switch ( add_msg ) {

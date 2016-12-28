@@ -90,9 +90,10 @@ enum SPECIAL_HID_KEYS {
 	SPECIAL_HID_KEY_MOUSE_LEFT,
 	SPECIAL_HID_KEY_MOUSE_RIGHT,
 	// And the special non-remappable program and keypad keys
-	SPECIAL_HID_KEY_KEYPAD_SHIFT = 0xFC,
-	SPECIAL_HID_KEY_KEYPAD_TOGGLE,
-	SPECIAL_HID_KEY_PROGRAM      = 0xFE // Must be last: we rely on sort order
+	SPECIAL_HID_KEY_LAYER_LOCK = 0xFB,
+	SPECIAL_HID_KEY_KEYPAD_SHIFT,
+	SPECIAL_HID_KEY_FUNCTION_SHIFT,
+	SPECIAL_HID_KEY_PROGRAM    = 0xFE // Must be last: we rely on sort order
 	// 0xFF represents NO_KEY
 };
 
@@ -102,7 +103,7 @@ enum SPECIAL_HID_KEYS {
 // Program and keypad keys are special: they don't participate in the keypad
 // layer and can't be remapped using onboard remapping.
 // We put these at the end after PROGRAM.
-#define SPECIAL_HID_KEY_NOREMAP(hkey) (hkey >= SPECIAL_HID_KEY_KEYPAD_SHIFT && hkey != NO_KEY)
+#define SPECIAL_HID_KEY_NOREMAP(hkey) (hkey >= SPECIAL_HID_KEY_LAYER_LOCK && hkey != NO_KEY)
 
 // fields
 
@@ -112,7 +113,7 @@ void keystate_init(void);
 
 void keystate_update(void);
 
-bool keystate_is_keypad_mode(void);
+uint8_t keystate_get_layer_id(void);
 
 /**
  * Types of keycode:

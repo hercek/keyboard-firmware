@@ -62,8 +62,8 @@ static keystate_change_hook keystate_change_hook_fn = 0;
 uint8_t key_press_count = 0;
 
 struct {
-	unsigned char toggle:1;
-	unsigned char shift_count:7;
+	unsigned char lock:1;
+	unsigned char layer_id:7;
 } keypad_state;
 
 void keystate_init(void){
@@ -75,8 +75,8 @@ void keystate_init(void){
 	}
 }
 
-bool keystate_is_keypad_mode(void){
-	return (keypad_state.toggle != 0) || (keypad_state.shift_count != 0);
+uint8_t keystate_get_layer_id(void){
+	return keypad_state.layer_id;
 }
 
 static inline void default_beep(void){
@@ -110,34 +110,40 @@ static inline uint8_t keystate_clear_key(key_state* key){
 	return old_state;
 }
 
-// Called when a keypad key (either toggle or shift) changes state. If the key
+// Called when a keypad key (either lock or shift) changes state. If the key
 // change causes the keypad mode to be toggled, all currently tracked keys that
 // are no longer valid in the new mode are reset. Returns true if the keypad
 // state changed.
 static uint8_t keystate_update_keypad(hid_keycode keypad_key, uint8_t state){
-	uint8_t prev_keypad_mode = keystate_is_keypad_mode();
+	uint8_t prev_layer = keystate_get_layer_id();
 
 	switch(keypad_key){
-	case SPECIAL_HID_KEY_KEYPAD_TOGGLE:
-		// Toggle keypad mode on keydown
-		if(state) { keypad_state.toggle = !keypad_state.toggle; }
+	case SPECIAL_HID_KEY_LAYER_LOCK:
+		if (state) { // we are active only on key press (key release is ignored)
+			if (keypad_state.lock) { keypad_state.lock = 0; keypad_state.layer_id = 0; }
+			else if (keypad_state.layer_id == 0) { keypad_state.lock = 1; keypad_state.layer_id = 1; }
+			else keypad_state.lock = 1;
+		}
 		break;
 	case SPECIAL_HID_KEY_KEYPAD_SHIFT:
-		if(state) { ++keypad_state.shift_count; }
-		else      { --keypad_state.shift_count; }
+		if(state) keypad_state.layer_id = 1;
+		else if (!keypad_state.lock) keypad_state.layer_id = 0;
+		break;
+	case SPECIAL_HID_KEY_FUNCTION_SHIFT:
+		if(state) keypad_state.layer_id = 2;
+		else if (!keypad_state.lock) keypad_state.layer_id = 0;
 		break;
 	default:
 		return false;
 	}
 
-	uint8_t keypad_mode = keystate_is_keypad_mode();
-
-	if(prev_keypad_mode == keypad_mode){ return false; }
+	uint8_t cur_layer = keystate_get_layer_id();
+	if ( cur_layer == prev_layer) return false;
 
 	#if USE_BUZZER
 	//if (config_get_flags().key_sound_enabled)
-		if (SPECIAL_HID_KEY_KEYPAD_TOGGLE==keypad_key)
-			buzzer_start_f(100, keypad_mode ? BUZZER_ON_TONE : BUZZER_OFF_TONE);
+		if (SPECIAL_HID_KEY_LAYER_LOCK==keypad_key)
+			buzzer_start_f(100, cur_layer ? BUZZER_ON_TONE : BUZZER_OFF_TONE);
 		else default_beep();
 	#endif
 
@@ -147,15 +153,9 @@ static uint8_t keystate_update_keypad(hid_keycode keypad_key, uint8_t state){
 		hid_keycode h_key = config_get_definition(l_key);
 
 		// if the tracked key is valid in the new mode, continue
-		if(SPECIAL_HID_KEY_NOREMAP(h_key)){
-			continue;
-		}
-		else if(keypad_mode){
-			if(l_key >= KEYPAD_LAYER_SIZE) continue; // safe
-		}
-		else{
-			if(l_key < KEYPAD_LAYER_SIZE) continue;
-		}
+		if (SPECIAL_HID_KEY_NOREMAP(h_key)) continue; // key equal in all layers
+		if (cur_layer * KEYPAD_LAYER_SIZE <= l_key && l_key < (cur_layer+1) * KEYPAD_LAYER_SIZE)
+			continue; // l_key exists in the current layer => keep it
 
 		// otherwise clear the key state
 		keystate_clear_key(&key_states[i]);
@@ -184,8 +184,8 @@ void keystate_update(void){
 			bool noremap_key = SPECIAL_HID_KEY_NOREMAP(h_key);
 
 			// Handle layer switch. No-remap (keypad and program) keys are ignored.
-			if(keystate_is_keypad_mode() && !noremap_key){
-				l_key += KEYPAD_LAYER_SIZE;
+			if(!noremap_key){
+				l_key += keystate_get_layer_id() * KEYPAD_LAYER_SIZE;
 			}
 
 			uint8_t reading = matrix_read_column(matrix_col);
