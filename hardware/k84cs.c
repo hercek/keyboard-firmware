@@ -180,12 +180,12 @@ const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] PROGMEM = {
 	SPECIAL_HID_KEY_KEYPAD_SHIFT,                        // LOGICAL_KEY_R_PALM
 	//---------------------------------------------- on-the-fly remapable
 	SPECIAL_HID_KEY_MOUSE_BTN1,                          // LOGICAL_KEY_A *
-	HID_KEYBOARD_SC_B,                                   // LOGICAL_KEY_B *
+	HID_KEYBOARD_SC_B,                                   // LOGICAL_KEY_B
 	HID_KEYBOARD_SC_C,                                   // LOGICAL_KEY_C
 	SPECIAL_HID_KEY_MOUSE_BACK,                          // LOGICAL_KEY_D *
 	SPECIAL_HID_KEY_MOUSE_FWD,                           // LOGICAL_KEY_E *
 	SPECIAL_HID_KEY_MOUSE_RIGHT,                         // LOGICAL_KEY_F *
-	HID_KEYBOARD_SC_G,                                   // LOGICAL_KEY_G *
+	HID_KEYBOARD_SC_G,                                   // LOGICAL_KEY_G
 	HID_KEYBOARD_SC_KEYPAD_SLASH,                        // LOGICAL_KEY_H *
 	HID_KEYBOARD_SC_KEYPAD_8_AND_UP_ARROW,               // LOGICAL_KEY_I *
 	HID_KEYBOARD_SC_KEYPAD_4_AND_LEFT_ARROW,             // LOGICAL_KEY_J *
@@ -219,7 +219,7 @@ const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] PROGMEM = {
 	HID_KEYBOARD_SC_KEYPAD_2_AND_DOWN_ARROW,             // LOGICAL_KEY_COMMA *
 	HID_KEYBOARD_SC_KEYPAD_3_AND_PAGE_DOWN,              // LOGICAL_KEY_PERIOD *
 	HID_KEYBOARD_SC_KEYPAD_ENTER,                        // LOGICAL_KEY_SLASH *
-	// LHS extra keys
+	// Left hand extra keys
 	HID_KEYBOARD_SC_F11,                                 // LOGICAL_KEY_EQ *
 	HID_KEYBOARD_SC_TAB,                                 // LOGICAL_KEY_TAB
 	HID_KEYBOARD_SC_ESCAPE,                              // LOGICAL_KEY_ESC
@@ -233,10 +233,10 @@ const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] PROGMEM = {
 	HID_KEYBOARD_SC_SCROLL_LOCK,                         // LOGICAL_KEY_PRINT *
 	// Right hand extra keys
 	HID_KEYBOARD_SC_F12,                                 // LOGICAL_KEY_MINUS *
-	HID_KEYBOARD_SC_BACKSLASH_AND_PIPE,                  // LOGICAL_KEY_BSLASH
-	HID_KEYBOARD_SC_KEYPAD_EQUAL_SIGN,                   // LOGICAL_KEY_QUOT  *
-	HID_KEYBOARD_SC_ENTER,                               // LOGICAL_KEY_ENTER
-	HID_KEYBOARD_SC_KEYPAD_COMMA,                        // LOGICAL_KEY_ClBrc *
+	SPECIAL_HID_KEY_MOUSE_BTN1,                          // LOGICAL_KEY_BSLASH *
+	SPECIAL_HID_KEY_MOUSE_BTN2,                          // LOGICAL_KEY_QUOT *
+	SPECIAL_HID_KEY_MOUSE_BTN3,                          // LOGICAL_KEY_ENTER *
+	HID_KEYBOARD_SC_ENTER,                               // LOGICAL_KEY_ClBrc *
 	HID_KEYBOARD_SC_KEYPAD_DOT_AND_DELETE,               // LOGICAL_KEY_OpBrc *
 	HID_KEYBOARD_SC_UP_ARROW,                            // LOGICAL_KEY_UpArr
 	HID_KEYBOARD_SC_DOWN_ARROW,                          // LOGICAL_KEY_DnArr
