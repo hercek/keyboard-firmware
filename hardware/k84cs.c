@@ -58,22 +58,22 @@ const logical_keycode matrix_to_logical_map[MATRIX_ROWS][MATRIX_COLS] PROGMEM =
 	// ROW 1              ROW 2               ROW 3               ROW 4               ROW 5             ROW 6
 	// Left Hand Side
 	// iData0 [in]        iData1 [in]        iData2 [in]         iData3 [in]         iData4 [in]        iData5 [in]
-	{ {LOGICAL_KEY_PRINT, LOGICAL_KEY_CAPS,  LOGICAL_KEY_VOL,    LOGICAL_KEY_L_CTRL, LOGICAL_KEY_L_SH,  LOGICAL_KEY_L_ALT } // COL 1 | oLoad6 [out]
-	, {LOGICAL_KEY_5,     LOGICAL_KEY_T,     LOGICAL_KEY_G,      LOGICAL_KEY_B,      LOGICAL_KEY_BckSp, LOGICAL_KEY_HOME  } // COL 2 | oLoad5 [out]
-	, {LOGICAL_KEY_4,     LOGICAL_KEY_R,     LOGICAL_KEY_F,      LOGICAL_KEY_V,      LOGICAL_KEY_RArr,  LOGICAL_KEY_END   } // COL 3 | oLoad4 [out]
-	, {LOGICAL_KEY_3,     LOGICAL_KEY_E,     LOGICAL_KEY_D,      LOGICAL_KEY_C,      LOGICAL_KEY_LArr,  LOGICAL_KEY_L_WIN } // COL 4 | oLoad3 [out]
-	, {LOGICAL_KEY_2,     LOGICAL_KEY_W,     LOGICAL_KEY_S,      LOGICAL_KEY_X,      LOGICAL_KEY_IntK,  LOGICAL_KEY_L_KpSh} // COL 5 | oLoad2 [out]
-	, {LOGICAL_KEY_1,     LOGICAL_KEY_Q,     LOGICAL_KEY_A,      LOGICAL_KEY_Z,      LOGICAL_KEY_TILDE, LOGICAL_KEY_L_FnSh} // COL 6 | oLoad1 [out]
-	, {LOGICAL_KEY_EQ,    LOGICAL_KEY_TAB,   LOGICAL_KEY_ESC,    LOGICAL_KEY_DEL,    LOGICAL_KEY_PRG,   LOGICAL_KEY_L_PALM} // COL 7 | oLoad0 [out]
+	{ {LOGICAL_KEY_PRINT, LOGICAL_KEY_CAPS,  LOGICAL_KEY_VOL,    LOGICAL_KEY_L_CTRL, LOGICAL_KEY_L_SH,  LOGICAL_KEY_L_ALT  } // COL 1 | oLoad6 [out]
+	, {LOGICAL_KEY_5,     LOGICAL_KEY_T,     LOGICAL_KEY_G,      LOGICAL_KEY_B,      LOGICAL_KEY_BckSp, LOGICAL_KEY_HOME   } // COL 2 | oLoad5 [out]
+	, {LOGICAL_KEY_4,     LOGICAL_KEY_R,     LOGICAL_KEY_F,      LOGICAL_KEY_V,      LOGICAL_KEY_RArr,  LOGICAL_KEY_END    } // COL 3 | oLoad4 [out]
+	, {LOGICAL_KEY_3,     LOGICAL_KEY_E,     LOGICAL_KEY_D,      LOGICAL_KEY_C,      LOGICAL_KEY_LArr,  LOGICAL_KEY_L_WIN  } // COL 4 | oLoad3 [out]
+	, {LOGICAL_KEY_2,     LOGICAL_KEY_W,     LOGICAL_KEY_S,      LOGICAL_KEY_X,      LOGICAL_KEY_IntK,  LOGICAL_KEY_L_KpSh } // COL 5 | oLoad2 [out]
+	, {LOGICAL_KEY_1,     LOGICAL_KEY_Q,     LOGICAL_KEY_A,      LOGICAL_KEY_Z,      LOGICAL_KEY_TILDE, LOGICAL_KEY_L_MACRO} // COL 6 | oLoad1 [out]
+	, {LOGICAL_KEY_EQ,    LOGICAL_KEY_TAB,   LOGICAL_KEY_ESC,    LOGICAL_KEY_DEL,    LOGICAL_KEY_PRG,   LOGICAL_KEY_L_PALM } // COL 7 | oLoad0 [out]
 	// Right Hand Side
-	// XD0 [in]           XD1 [in]           XD2 [in]            XD3 [in]            XD4 [in]           XB2 [in]
-	, {LOGICAL_KEY_R_ALT, LOGICAL_KEY_R_SH,  LOGICAL_KEY_R_CTRL, LOGICAL_KEY_INSERT, LOGICAL_KEY_MENU,  LOGICAL_KEY_BREAK} // COL 8  | XA0 [out]
-	, {LOGICAL_KEY_PGUP,  LOGICAL_KEY_SPACE, LOGICAL_KEY_N,      LOGICAL_KEY_H,      LOGICAL_KEY_Y,     LOGICAL_KEY_6    } // COL 9  | XA1 [out]
-	, {LOGICAL_KEY_PGDN,  LOGICAL_KEY_DnArr, LOGICAL_KEY_M,      LOGICAL_KEY_J,      LOGICAL_KEY_U,     LOGICAL_KEY_7    } // COL 10 | XA2 [out]
-	, {LOGICAL_KEY_R_WIN, LOGICAL_KEY_UpArr, LOGICAL_KEY_COMMA,  LOGICAL_KEY_K,      LOGICAL_KEY_I,     LOGICAL_KEY_8    } // COL 11 | XA3 [out]
-	, {LOGICAL_KEY_R_KpSh,LOGICAL_KEY_OpBrc, LOGICAL_KEY_PERIOD, LOGICAL_KEY_L,      LOGICAL_KEY_O,     LOGICAL_KEY_9    } // COL 12 | XA4 [out]
-	, {LOGICAL_KEY_R_FnSh,LOGICAL_KEY_ClBrc, LOGICAL_KEY_SLASH,  LOGICAL_KEY_SEMICOL,LOGICAL_KEY_P,     LOGICAL_KEY_0    } // COL 13 | XA5 [out]
-	, {LOGICAL_KEY_R_PALM,LOGICAL_KEY_LaLck, LOGICAL_KEY_ENTER,  LOGICAL_KEY_QUOT,   LOGICAL_KEY_BSLASH,LOGICAL_KEY_MINUS} // COL 14 | XA6 [out]
+	// XD0 [in]            XD1 [in]           XD2 [in]            XD3 [in]            XD4 [in]           XB2 [in]
+	, {LOGICAL_KEY_R_ALT,  LOGICAL_KEY_R_SH,  LOGICAL_KEY_R_CTRL, LOGICAL_KEY_INSERT, LOGICAL_KEY_MENU,  LOGICAL_KEY_BREAK} // COL 8  | XA0 [out]
+	, {LOGICAL_KEY_PGUP,   LOGICAL_KEY_SPACE, LOGICAL_KEY_N,      LOGICAL_KEY_H,      LOGICAL_KEY_Y,     LOGICAL_KEY_6    } // COL 9  | XA1 [out]
+	, {LOGICAL_KEY_PGDN,   LOGICAL_KEY_DnArr, LOGICAL_KEY_M,      LOGICAL_KEY_J,      LOGICAL_KEY_U,     LOGICAL_KEY_7    } // COL 10 | XA2 [out]
+	, {LOGICAL_KEY_R_WIN,  LOGICAL_KEY_UpArr, LOGICAL_KEY_COMMA,  LOGICAL_KEY_K,      LOGICAL_KEY_I,     LOGICAL_KEY_8    } // COL 11 | XA3 [out]
+	, {LOGICAL_KEY_R_KpSh, LOGICAL_KEY_OpBrc, LOGICAL_KEY_PERIOD, LOGICAL_KEY_L,      LOGICAL_KEY_O,     LOGICAL_KEY_9    } // COL 12 | XA4 [out]
+	, {LOGICAL_KEY_R_MACRO,LOGICAL_KEY_ClBrc, LOGICAL_KEY_SLASH,  LOGICAL_KEY_SEMICOL,LOGICAL_KEY_P,     LOGICAL_KEY_0    } // COL 13 | XA5 [out]
+	, {LOGICAL_KEY_R_PALM, LOGICAL_KEY_LaLck, LOGICAL_KEY_ENTER,  LOGICAL_KEY_QUOT,   LOGICAL_KEY_BSLASH,LOGICAL_KEY_MINUS} // COL 14 | XA6 [out]
 	};
 #undef KEY_NONE
 
@@ -83,8 +83,8 @@ const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] PROGMEM = {
 	SPECIAL_HID_KEY_LAYER_LOCK,                          // LOGICAL_KEY_LaLck
 	SPECIAL_HID_KEY_KEYPAD_SHIFT,                        // LOGICAL_KEY_L_KpSh
 	SPECIAL_HID_KEY_KEYPAD_SHIFT,                        // LOGICAL_KEY_R_KpSh
-	SPECIAL_HID_KEY_FUNCTION_SHIFT,                      // LOGICAL_KEY_L_FnSh
-	SPECIAL_HID_KEY_FUNCTION_SHIFT,                      // LOGICAL_KEY_R_FnSh
+	SPECIAL_HID_KEY_FUNCTION_SHIFT,                      // LOGICAL_KEY_L_MACRO
+	SPECIAL_HID_KEY_FUNCTION_SHIFT,                      // LOGICAL_KEY_R_MACRO
 	SPECIAL_HID_KEY_KEYPAD_SHIFT,                        // LOGICAL_KEY_L_PALM
 	SPECIAL_HID_KEY_KEYPAD_SHIFT,                        // LOGICAL_KEY_R_PALM
 	//---------------------------------------------- on-the-fly remapable
@@ -174,8 +174,8 @@ const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] PROGMEM = {
 	SPECIAL_HID_KEY_LAYER_LOCK,                          // LOGICAL_KEY_LaLck
 	SPECIAL_HID_KEY_KEYPAD_SHIFT,                        // LOGICAL_KEY_L_KpSh
 	SPECIAL_HID_KEY_KEYPAD_SHIFT,                        // LOGICAL_KEY_R_KpSh
-	SPECIAL_HID_KEY_FUNCTION_SHIFT,                      // LOGICAL_KEY_L_FnSh
-	SPECIAL_HID_KEY_FUNCTION_SHIFT,                      // LOGICAL_KEY_R_FnSh
+	SPECIAL_HID_KEY_FUNCTION_SHIFT,                      // LOGICAL_KEY_L_MACRO
+	SPECIAL_HID_KEY_FUNCTION_SHIFT,                      // LOGICAL_KEY_R_MACRO
 	SPECIAL_HID_KEY_KEYPAD_SHIFT,                        // LOGICAL_KEY_L_PALM
 	SPECIAL_HID_KEY_KEYPAD_SHIFT,                        // LOGICAL_KEY_R_PALM
 	//---------------------------------------------- on-the-fly remapable
@@ -265,8 +265,8 @@ const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] PROGMEM = {
 	SPECIAL_HID_KEY_LAYER_LOCK,                          // LOGICAL_KEY_LaLck
 	SPECIAL_HID_KEY_KEYPAD_SHIFT,                        // LOGICAL_KEY_L_KpSh
 	SPECIAL_HID_KEY_KEYPAD_SHIFT,                        // LOGICAL_KEY_R_KpSh
-	SPECIAL_HID_KEY_FUNCTION_SHIFT,                      // LOGICAL_KEY_L_FnSh
-	SPECIAL_HID_KEY_FUNCTION_SHIFT,                      // LOGICAL_KEY_R_FnSh
+	SPECIAL_HID_KEY_FUNCTION_SHIFT,                      // LOGICAL_KEY_L_MACRO
+	SPECIAL_HID_KEY_FUNCTION_SHIFT,                      // LOGICAL_KEY_R_MACRO
 	SPECIAL_HID_KEY_KEYPAD_SHIFT,                        // LOGICAL_KEY_L_PALM
 	SPECIAL_HID_KEY_KEYPAD_SHIFT,                        // LOGICAL_KEY_R_PALM
 	//---------------------------------------------- on-the-fly remapable

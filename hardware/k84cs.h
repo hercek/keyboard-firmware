@@ -100,12 +100,12 @@
 enum logical_keys {
 	LOGICAL_KEY_PRG,    // program key
 	LOGICAL_KEY_LaLck,  // layer lock key
-	LOGICAL_KEY_L_KpSh, // keypad layer shift
-	LOGICAL_KEY_R_KpSh, // keypad layer shift
-	LOGICAL_KEY_L_FnSh, // function layer shift
-	LOGICAL_KEY_R_FnSh, // function layer shift
-	LOGICAL_KEY_L_PALM, // palm layer shift
-	LOGICAL_KEY_R_PALM, // palm layer shift
+	LOGICAL_KEY_L_KpSh, // keypad shift
+	LOGICAL_KEY_R_KpSh, // keypad shift
+	LOGICAL_KEY_L_MACRO,// macro shift
+	LOGICAL_KEY_R_MACRO,// macro shift
+	LOGICAL_KEY_L_PALM, // palm shift
+	LOGICAL_KEY_R_PALM, // palm shift
 	// Main key blocks
 	LOGICAL_KEY_A,
 	LOGICAL_KEY_B,
