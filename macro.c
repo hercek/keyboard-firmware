@@ -86,6 +86,7 @@ uint8_t* macros_get_storage(){
 
 void macros_reset_defaults(){
 	volatile uint16_t zero = 0x0;
+	storage_wait_for_last_write_end(MACROS_STORAGE);
 	storage_write(MACROS_STORAGE, (uint8_t*)macros_end_offset, (uint8_t*)&zero, sizeof(uint16_t));
 }
 
@@ -152,6 +153,7 @@ static bool delete_macro_data(macro_idx_entry* idx_entry){
 	}
 	// and update the saved macro end offset
 	end_offset -= entry_len;
+	storage_wait_for_last_write_end(MACROS_STORAGE);
 	macro_storage_write_var(macros_end_offset, end_offset);
 
 	return true;
@@ -217,6 +219,7 @@ void macros_commit_macro(){
 	else{
 		macro_storage_write_var(&recording_state.macro->length, macro_len);
 		uint16_t end_offset;
+		storage_wait_for_last_write_end(MACROS_STORAGE);
 		macro_storage_read_var(end_offset, macros_end_offset);
 		end_offset += macro_len + 2; // length header + data
 		macro_storage_write_var(macros_end_offset, end_offset);

@@ -53,6 +53,7 @@ typedef enum _storage_type {
     avr_pgm,
     avr_eeprom,
     i2c_eeprom,
+    spi_eeprom,
     flash,
 } storage_type;
 
@@ -74,6 +75,14 @@ extern storage_err storage_errno;
 
 #define storage_memmove(storage_type, dst, src, count)         STORAGE_MAGIC_PREFIX(storage_type, memmove)(dst, src, count)
 #define storage_memset(storage_type, dst, c, len)              STORAGE_MAGIC_PREFIX(storage_type, memset)(dst, c, len)
+
+#define storage_wait_for_last_write_end(storage_type)          STORAGE_MAGIC_PREFIX(storage_type, wait_for_last_write_end)()
+
+#define sram_wait_for_last_write_end()
+#define avr_pgm_wait_for_last_write_end()
+#define avr_eeprom_wait_for_last_write_end()
+#define i2c_eeprom_wait_for_last_write_end()
+// spi_eeprom needs wait_for_last_write_end implemented
 
 #include "storage/sram.h"
 #include "storage/avr_eeprom.h"

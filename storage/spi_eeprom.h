@@ -81,6 +81,13 @@ storage_err spi_eeprom_write_byte(uint8_t* dst, uint8_t b);
  */
 storage_err spi_eeprom_write_short(uint16_t* dst, uint16_t b);
 
+/**
+ * If there is a chance that next read or write could happen sooner than 6 ms
+ * after the last write then this must be called to ensure the last write is
+ * finished before attempting any new spi memory read or write.
+ */
+void spi_eeprom_wait_for_last_write_end(void);
+
 size_t spi_eeprom_read(const void* addr, void* buf, size_t len);
 
 uint8_t spi_eeprom_read_byte(const uint8_t* addr);

@@ -82,6 +82,7 @@ void macro_idx_reset_defaults(){
 	tmp.val = 0x0;
 
 	for(uint8_t i = 0; i < MACRO_INDEX_COUNT; ++i){
+		storage_wait_for_last_write_end(MACRO_INDEX_STORAGE);
 		storage_write(MACRO_INDEX_STORAGE, &macro_index[i], &tmp, sizeof(macro_idx_entry));
 		USB_KeepAlive(true);
 	}
@@ -157,6 +158,7 @@ void macro_idx_remove(macro_idx_entry* mi){
 			tmp.val = 0x0;
 		}
 		else{
+			storage_wait_for_last_write_end(MACRO_INDEX_STORAGE);
 			storage_read(MACRO_INDEX_STORAGE, &macro_index[i + 1], &tmp, sizeof(macro_idx_entry));
 		}
 		// and write into i
@@ -188,20 +190,22 @@ macro_idx_entry* macro_idx_create(macro_idx_key* key){
 		if(i == 0 || macro_idx_cmp(key, &macro_index[i-1]) >= 0){
 			r = &macro_index[i];
 			break;
-		}
-		else if(storage_read_byte(MACRO_INDEX_STORAGE, &macro_index[i-1].keys[0]) == NO_KEY){
-			continue; // Don't bother to copy empty cells.
-		}
-		else{
-			// copy up (i-1) to (i), leaving the hole at (i-1)
-			macro_idx_entry tmp;
-			storage_read (MACRO_INDEX_STORAGE, &macro_index[i-1], &tmp, sizeof(macro_idx_entry));
-			storage_write(MACRO_INDEX_STORAGE, &macro_index[i],   &tmp, sizeof(macro_idx_entry));
-			USB_KeepAlive(true);
+		} else {
+			storage_wait_for_last_write_end(MACRO_INDEX_STORAGE);
+			if(storage_read_byte(MACRO_INDEX_STORAGE, &macro_index[i-1].keys[0]) == NO_KEY){
+				continue; // Don't bother to copy empty cells.
+			} else{
+				// copy up (i-1) to (i), leaving the hole at (i-1)
+				macro_idx_entry tmp;
+				storage_read (MACRO_INDEX_STORAGE, &macro_index[i-1], &tmp, sizeof(macro_idx_entry));
+				storage_write(MACRO_INDEX_STORAGE, &macro_index[i],   &tmp, sizeof(macro_idx_entry));
+				USB_KeepAlive(true);
+			}
 		}
 	}
 
 	// we now have a correctly positioned index cell at r: write in the key
+	storage_wait_for_last_write_end(MACRO_INDEX_STORAGE);
 	storage_write(MACRO_INDEX_STORAGE, r, key, sizeof(macro_idx_key)); // macro_idx_key is prefix to macro_idx
 	USB_KeepAlive(true);
 	return r;
@@ -209,6 +213,7 @@ macro_idx_entry* macro_idx_create(macro_idx_key* key){
 
 void macro_idx_iterate(macro_idx_iterator itr, void* c){
 	for(uint8_t i = 0; i < MACRO_INDEX_COUNT; ++i){
+		storage_wait_for_last_write_end(MACRO_INDEX_STORAGE);
 		if(storage_read_byte(MACRO_INDEX_STORAGE, &macro_index[i].keys[0]) == NO_KEY) break;
 		itr(&macro_index[i], c);
 	}

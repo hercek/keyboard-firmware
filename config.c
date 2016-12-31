@@ -117,12 +117,15 @@ void config_save_definition(logical_keycode l_key, hid_keycode h_key){
 
 // reset the current layout to the default layout
 void config_reset_defaults(void){
+	hid_keycode default_keys[32];
 	buzzer_start_f(1000, 100); // Start buzzing at low pitch
 	_delay_ms(20); // delay so that the two tones are always heard, even if no writes need be done
-
-	for(int i = 0; i < NUM_LOGICAL_KEYS; ++i){
-		hid_keycode default_key = storage_read_byte(CONSTANT_STORAGE, &logical_to_hid_map_default[i]);
-		storage_write_byte(MAPPING_STORAGE, &logical_to_hid_map[i], default_key);
+	for(size_t i = 0; i < NUM_LOGICAL_KEYS; i += sizeof(default_keys) ){
+		size_t bs = (NUM_LOGICAL_KEYS-i);
+		if (bs > sizeof(default_keys)) bs = sizeof(default_keys);
+		storage_wait_for_last_write_end(MAPPING_STORAGE);
+		storage_read(CONSTANT_STORAGE, &logical_to_hid_map_default[i], default_keys, bs);
+		storage_write(MAPPING_STORAGE, &logical_to_hid_map[i], default_keys, bs);
 		USB_KeepAlive(false);
 	}
 
@@ -137,6 +140,7 @@ void config_reset_fully(void){
 	storage_write_byte(MAPPING_STORAGE, (uint8_t*)&eeprom_flags, 0x0);
 
 	// reset key mapping index
+	storage_wait_for_last_write_end(SAVED_MAPPING_STORAGE);
 	storage_memset(SAVED_MAPPING_STORAGE, (uint8_t*)saved_key_mapping_indices, NO_KEY, sizeof(saved_key_mapping_indices));
 	USB_KeepAlive(true);
 
@@ -151,6 +155,7 @@ void config_reset_fully(void){
 	config_reset_defaults();
 
 	// Once all reset, update the sentinel
+	storage_wait_for_last_write_end(MAPPING_STORAGE);
 	storage_write_byte(MAPPING_STORAGE, &eeprom_sentinel_byte, EEPROM_SENTINEL);
 
 	// Higher pitched buzz to signify full reset
@@ -202,6 +207,7 @@ bool config_delete_layout(uint8_t num){
 	uint8_t max_end = end;
 	for(int i = 0; i < NUM_KEY_MAPPING_INDICES; ++i){
 		key_mapping_idx idx;
+		storage_wait_for_last_write_end(SAVED_MAPPING_STORAGE);
 		idx.start = storage_read_byte(SAVED_MAPPING_STORAGE, &saved_key_mapping_indices[i].start);
 		if(idx.start != NO_KEY && idx.start > end){
 			idx.end = storage_read_byte(SAVED_MAPPING_STORAGE, &saved_key_mapping_indices[i].end);
@@ -213,11 +219,14 @@ bool config_delete_layout(uint8_t num){
 	}
 
 	// and move down the data.
-	if ( end < max_end )
+	if ( end < max_end ) {
+		storage_wait_for_last_write_end(SAVED_MAPPING_STORAGE);
 		storage_memmove( SAVED_MAPPING_STORAGE,
 			&saved_key_mappings[end+1-length],
 			&saved_key_mappings[end+1],
 			(max_end-end)*sizeof(key_mapping) );
+	}
+	storage_wait_for_last_write_end(SAVED_MAPPING_STORAGE);
 
 	return true;
 }
@@ -255,6 +264,7 @@ bool config_save_layout(uint8_t num){
 			storage_write_short(SAVED_MAPPING_STORAGE, (uint16_t*)&saved_key_mappings[cursor], AS_SHORT(m));
 			USB_KeepAlive(false);
 			++cursor;
+			storage_wait_for_last_write_end(SAVED_MAPPING_STORAGE);
 		}
 	}
 	if(start != cursor){
@@ -303,6 +313,7 @@ bool config_load_layout(uint8_t num){
 			}
 		}
 		USB_KeepAlive(false);
+		storage_wait_for_last_write_end(MAPPING_STORAGE);
 	}
 
 	return true;
@@ -326,6 +337,7 @@ const program* config_get_program(uint8_t idx){
 void config_reset_program_defaults(){
 	// reset program index
 	uint8_t sz = PROGRAM_COUNT * sizeof(program_idx);
+	storage_wait_for_last_write_end(PROGRAM_STORAGE);
 	storage_memset(PROGRAM_STORAGE, (uint8_t*) programs_index, NO_KEY, sz);
 }
 

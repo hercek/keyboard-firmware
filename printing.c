@@ -62,10 +62,6 @@ char print_buffer_get(void){
 		return (char)sram_read_byte((uint8_t*)print_buffer);
 	case avr_pgm:
 		return (char)avr_pgm_read_byte((uint8_t*)print_buffer);
-	case avr_eeprom:
-		return (char)avr_pgm_read_byte((uint8_t*)print_buffer);
-	case i2c_eeprom:
-		return (char)avr_pgm_read_byte((uint8_t*)print_buffer);
 	default:
 		return 0; // unsupported;
 	}
