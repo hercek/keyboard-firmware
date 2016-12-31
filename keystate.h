@@ -90,9 +90,10 @@ enum SPECIAL_HID_KEYS {
 	SPECIAL_HID_KEY_MOUSE_LEFT,
 	SPECIAL_HID_KEY_MOUSE_RIGHT,
 	// And the special non-remappable program and keypad keys
-	SPECIAL_HID_KEY_LAYER_LOCK = 0xFB,
+	SPECIAL_HID_KEY_LAYER_LOCK = 0xFA,
 	SPECIAL_HID_KEY_KEYPAD_SHIFT,
 	SPECIAL_HID_KEY_FUNCTION_SHIFT,
+	SPECIAL_HID_KEY_MACRO_SHIFT,
 	SPECIAL_HID_KEY_PROGRAM    = 0xFE // Must be last: we rely on sort order
 	// 0xFF represents NO_KEY
 };
@@ -100,9 +101,8 @@ enum SPECIAL_HID_KEYS {
 #define SPECIAL_HID_KEYS_MOUSE_START SPECIAL_HID_KEY_MOUSE_BTN1
 #define SPECIAL_HID_KEYS_MOUSE_END SPECIAL_HID_KEY_MOUSE_RIGHT
 
-// Program and keypad keys are special: they don't participate in the keypad
-// layer and can't be remapped using onboard remapping.
-// We put these at the end after PROGRAM.
+// Program, keypad and layer shift keys are special: they can't be remapped using
+// onboard remapping since they themselves control the meaning of other keys.
 #define SPECIAL_HID_KEY_NOREMAP(hkey) (hkey >= SPECIAL_HID_KEY_LAYER_LOCK && hkey != NO_KEY)
 
 // fields

@@ -62,8 +62,9 @@ static keystate_change_hook keystate_change_hook_fn = 0;
 uint8_t key_press_count = 0;
 
 struct {
-	unsigned char lock:1;
-	unsigned char layer_id:7;
+	unsigned char macro:1;     // macro level shift is active
+	unsigned char lock:1;      // is the selected layer locked?
+	unsigned char layer_id:6;  // the id of the active layer
 } keypad_state;
 
 void keystate_init(void){
@@ -76,7 +77,8 @@ void keystate_init(void){
 }
 
 uint8_t keystate_get_layer_id(void){
-	return keypad_state.layer_id;
+	if (keypad_state.macro) return -1;
+	else return keypad_state.layer_id;
 }
 
 static inline void default_beep(void){
@@ -133,6 +135,9 @@ static uint8_t keystate_update_keypad(hid_keycode keypad_key, uint8_t state){
 		if(state) keypad_state.layer_id = 2;
 		else if (!keypad_state.lock) keypad_state.layer_id = 0;
 		break;
+	case SPECIAL_HID_KEY_MACRO_SHIFT:
+		keypad_state.macro = (state != 0);
+		break;
 	default:
 		return false;
 	}
@@ -154,8 +159,6 @@ static uint8_t keystate_update_keypad(hid_keycode keypad_key, uint8_t state){
 
 		// if the tracked key is valid in the new mode, continue
 		if (SPECIAL_HID_KEY_NOREMAP(h_key)) continue; // key equal in all layers
-		if (cur_layer * KEYPAD_LAYER_SIZE <= l_key && l_key < (cur_layer+1) * KEYPAD_LAYER_SIZE)
-			continue; // l_key exists in the current layer => keep it
 
 		// otherwise clear the key state
 		keystate_clear_key(&key_states[i]);
@@ -185,7 +188,8 @@ void keystate_update(void){
 
 			// Handle layer switch. No-remap (keypad and program) keys are ignored.
 			if(!noremap_key){
-				l_key += keystate_get_layer_id() * KEYPAD_LAYER_SIZE;
+				if ( !keypad_state.macro ) // only non-macro key combinations shift layer
+					l_key += keystate_get_layer_id() * KEYPAD_LAYER_SIZE;
 			}
 
 			uint8_t reading = matrix_read_column(matrix_col);

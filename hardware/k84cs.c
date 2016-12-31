@@ -83,10 +83,10 @@ const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] PROGMEM = {
 	SPECIAL_HID_KEY_LAYER_LOCK,                          // LOGICAL_KEY_LaLck
 	SPECIAL_HID_KEY_KEYPAD_SHIFT,                        // LOGICAL_KEY_L_KpSh
 	SPECIAL_HID_KEY_KEYPAD_SHIFT,                        // LOGICAL_KEY_R_KpSh
-	SPECIAL_HID_KEY_FUNCTION_SHIFT,                      // LOGICAL_KEY_L_MACRO
-	SPECIAL_HID_KEY_FUNCTION_SHIFT,                      // LOGICAL_KEY_R_MACRO
-	SPECIAL_HID_KEY_KEYPAD_SHIFT,                        // LOGICAL_KEY_L_PALM
-	SPECIAL_HID_KEY_KEYPAD_SHIFT,                        // LOGICAL_KEY_R_PALM
+	SPECIAL_HID_KEY_MACRO_SHIFT,                         // LOGICAL_KEY_L_MACRO
+	SPECIAL_HID_KEY_MACRO_SHIFT,                         // LOGICAL_KEY_R_MACRO
+	SPECIAL_HID_KEY_FUNCTION_SHIFT,                      // LOGICAL_KEY_L_PALM
+	SPECIAL_HID_KEY_FUNCTION_SHIFT,                      // LOGICAL_KEY_R_PALM
 	//---------------------------------------------- on-the-fly remapable
 	HID_KEYBOARD_SC_A,                                   // LOGICAL_KEY_A
 	HID_KEYBOARD_SC_B,                                   // LOGICAL_KEY_B
@@ -174,10 +174,10 @@ const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] PROGMEM = {
 	SPECIAL_HID_KEY_LAYER_LOCK,                          // LOGICAL_KEY_LaLck
 	SPECIAL_HID_KEY_KEYPAD_SHIFT,                        // LOGICAL_KEY_L_KpSh
 	SPECIAL_HID_KEY_KEYPAD_SHIFT,                        // LOGICAL_KEY_R_KpSh
-	SPECIAL_HID_KEY_FUNCTION_SHIFT,                      // LOGICAL_KEY_L_MACRO
-	SPECIAL_HID_KEY_FUNCTION_SHIFT,                      // LOGICAL_KEY_R_MACRO
-	SPECIAL_HID_KEY_KEYPAD_SHIFT,                        // LOGICAL_KEY_L_PALM
-	SPECIAL_HID_KEY_KEYPAD_SHIFT,                        // LOGICAL_KEY_R_PALM
+	SPECIAL_HID_KEY_MACRO_SHIFT,                         // LOGICAL_KEY_L_MACRO
+	SPECIAL_HID_KEY_MACRO_SHIFT,                         // LOGICAL_KEY_R_MACRO
+	SPECIAL_HID_KEY_FUNCTION_SHIFT,                      // LOGICAL_KEY_L_PALM
+	SPECIAL_HID_KEY_FUNCTION_SHIFT,                      // LOGICAL_KEY_R_PALM
 	//---------------------------------------------- on-the-fly remapable
 	SPECIAL_HID_KEY_MOUSE_BTN1,                          // LOGICAL_KEY_A *
 	HID_KEYBOARD_SC_B,                                   // LOGICAL_KEY_B
@@ -265,10 +265,10 @@ const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] PROGMEM = {
 	SPECIAL_HID_KEY_LAYER_LOCK,                          // LOGICAL_KEY_LaLck
 	SPECIAL_HID_KEY_KEYPAD_SHIFT,                        // LOGICAL_KEY_L_KpSh
 	SPECIAL_HID_KEY_KEYPAD_SHIFT,                        // LOGICAL_KEY_R_KpSh
-	SPECIAL_HID_KEY_FUNCTION_SHIFT,                      // LOGICAL_KEY_L_MACRO
-	SPECIAL_HID_KEY_FUNCTION_SHIFT,                      // LOGICAL_KEY_R_MACRO
-	SPECIAL_HID_KEY_KEYPAD_SHIFT,                        // LOGICAL_KEY_L_PALM
-	SPECIAL_HID_KEY_KEYPAD_SHIFT,                        // LOGICAL_KEY_R_PALM
+	SPECIAL_HID_KEY_MACRO_SHIFT,                         // LOGICAL_KEY_L_MACRO
+	SPECIAL_HID_KEY_MACRO_SHIFT,                         // LOGICAL_KEY_R_MACRO
+	SPECIAL_HID_KEY_FUNCTION_SHIFT,                      // LOGICAL_KEY_L_PALM
+	SPECIAL_HID_KEY_FUNCTION_SHIFT,                      // LOGICAL_KEY_R_PALM
 	//---------------------------------------------- on-the-fly remapable
 	SPECIAL_HID_KEY_MOUSE_BTN1,                          // LOGICAL_KEY_A
 	HID_KEYBOARD_SC_B,                                   // LOGICAL_KEY_B

@@ -67,9 +67,9 @@
 #define SAVED_MAPPING_STORAGE      spi_eeprom
 #define SAVED_MAPPING_COUNT        255          // 2-byte entries (maximum allowed value is 255)
 #define MACRO_INDEX_STORAGE        avr_eeprom
-#define MACRO_INDEX_COUNT          32           // 6-byte entries
+#define MACRO_INDEX_COUNT          128          // 6-byte entries
 #define MACROS_STORAGE             spi_eeprom
-#define MACROS_SIZE                1024
+#define MACROS_SIZE                3586
 #define PROGRAM_STORAGE            avr_eeprom
 #define PROGRAM_SIZE               1024
 #define PROGRAM_COUNT              6
