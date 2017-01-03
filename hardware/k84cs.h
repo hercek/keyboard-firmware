@@ -267,7 +267,7 @@ uint8_t matrix_read_column(uint8_t matrix_column);
 #define LEDMASK_USB_ERROR        0xE3
 
 /** LED mask for the library LED driver, to indicate NOP (no change to the LEDs themselves). */
-#define LEDMASK_NOP              0xEf
+#define LEDMASK_NOP              0xff
 
 #define LEDMASK_CAPS       LED_CAPS
 #define LEDMASK_NUMLOCK    LED_NUM

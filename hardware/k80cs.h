@@ -56,7 +56,7 @@
 #if (ARCH == ARCH_AVR8)
 #define USB_PRODUCT_STRING L"K80CS USB Keyboard (ATMega)"
 #elif (ARCH == ARCH_XMEGA)
-#define USB_PRODUCT_STRING L"K80CS USB Keyboard (ATXMega)"
+#define USB_PRODUCT_STRING L"K80CS USB Keyboard"
 #else
 # error "Unknown architecture."
 #endif
@@ -149,7 +149,6 @@ enum logical_keys {
 	LOGICAL_KEY_COMMA,
 	LOGICAL_KEY_PERIOD,
 	LOGICAL_KEY_SLASH,
-
 	// Left hand extra keys
 	LOGICAL_KEY_LCOL1_1, // outer column (top)
 	LOGICAL_KEY_LCOL1_2,
@@ -162,7 +161,6 @@ enum logical_keys {
 	LOGICAL_KEY_LCOL2_1, // inner column (top)
 	LOGICAL_KEY_LCOL2_2,
 	LOGICAL_KEY_LCOL2_3,
-
 	// Right hand extra keys
 	LOGICAL_KEY_RCOL1_1, // outer column (top)
 	LOGICAL_KEY_RCOL1_2,
@@ -175,7 +173,6 @@ enum logical_keys {
 	LOGICAL_KEY_RCOL2_1, // inner column (top)
 	LOGICAL_KEY_RCOL2_2,
 	LOGICAL_KEY_RCOL2_3,
-
 	// Left hand thumb pad
 	LOGICAL_KEY_L_ALT,
 	LOGICAL_KEY_L_CTRL,
@@ -184,7 +181,6 @@ enum logical_keys {
 	LOGICAL_KEY_DELETE,
 	LOGICAL_KEY_BACKSPACE,
 	LOGICAL_KEY_TH_LR, // extra left side right thumb key
-
 	// Right hand thumb pad
 	LOGICAL_KEY_R_ALT,
 	LOGICAL_KEY_R_CTRL,
@@ -193,7 +189,6 @@ enum logical_keys {
 	LOGICAL_KEY_ENTER,
 	LOGICAL_KEY_SPACE,
 	LOGICAL_KEY_TH_RL, // extra right side left thumb key
-
 	// The keypad layer duplicates all the previous keys
 };
 
@@ -290,10 +285,11 @@ extern const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] PROGMEM;
 
 #define USE_BUZZER 1
 
-#define LED_CAPS   1
-#define LED_NUM    2
-#define LED_SCROLL 4
-#define LED_KEYPAD 8
+#define LED_CAPS     1
+#define LED_NUM      2
+#define LED_SCROLL   4
+#define LED_KEYPAD   8
+#define LED_FUNCTION 16
 #define ALL_LEDS (LED_CAPS | LED_NUM | LED_SCROLL)
 
 void ports_init(void);
@@ -330,16 +326,16 @@ uint8_t matrix_read_column(uint8_t matrix_column);
 
 /* Macros: */
 /** LED mask for the library LED driver, to indicate that the USB interface is not ready. */
-#define LEDMASK_USB_NOTREADY     0xf0
+#define LEDMASK_USB_NOTREADY     0xE0
 
 /** LED mask for the library LED driver, to indicate that the USB interface is enumerating. */
-#define LEDMASK_USB_ENUMERATING  0xf1
+#define LEDMASK_USB_ENUMERATING  0xE1
 
 /** LED mask for the library LED driver, to indicate that the USB interface is ready. */
-#define LEDMASK_USB_READY        0xf2
+#define LEDMASK_USB_READY        0xE2
 
 /** LED mask for the library LED driver, to indicate that an error has occurred in the USB interface. */
-#define LEDMASK_USB_ERROR        0xf3
+#define LEDMASK_USB_ERROR        0xE3
 
 /** LED mask for the library LED driver, to indicate NOP (no change to the LEDs themselves). */
 #define LEDMASK_NOP              0xff
@@ -348,12 +344,13 @@ uint8_t matrix_read_column(uint8_t matrix_column);
 #define LEDMASK_NUMLOCK    LED_NUM
 #define LEDMASK_SCROLLLOCK LED_SCROLL
 #define LEDMASK_KEYPAD     LED_KEYPAD
+#define LEDMASK_FUNCTION   LED_FUNCTION
 
-#define LEDMASK_MACROS_ENABLED  0x10
-#define LEDMASK_PROGRAMMING_SRC 0x20
-#define LEDMASK_PROGRAMMING_DST 0x30
-#define LEDMASK_MACRO_TRIGGER   0x40
-#define LEDMASK_MACRO_RECORD    0x50
+#define LEDMASK_MACROS_ENABLED  0x20
+#define LEDMASK_PROGRAMMING_SRC 0x40
+#define LEDMASK_PROGRAMMING_DST 0x60
+#define LEDMASK_MACRO_TRIGGER   0x80
+#define LEDMASK_MACRO_RECORD    0xA0
 #define LEDMASK_ALL ALL_LEDS
 #define LEDMASK_NONE 0
 

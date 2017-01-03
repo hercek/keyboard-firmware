@@ -777,7 +777,7 @@ void set_all_leds_ex(uint8_t led_mask, int16_t lux_val){
 	if ( no_lux_change ) lux_val = prev_lux_val;
 	prev_led_mask = led_mask; prev_lux_val = lux_val;
 	// decode USB status
-	if ( led_mask & 0x80 ) {
+	if ( (led_mask & 0xE0) == 0xE0 ) {
 		switch (led_mask) {
 			case LEDMASK_USB_NOTREADY:
 				lcd_print_position(0, 0, "Usb Wait"); break;
@@ -795,6 +795,8 @@ void set_all_leds_ex(uint8_t led_mask, int16_t lux_val){
 	// decode Layer
 	if (led_mask & LED_KEYPAD) {
 		lcd_print_position(0, 0, "Keypad  "); lit_blue_led(lux_val); }
+	else if (led_mask & LED_FUNCTION) {
+		lcd_print_position(0, 0, "Function"); lit_blue_led(lux_val); }
 	else {
 		lcd_print_position(0, 0, "Normal  "); blue_led_off(); }
 	// decode Lock LEDs
@@ -810,7 +812,7 @@ void set_all_leds_ex(uint8_t led_mask, int16_t lux_val){
 		ledMsg[i++] = 'S'; lit_green_led(lux_val);
 	} else green_led_off();
 	while( i<3 ) ledMsg[i++] = ' ';
-	uint8_t add_msg = led_mask & 0xf0;
+	uint8_t add_msg = led_mask & 0xE0;
 	ledMsg[i++] = (LEDMASK_MACROS_ENABLED == add_msg) ? 'Q' : ' ';
 	// decode remap/macro state
 	switch ( add_msg ) {
