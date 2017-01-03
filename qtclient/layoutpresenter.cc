@@ -43,7 +43,10 @@ static void forEachLogicalKey(const Layout& layout, PhysicalKeycode pkey, UnaryF
 // layers.
 static bool keyIsSpecial(HIDKeycode hidKey) {
 	return (hidKey == HIDTables::HIDUsageProgram ||
-	        hidKey == HIDTables::HIDUsageKeypadShift);
+	        hidKey == HIDTables::HIDUsageMacroShift ||
+	        hidKey == HIDTables::HIDUsageFunctionShift ||
+	        hidKey == HIDTables::HIDUsageKeypadShift ||
+	        hidKey == HIDTables::HIDUsageLayerLock);
 }
 
 void LayoutPresenter::setHIDUsage(LogicalKeycode logicalKey, HIDKeycode hidKey) {

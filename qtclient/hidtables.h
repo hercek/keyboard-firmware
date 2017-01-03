@@ -11,9 +11,12 @@ public:
 		UsageCode = Qt::UserRole + 1
 	};
 	enum HIDUsages {
-		HIDUsageProgram     = 0xfe,
-		HIDUsageKeypadShift = 0xfc,
-		HIDUsageNoKey       = 0xff,
+		HIDUsageLayerLock     = 0xfa,
+		HIDUsageKeypadShift   = 0xfb,
+		HIDUsageFunctionShift = 0xfc,
+		HIDUsageMacroShift    = 0xfd,
+		HIDUsageProgram       = 0xfe,
+		HIDUsageNoKey         = 0xff
 	};
 	static const char *nameUsage(uint8_t usage);
 	static QStandardItemModel *newUsageModel(QObject *parent = NULL);

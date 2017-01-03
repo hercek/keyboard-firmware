@@ -25,6 +25,9 @@ public:
 		if (localName == "keyboard") {
 			mLayout->layout = atts.value("layout");
 			mLayout->imageName = atts.value("image");
+			bool ok;
+			mLayout->layerCnt = abs(atts.value("layerCnt").toUInt(&ok));
+			if (!ok) mLayout->layerCnt = 2;
 		}
 		else if (localName == "key") {
 			Layout::Key k = { atts.value("name"),
@@ -58,19 +61,18 @@ Layout Layout::readLayout(int layoutID) {
 }
 
 QString Layout::namePosition(const LogicalKeycode logicalKeycode) const {
-	PhysicalKeycode physicalKeycode;
-	bool keypad = isKeypadLayer(logicalKeycode);
-	if (keypad) {
-		physicalKeycode = logicalKeycode - keys.count();
-	}
-	else {
-		physicalKeycode = logicalKeycode;
-	}
-
+	PhysicalKeycode physicalKeycode = logicalKeycodeToPhysical( logicalKeycode );
 	if (physicalKeycode >= keys.count())
 		return QString("Invalid Position");
-	else if (!keypad)
-		return keys[physicalKeycode].name;
-	else
-		return QString("K:%1").arg(keys[physicalKeycode].name);
+	unsigned layerId = layerForLogicalKey( logicalKeycode );
+	switch (layerId) {
+		case 0: // Normal
+			return keys[physicalKeycode].name;
+		case 1: // Keypad
+			return QString("K:%1").arg(keys[physicalKeycode].name);
+		case 2: // Function
+			return QString("F:%2").arg(keys[physicalKeycode].name);
+		default: // Higher function layers
+			return QString("F%1:%2").arg(QString::number(layerId), keys[physicalKeycode].name);
+	}
 }

@@ -1,0 +1,93 @@
+<keyboard layout="k84cs" layoutid="4" image="k84cs.png" layerCnt="3">
+  <layout>
+	<key name="PROGRAM"	  w="43" h="43"  x="7"   y="240"/>
+	<key name="LAYER_LCK" w="43" h="43"  x="820" y="240"/>
+	<key name="L_KpSh"	  w="43" h="43"  x="258" y="285"/>
+	<key name="R_KpSh"	  w="43" h="43"  x="570" y="285"/>
+	<key name="L_MACRO"	  w="43" h="43"  x="196" y="268"/>
+	<key name="R_MACRO"	  w="43" h="43"  x="631" y="268"/>
+	<key name="L_PALM"	  w="43" h="43"  x="147" y="336"/>
+	<key name="R_PALM"	  w="43" h="43"  x="680" y="336"/>
+
+	<key name="A"		  w="43" h="43"  x="59"  y="136"/>
+	<key name="B"		  w="43" h="43"  x="273" y="169"/>
+	<key name="C"		  w="43" h="43"  x="163" y="163"/>
+	<key name="D"		  w="43" h="43"  x="163" y="111"/>
+	<key name="E"		  w="43" h="43"  x="163" y="59"/>
+	<key name="F"		  w="43" h="43"  x="215" y="114"/>
+	<key name="G"		  w="43" h="43"  x="273" y="117"/>
+	<key name="H"		  w="43" h="43"  x="554" y="117"/>
+	<key name="I"		  w="43" h="43"  x="664" y="59"/>
+	<key name="J"		  w="43" h="43"  x="612" y="114"/>
+	<key name="K"		  w="43" h="43"  x="664" y="111"/>
+	<key name="L"		  w="43" h="43"  x="716" y="114"/>
+	<key name="M"		  w="43" h="43"  x="612" y="166"/>
+	<key name="N"		  w="43" h="43"  x="554" y="169"/>
+	<key name="O"		  w="43" h="43"  x="716" y="62"/>
+	<key name="P"		  w="43" h="43"  x="768" y="84"/>
+	<key name="Q"		  w="43" h="43"  x="59"  y="84"/>
+	<key name="R"		  w="43" h="43"  x="215" y="62"/>
+	<key name="S"		  w="43" h="43"  x="111" y="114"/>
+	<key name="T"		  w="43" h="43"  x="273" y="65"/>
+	<key name="U"		  w="43" h="43"  x="612" y="62"/>
+	<key name="V"		  w="43" h="43"  x="215" y="166"/>
+	<key name="W"		  w="43" h="43"  x="111" y="62"/>
+	<key name="X"		  w="43" h="43"  x="111" y="166"/>
+	<key name="Y"		  w="43" h="43"  x="554" y="65"/>
+	<key name="Z"		  w="43" h="43"  x="59"  y="188"/>
+	<key name="1"		  w="43" h="43"  x="59"  y="32"/>
+	<key name="2"		  w="43" h="43"  x="111" y="10"/>
+	<key name="3"		  w="43" h="43"  x="163" y="7"/>
+	<key name="4"		  w="43" h="43"  x="215" y="10"/>
+	<key name="5"		  w="43" h="43"  x="273" y="13"/>
+	<key name="6"		  w="43" h="43"  x="554" y="13"/>
+	<key name="7"		  w="43" h="43"  x="612" y="10"/>
+	<key name="8"		  w="43" h="43"  x="664" y="7"/>
+	<key name="9"		  w="43" h="43"  x="716" y="10"/>
+	<key name="0"		  w="43" h="43"  x="768" y="32"/>
+	<key name="SEMICOLON" w="43" h="43"  x="768" y="136"/>
+	<key name="COMMA"	  w="43" h="43"  x="664" y="163"/>
+	<key name="PERIOD"	  w="43" h="43"  x="716" y="166"/>
+	<key name="SLASH"	  w="43" h="43"  x="768" y="188"/>
+
+	<key name="EQ"		  w="43" h="43"	 x="7"   y="32"/>
+	<key name="TAB"		  w="43" h="43"	 x="7"   y="84"/>
+	<key name="ESC"		  w="43" h="43"	 x="7"   y="136"/>
+	<key name="DEL"		  w="43" h="43"	 x="7"   y="188"/>
+	<key name="TILDE"	  w="43" h="43"  x="59"  y="240"/>
+	<key name="IntK"	  w="43" h="43"  x="111" y="218"/>
+	<key name="L_ARR"	  w="43" h="43"  x="163" y="215"/>
+	<key name="R_ARR"	  w="43" h="43"  x="215" y="218"/>
+	<key name="VOL"		  w="43" h="43"  x="334" y="139"/>
+	<key name="CAPS"	  w="43" h="43"  x="334" y="87"/>
+	<key name="PRINT"	  w="43" h="43"  x="334" y="35"/>
+
+	<key name="MINUS"	  w="43" h="43"  x="820" y="32"/>
+	<key name="BSLASH"	  w="43" h="43"  x="820" y="84"/>
+	<key name="QUOT"	  w="43" h="43"  x="820" y="136"/>
+	<key name="ENTER"	  w="43" h="43"  x="820" y="188"/>
+	<key name="ClBrc"	  w="43" h="43"  x="768" y="240"/>
+	<key name="OpBrc"	  w="43" h="43"  x="716" y="218"/>
+	<key name="Up_ARR"	  w="43" h="43"  x="664" y="215"/>
+	<key name="Dn_ARR"	  w="43" h="43"  x="612" y="218"/>
+	<key name="INSERT"	  w="43" h="43"  x="493" y="139"/>
+	<key name="MENU"	  w="43" h="43"  x="493" y="87"/>
+	<key name="BREAK"	  w="43" h="43"  x="493" y="35"/>
+
+	<key name="L_CTRL"	  w="43" h="43"  x="330" y="204"/>
+	<key name="L_ALT"	  w="43" h="43"  x="377" y="226"/>
+	<key name="HOME"	  w="43" h="43"  x="374" y="282"/>
+	<key name="END"		  w="43" h="43"  x="352" y="330"/>
+	<key name="L_WIN"	  w="43" h="43"  x="305" y="308"/>
+	<key name="L_SHIFT"	  w="43" h="43"  x="327" y="261"/>
+	<key name="BACKSPACE" w="43" h="43"  x="280" y="238"/>
+
+	<key name="R_CTRL"	  w="43" h="43"  x="498" y="204"/>
+	<key name="R_ALT"	  w="43" h="43"  x="451" y="226"/>
+	<key name="PG_UP"	  w="43" h="43"  x="453" y="282"/>
+	<key name="PG_DN"	  w="43" h="43"  x="476" y="330"/>
+	<key name="R_WIN"	  w="43" h="43"  x="523" y="308"/>
+	<key name="R_SHIFT"	  w="43" h="43"  x="501" y="261"/>
+	<key name="SPACE"	  w="43" h="43"  x="548" y="238"/>
+  </layout>
+</keyboard>
