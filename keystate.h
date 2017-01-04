@@ -50,12 +50,14 @@
 
 // types
 
-// Keycodes go through three transformations.
-// A raw keyboard matrix code maps to a index in the (keyboard specific) logical key positions table.
-// We then look up a HID keycode for this position using the key_defaults/key_config tables.
-typedef uint8_t keycode;
-typedef keycode logical_keycode;
-typedef keycode hid_keycode;
+// Keycodes go through four transformations.
+// A raw keyboard matrix coordinates map to a index in the (keyboard specific) logical key positions
+// table. It's first block (up to KEYPAD_LAYER_SIZE) is the physical keycode. Physical keycode is equal
+// to the logical keycode in the normal/base layer. Additional layers (keypad, function, ...) increase
+// the physical keycode by a whole multiple of KEYPAD_LAYER_SIZE. This way we get logical keycode
+// We then look up a HID keycode for this logical keycode using the key_defaults/key_config tables.
+typedef uint8_t logical_keycode; // this is the biggest type (depending on maximum logical keys)
+typedef uint8_t hid_keycode; // this is always uint8_t per USB standard
 
 typedef struct _key_state {
 	logical_keycode l_key;
@@ -118,7 +120,7 @@ uint8_t keystate_get_layer_id(void);
 /**
  * Types of keycode:
  * LOGICAL:  `logical_keycode` corresponding to a given key
- * PHYSICAL: `logical_keycode` in the base keypad layer at the position matching a given key.
+ * PHYSICAL: `logical_keycode` in the base/normal layer at the position matching a given key.
  * HID:      `hid_keycode` in the current mapping for a given key
  */
 typedef enum _keycode_type { PHYSICAL, LOGICAL, HID } keycode_type;
@@ -126,11 +128,11 @@ typedef enum _keycode_type { PHYSICAL, LOGICAL, HID } keycode_type;
 /**
  * Marks given logical_key as hidden so that it does not appear in
  * the KeyboardReport till it is not released and pressed again. */
-void keystate_hide_key(keycode logical_key);
-bool keystate_is_key_hidden(keycode logical_key);
+void keystate_hide_key(logical_keycode logical_key);
+bool keystate_is_key_hidden(logical_keycode logical_key);
 
 /** Checks if the argument key is down. */
-bool keystate_check_key(keycode l_key, keycode_type ktype);
+bool keystate_check_key(logical_keycode l_key, keycode_type ktype);
 
 /** returns true if all argument keys are down */
 bool keystate_check_keys(uint8_t count, keycode_type ktype, ...);
@@ -140,7 +142,7 @@ bool keystate_check_any_key(uint8_t count, keycode_type ktype, ...);
 
 /** writes up to key_press_count currently pressed key indexes to the
  * output buffer keys. */
-void keystate_get_keys(keycode* keys, keycode_type ktype);
+void keystate_get_keys(logical_keycode* keys, keycode_type ktype);
 
 void keystate_Fill_KeyboardReport(KeyboardReport_Data_t* KeyboardReport);
 
@@ -152,18 +154,6 @@ void keystate_Fill_MouseReport(MouseReport_Data_t* MouseReport);
  * NO_KEY.
  */
 hid_keycode keystate_check_hid_key(hid_keycode key);
-
-/**
- * Writes up to key_press_count currently pressed HID keycodes to the
- * output buffer keys. If exclude_special is set, do not write any
- * special keycodes. Returns number of keycodes written.
- */
-int keystate_get_hid_keys(hid_keycode* h_keys, bool exclude_special);
-
-/**
- * Check for keys bound to programs, if found call vm_start
- */
-void keystate_run_programs(void);
 
 /**
  * A keystate change hook function is invoked whenever the logical key

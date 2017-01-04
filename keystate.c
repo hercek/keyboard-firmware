@@ -239,11 +239,11 @@ void keystate_update(void){
 	}
 }
 
-static inline keycode keystate_process_keycode(logical_keycode raw_key, keycode_type ktype){
-	keycode key = raw_key;
+static inline logical_keycode keystate_process_keycode(logical_keycode raw_key, keycode_type ktype){
+	logical_keycode key = raw_key;
 	switch(ktype){
 	case PHYSICAL:
-		if(key >= KEYPAD_LAYER_SIZE){ key -= KEYPAD_LAYER_SIZE; }
+		if(key >= KEYPAD_LAYER_SIZE){ key %= KEYPAD_LAYER_SIZE; }
 		break;
 	case HID:
 		key = config_get_definition(key);
@@ -254,23 +254,23 @@ static inline keycode keystate_process_keycode(logical_keycode raw_key, keycode_
 	return key;
 }
 
-void keystate_hide_key(keycode logical_key){
+void keystate_hide_key(logical_keycode logical_key){
 	for(int8_t i = 0; i < KEYSTATE_COUNT; ++i)
 		if (logical_key == key_states[i].l_key) {
 			key_states[i].hidden = 1; break; }
 }
 
-bool keystate_is_key_hidden(keycode logical_key){
+bool keystate_is_key_hidden(logical_keycode logical_key){
 	for(int8_t i = 0; i < KEYSTATE_COUNT; ++i)
 		if (logical_key == key_states[i].l_key)
 			return key_states[i].hidden;
 	return true;
 }
 
-bool keystate_check_key(keycode target_key, keycode_type ktype){
+bool keystate_check_key(logical_keycode target_key, keycode_type ktype){
 	for(int i = 0; i < KEYSTATE_COUNT; ++i){
 		logical_keycode raw_key = key_states[i].l_key;
-		keycode key = keystate_process_keycode(raw_key, ktype);
+		logical_keycode key = keystate_process_keycode(raw_key, ktype);
 
 		if(key == target_key){
 			return key_states[i].state;
@@ -287,7 +287,7 @@ bool keystate_check_keys(uint8_t count, keycode_type ktype, ...){
 	bool success = true;
 	va_start(argp, ktype);
 	while(count--){
-		keycode target_key = va_arg(argp, int);
+		logical_keycode target_key = va_arg(argp, int);
 		bool found_key = keystate_check_key(target_key, ktype);
 
 		if(!found_key){
@@ -307,7 +307,7 @@ bool keystate_check_any_key(uint8_t count, keycode_type ktype, ...){
 	bool success = false;
 	va_start(argp, ktype);
 	while(count--){
-		keycode target_key = va_arg(argp, int);
+		logical_keycode target_key = va_arg(argp, int);
 		bool found_key = keystate_check_key(target_key, ktype);
 
 		if(found_key){
@@ -324,12 +324,12 @@ bool keystate_check_any_key(uint8_t count, keycode_type ktype, ...){
  * writes up to key_press_count currently pressed key indexes to the
  * output buffer keys.
  */
-void keystate_get_keys(keycode* keys, keycode_type ktype){
+void keystate_get_keys(logical_keycode* keys, keycode_type ktype){
 	int ki = 0;
 	for(int i = 0; i < KEYSTATE_COUNT && ki < key_press_count; ++i){
 		if(key_states[i].state){
 			logical_keycode raw_key = key_states[i].l_key;
-			keycode key = keystate_process_keycode(raw_key, ktype);
+			logical_keycode key = keystate_process_keycode(raw_key, ktype);
 
 			keys[ki++] = key;
 		}
@@ -451,27 +451,6 @@ hid_keycode keystate_check_hid_key(hid_keycode key){
 	}
 	return 0xFF;
 }
-
-/**
- * writes up to key_press_count currently pressed HID keycodes to the
- * output buffer keys. If exclude_special is set, do not write any
- * special keycodes. Returns number of keycodes written.
- */
-int keystate_get_hid_keys(hid_keycode* h_keys, bool exclude_special){
-	int ki = 0;
-	for(int i = 0; i < KEYSTATE_COUNT && ki < key_press_count; ++i){
-		if(key_states[i].state){
-			logical_keycode l_key = key_states[i].l_key;
-			hid_keycode h_key = config_get_definition(l_key);
-			if(exclude_special && h_key >= SPECIAL_HID_KEYS_START){
-				continue;
-			}
-			h_keys[ki++] = h_key;
-		}
-	}
-	return ki;
-}
-
 
 void keystate_register_change_hook(keystate_change_hook hook){
 	keystate_change_hook_fn = hook;
