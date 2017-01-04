@@ -26,7 +26,7 @@ public:
 			mLayout->layout = atts.value("layout");
 			mLayout->imageName = atts.value("image");
 			bool ok;
-			mLayout->layerCnt = abs(atts.value("layerCnt").toUInt(&ok));
+			mLayout->layerCnt = atts.value("layerCnt").toUInt(&ok);
 			if (!ok) mLayout->layerCnt = 2;
 		}
 		else if (localName == "key") {

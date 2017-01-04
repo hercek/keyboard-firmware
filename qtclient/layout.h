@@ -21,7 +21,7 @@ public:
 		QRect rect;
 	};
 
-	int layerCnt;
+	unsigned layerCnt;
 	QString layout;
 	QString imageName;
 	QList<Layout::Key> keys;
@@ -29,8 +29,9 @@ public:
 	Layout() : layerCnt(2) {}
 
 	static Layout readLayout(int layoutID);
+
 	int mappingSize() const {
-		return keys.count() * 2;
+		return keys.count() * layerCnt;
 	};
 
 	QString namePosition(const LogicalKeycode position) const;

@@ -40,10 +40,10 @@ void LayeredLayoutWidget::setScale(float f) {
 void LayeredLayoutWidget::setKeyboardLayout(const Layout& layout) {
 	mLayout = &layout; // FIXME: aliasing without ownership
 	// remove tabs not used by this layout
-	for (int i = mTabBar->count()-1; i >= layout.layerCnt; --i)
+	for (unsigned i = mTabBar->count()-1; i >= layout.layerCnt; --i)
 		mTabBar->removeTab(i);
 	// add tabs which this layout misses
-	for (int i = mTabBar->count(); i < layout.layerCnt; ++i) {
+	for (unsigned i = mTabBar->count(); i < layout.layerCnt; ++i) {
 		if (i==2) mTabBar-> addTab("Function");
 		else mTabBar-> addTab(QString("Function%1").arg(i-2));
 	}
