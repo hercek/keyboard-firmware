@@ -305,11 +305,9 @@ static void handle_state_normal(void){
 				no_combo:;
 				}
 				break;
-			default:
-				break;
-			}
-		}
-	}
+			}// endswitch key_press_count
+		}// endif program key pressed
+	}// endif 2 or 3 keys pressed
 
 	if (!(config_get_flags().macros_enabled)) return;
 	// otherwise, check macro/program triggers
@@ -347,51 +345,26 @@ static void handle_state_normal(void){
 }
 
 
-
+// Handle keyboard state while remaping keys.
 static void handle_state_programming(void){
 	static hid_keycode program_src_hkey = 0;
 
 	if(key_press_count == 0 || key_press_count > 2) return;
 
-	logical_keycode lkeys[2];
-	hid_keycode hkeys[2];
-
-	keystate_get_keys(lkeys, LOGICAL);
-	for(int i = 0; i < key_press_count; ++i){
-		hkeys[i] = config_get_definition(lkeys[i]);
-	}
-
 	if(key_press_count == 2){
-		// We rely here on the SPECIAL_HID codes for program and keypad being larger
-		// than any real HID key.
-		uint8_t lesser_idx = (hkeys[0] < hkeys[1]) ? 0 : 1;
-
-		// check for quit
-		if(hkeys[lesser_idx] == SPECIAL_HKEY_REMAP && hkeys[!lesser_idx] == SPECIAL_HID_KEY_PROGRAM){
+		if (keystate_check_keys(2, HID, SPECIAL_HID_KEY_PROGRAM, SPECIAL_HKEY_REMAP) ){
 			current_state = STATE_WAITING;
 			next_state = STATE_NORMAL;
-			return;
 		}
-
-		// Check for layer shifts/locks. If not pressed, it's an invalid 2-key combination: return.
-		//Otherwise, we have a single keycode in the a layer: place it in index 0 and continue.
-		if(hkeys[!lesser_idx] != SPECIAL_HID_KEY_KEYPAD_SHIFT &&
-				hkeys[!lesser_idx] != SPECIAL_HID_KEY_FUNCTION_SHIFT ){
-			return;
-		}
-		if(lesser_idx != 0){
-			lkeys[0] = lkeys[lesser_idx];
-			hkeys[0] = hkeys[lesser_idx];
-		}
-	}
-
-	// can't interactively reprogram a special "noremap" key type such as program or keypad.
-	if(SPECIAL_HID_KEY_NOREMAP(hkeys[0])){
 		return;
 	}
 
-	// Otherwise we're ready to remap the logical position in lkeys[0]
-	logical_keycode lkey = lkeys[0];
+	// OK, only one key is pressed
+	logical_keycode lkey;
+	keystate_get_keys(&lkey, LOGICAL);
+
+	// can't interactively reprogram a special keys such as program/macro/layerManip
+	if ( SPECIAL_HID_KEY_NOREMAP( config_get_definition(lkey) ) ) return;
 
 	if(current_state == STATE_PROGRAMMING_SRC){
 		program_src_hkey = config_get_default_definition(lkey);
@@ -414,9 +387,6 @@ static void handle_state_macro_record_trigger(){
 		current_state = STATE_WAITING;
 		next_state = STATE_NORMAL;
 		return;
-	}
-	else if(keystate_check_any_key(2, HID, SPECIAL_HID_KEY_PROGRAM, SPECIAL_HID_KEY_LAYER_LOCK)){
-		return; // ignore
 	}
 	else if(key_press_count > MACRO_MAX_KEYS){
 		// too many, give up

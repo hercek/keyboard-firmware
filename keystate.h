@@ -60,7 +60,8 @@ typedef uint8_t logical_keycode; // this is the biggest type (depending on maxim
 typedef uint8_t hid_keycode; // this is always uint8_t per USB standard
 
 typedef struct _key_state {
-	logical_keycode l_key;
+	logical_keycode p_key;
+	unsigned char prev_state:1;
 	unsigned char state:1;
 	unsigned char hidden:1;
 	unsigned char debounce:6; // bit vector of last n physical reports: debounced state asserted when they're all the same
@@ -105,7 +106,7 @@ enum SPECIAL_HID_KEYS {
 
 // Program, keypad and layer shift keys are special: they can't be remapped using
 // onboard remapping since they themselves control the meaning of other keys.
-#define SPECIAL_HID_KEY_NOREMAP(hkey) (hkey >= SPECIAL_HID_KEY_LAYER_LOCK && hkey != NO_KEY)
+#define SPECIAL_HID_KEY_NOREMAP(k) ((k) >= SPECIAL_HID_KEY_LAYER_LOCK && (k) != NO_KEY)
 
 // fields
 

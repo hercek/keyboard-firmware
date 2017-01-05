@@ -89,14 +89,6 @@ void macro_idx_reset_defaults(){
 }
 
 bool macro_idx_format_key(macro_idx_key* key, uint8_t key_count){
-	// Layer shift can't be included in a macro trigger if we want
-	// macros in a layer to work with both shift and toggle.
-	for(uint8_t i = 0; i < key_count; ++i){
-		hid_keycode k = config_get_definition(key->keys[i]);
-		if( k == SPECIAL_HID_KEY_KEYPAD_SHIFT || k == SPECIAL_HID_KEY_FUNCTION_SHIFT ){
-			key->keys[i] = NO_KEY;
-		}
-	}
 	insertionsort_uint8(key->keys, key_count);
 
 	for(uint8_t i = key_count; i < MACRO_MAX_KEYS; ++i){
