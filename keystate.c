@@ -65,7 +65,7 @@ static keystate_change_hook keystate_change_hook_fn;
 uint8_t key_press_count;
 
 typedef struct _layer_state_t {
-	unsigned char macro:1;     // macro level shift is active
+	unsigned char base:1;      // force base/normal level
 	unsigned char lock:1;      // is the selected layer locked?
 	unsigned char id:6;        // the identifier of the active layer
 } layer_t;
@@ -78,12 +78,12 @@ void keystate_init(void){
 }
 
 uint8_t keystate_get_layer_id(void){
-	if (layer.macro) return 0xff;
+	if (layer.base) return 0xff;
 	else return layer.id;
 }
 
 static inline uint8_t keystate_get_prev_layer_id(void){
-	if (prev_layer.macro) return 0xff;
+	if (prev_layer.base) return 0xff;
 	else return prev_layer.id;
 }
 
@@ -95,7 +95,7 @@ static inline void default_beep(void){
 static inline logical_keycode extract_keycode(layer_t* ll, key_state* kk, keycode_type ktype){
 	if (ktype == PHYSICAL) return kk->p_key;
 	uint8_t layer_id = ll->id;
-	if (ll->macro) layer_id = 0;
+	if (ll->base) layer_id = 0;
 	logical_keycode l_key  = kk->p_key + layer_id * KEYPAD_LAYER_SIZE;
 	if (ktype == LOGICAL) return l_key;
 	return config_get_definition(l_key);
@@ -154,7 +154,8 @@ static void update_layer(hid_keycode key, uint8_t state){
 		else if (!layer.lock) layer.id = 0;
 		break;
 	case SPECIAL_HID_KEY_MACRO_SHIFT:
-		layer.macro = (state != 0);
+	case SPECIAL_HID_KEY_PROGRAM:
+		layer.base = (state != 0);
 		break;
 	}
 	#if USE_BUZZER
