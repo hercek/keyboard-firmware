@@ -407,7 +407,7 @@ static void photosensor_init(void) {
 }
 
 
-void set_all_leds_ex(uint8_t led_mask, int16_t lux_val);
+void set_all_leds_ex(uint8_t led_mask, uint16_t lux_val);
 
 bool run_photosensor(uint32_t cur_time_ms) {
 	static uint32_t next_step_time_ms = 500;
@@ -448,8 +448,8 @@ bool run_photosensor(uint32_t cur_time_ms) {
 #endif
 		}
 		adc_average /= adc_rv_array_size;
-		//int16_t lux_val = (int16_t)(adc_average*0.54945055f - 100.0f); // lux estimate from spec
-		int16_t lux_val = adc_average - 182; // use raw value (remove only the ADC zero shift)
+		//uint16_t lux_val = (uint16_t)(adc_average*0.54945055f - 100.0f); // lux estimate from spec
+		uint16_t lux_val = adc_average - 182; // use raw value (remove only the ADC zero shift)
 		set_all_leds_ex(LEDMASK_NOP, lux_val);
 #ifdef KATY_DEBUG
 		sprintf(adc_string, "%d %d\t", lux_val, adc_max-adc_min);
@@ -574,9 +574,18 @@ void ports_init(void){
 	buzzer_init();;
 #endif
 
+	// set period of code timing counter TCC0 to maximum
+	TCC0.PER = 0xffff; // wrap timer as little as possible
+
 	serial_eeprom_init();
 }
 
+void start_2us_timer(void) {
+	TCC0.CTRLFSET = TC_CMD_RESTART_gc;
+	TCC0.CTRLA = TC_CLKSEL_DIV64_gc;
+}
+void stop_2us_timer(void) { TCC0.CTRLA = TC_CLKSEL_OFF_gc; }
+inline uint16_t get_2us_time(void) { return TCC0.CNT; }
 
 static uint8_t processing_row = 0;
 
@@ -669,11 +678,11 @@ char const * get_lux_str(int16_t l) {
 	return rv;
 }
 
-void set_all_leds_ex(uint8_t led_mask, int16_t lux_val){
+void set_all_leds_ex(uint8_t led_mask, uint16_t lux_val){
 	static uint8_t prev_led_mask = 0;
 	static int16_t prev_lux_val = 0;
 	bool no_led_change = led_mask == prev_led_mask || led_mask == LEDMASK_NOP;
-	bool no_lux_change = lux_val == prev_lux_val || lux_val < 0;
+	bool no_lux_change = lux_val == prev_lux_val || lux_val == 0xFFFF;
 	if ( no_led_change && no_lux_change ) return;
 	if ( no_led_change ) led_mask = prev_led_mask;
 	if ( no_lux_change ) lux_val = prev_lux_val;
@@ -720,6 +729,7 @@ void set_all_leds_ex(uint8_t led_mask, int16_t lux_val){
 	switch ( add_msg ) {
 		case 0:
 		case LEDMASK_MACROS_ENABLED:
+			if (get_2us_time() > 0) lux_val = get_2us_time();
 			strcpy(&ledMsg[i], get_lux_str(lux_val)); break;
 		case LEDMASK_PROGRAMMING_SRC:
 			strcpy(&ledMsg[i], "Src?"); break;
@@ -735,7 +745,7 @@ void set_all_leds_ex(uint8_t led_mask, int16_t lux_val){
 	lcd_print_position(1, 0, ledMsg);
 }
 
-void set_all_leds(uint8_t led_mask){ set_all_leds_ex(led_mask, -1); }
+void set_all_leds(uint8_t led_mask){ set_all_leds_ex(led_mask, 0xFFFF); }
 
 void test_leds(void){
 	for(int8_t i = 0; i < 2; ++i){

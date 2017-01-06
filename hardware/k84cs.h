@@ -288,4 +288,7 @@ void set_all_leds(uint8_t led_mask);
 void test_leds(void);
 bool run_photosensor(uint32_t cur_time_ms);
 
+void start_2us_timer(void);
+void stop_2us_timer(void);
+
 #endif // __K84CS_H
