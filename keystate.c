@@ -63,6 +63,7 @@ static key_state const empty_key_state =  {NO_KEY,0};
 static keystate_change_hook keystate_change_hook_fn;
 
 uint8_t key_press_count;
+uint8_t last_free_block_bgn;
 
 typedef struct _layer_state_t {
 	unsigned char base:1;      // force base/normal level
@@ -197,6 +198,7 @@ void keystate_update(void){
 						key->state = 1; // key is pressed now
 					goto nextMatrixPos; // when key was found then go to the next matrix position
 				}
+				if (j == last_free_block_bgn) break;
 			}
 			// Key was not in the state, so previously not pressed.
 			// If pressed now, record a new key if there's space.
@@ -204,6 +206,8 @@ void keystate_update(void){
 				key_state* key = &key_states[free_slot];
 				key->p_key = p_key;
 				key->debounce = 0x1;
+				if (free_slot >= last_free_block_bgn)
+					last_free_block_bgn = free_slot + 1;
 			}
 		nextMatrixPos:;
 		}
@@ -225,8 +229,15 @@ void keystate_update(void){
 		hid_keycode h_key = config_get_definition(key->p_key);
 		if (is_hid_key_to_notify_about(h_key))
 			notify_about_key_change(layer_change, key);
-		if (key->prev_state && !key->state) *key = empty_key_state;
-		else key->prev_state = key->state;
+		if (key->prev_state && !key->state) {
+			*key = empty_key_state;
+			if (j+1 == last_free_block_bgn) {
+				// we just freed the last used slot
+				last_free_block_bgn = j;
+				while (last_free_block_bgn>0 && key_states[last_free_block_bgn-1].p_key==NO_KEY)
+					--last_free_block_bgn;
+			}
+		}else key->prev_state = key->state;
 	}
 	prev_layer = layer;
 }

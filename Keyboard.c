@@ -101,18 +101,18 @@ void __attribute__((noreturn)) Keyboard_Main(void)
 	// Low pitched buzz on startup
 	//buzzer_start_f(200, 200);
 
-	struct { int keys:1; int mouse:1; } update;
+	bool update_keys = false;
 
 	for (;;) {
 		// update key state once per 2ms slice
 		uint8_t slice = (uptimems() & 0x1);
-		if(!slice && update.keys){
+		if(!slice && update_keys){
 			keystate_update();
 			ledstate_update();
-			update.keys = 0;
+			update_keys = false;
 		}
-		else if(!update.keys && slice){
-			update.keys = 1;
+		else if(!update_keys && slice){
+			update_keys = true;
 		}
 		if (run_photosensor(uptimems())) {
 			next_state = current_state; current_state = STATE_PRINTING; }
