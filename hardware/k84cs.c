@@ -392,8 +392,7 @@ static uint8_t read_calibration_byte(uint8_t index) {
 
 static void photosensor_init(void) {
 	// Set up ADC for photoSns
-	//PORTB.DIRCLR = PIN0_bm; // photoSns is input
-	//PORTB.PIN0CTRL = PORT_OPC_TOTEM_gc; // No pull up nor pull down on photoSns
+	PORTB.PIN0CTRL = PORT_ISC_INPUT_DISABLE_gc; // disable digital input buffer on photoSns
 	// First read is wrong, discard it
 	ADCA.CALL = read_calibration_byte(offsetof(NVM_PROD_SIGNATURES_t, ADCACAL0));
 	ADCA.CALL = read_calibration_byte(offsetof(NVM_PROD_SIGNATURES_t, ADCACAL0));
