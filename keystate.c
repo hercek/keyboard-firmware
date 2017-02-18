@@ -63,7 +63,6 @@ static key_state const empty_key_state =  {NO_KEY,0};
 static keystate_change_hook keystate_change_hook_fn;
 
 uint8_t key_press_count;
-uint8_t last_free_block_bgn;
 
 typedef struct _layer_state_t {
 	unsigned char base:1;      // force base/normal level
@@ -72,6 +71,21 @@ typedef struct _layer_state_t {
 } layer_t;
 
 layer_t prev_layer, layer;
+
+#define DEBOUNCE_LEN 3 // care about last 3 physical reports when debouncing
+// keystate bitfields are adressed by the physical keycode
+typedef uint8_t bitfield_word_t;
+#define BITFIELD_WORD_BITS (8*sizeof(bitfield_word_t))
+#define BITFIELD_WORDS ((KEYPAD_LAYER_SIZE+BITFIELD_WORD_BITS-1)/BITFIELD_WORD_BITS)
+static uint8_t active_debounce_index; // currently active index into debounce_bitfields
+static uint8_t debounce_bitfields[DEBOUNCE_LEN][BITFIELD_WORDS]; // debouncing information
+static uint8_t debounced_on_bitfield[BITFIELD_WORDS]; // which keys changed from off->on
+static uint8_t debounced_bitfield[BITFIELD_WORDS]; // which keys are in active state
+
+static inline void set_bit(bitfield_word_t* words, uint8_t n) {
+	words[n/BITFIELD_WORD_BITS] |= 1 << n%BITFIELD_WORD_BITS; }
+static inline bool get_bit(bitfield_word_t* words, uint8_t n) {
+	return 0 != (words[n/BITFIELD_WORD_BITS] & 1<<n%BITFIELD_WORD_BITS); }
 
 void keystate_init(void){
 	for(uint8_t i = 0 ; i < KEYSTATE_COUNT; ++i)
@@ -170,7 +184,10 @@ static void update_layer(hid_keycode key, uint8_t state){
 }
 
 void keystate_update(void){
-	// for each entry i in the matrix
+	active_debounce_index = (active_debounce_index+1) % DEBOUNCE_LEN;
+	for(uint8_t w = 0; w < BITFIELD_WORDS; ++w)
+		debounce_bitfields[active_debounce_index][w] = 0;
+	// for each entry in the matrix
 	for(uint8_t matrix_row = 0; matrix_row < MATRIX_ROWS; ++matrix_row){
 		matrix_select_row(matrix_row);
 		for(uint8_t matrix_col = 0; matrix_col < MATRIX_COLS; ++matrix_col){
@@ -180,38 +197,49 @@ void keystate_update(void){
 			// are pressed: one position will be debouncing up and the other down.
 			logical_keycode p_key = storage_read_byte( CONSTANT_STORAGE,
 				&matrix_to_logical_map[matrix_row][matrix_col] );
-			if(p_key == NO_KEY) goto nextMatrixPos; // empty space in the sparse matrix
-			uint8_t reading = matrix_read_column(matrix_col);
-			uint8_t free_slot = 0xff;
-			// Scan the current keystates. If we find an entry for our key, update it.
-			// If we don't, and the key is pressed, add it to a free slot.
-			for(uint8_t j = 0; j < KEYSTATE_COUNT; ++j){
-				key_state* key = &key_states[j];
-				if(free_slot == 0xff && key->p_key == NO_KEY)
-					free_slot = j; // found a free slot
-				else if(key->p_key == p_key){ //found our key
-					// update the debounce mask with the current reading
-					key->debounce = DEBOUNCE_MASK & ((key->debounce << 1) | reading);
-					if(key->debounce == 0x00)
-						key->state = 0; // key is not pressed (either debounced-down or never made it up)
-					else if(key->debounce == DEBOUNCE_MASK)
-						key->state = 1; // key is pressed now
-					goto nextMatrixPos; // when key was found then go to the next matrix position
-				}
-				if (j == last_free_block_bgn) break;
+			if (p_key != NO_KEY) { // this position in the matrix is used
+				if (matrix_read_column(matrix_col))
+					set_bit(debounce_bitfields[active_debounce_index], p_key);
+				// TODO: add bunch of NOPs to the else branch which take as much
+				// time as set_bit() to avoid timing attacks on matrix scanning
 			}
-			// Key was not in the state, so previously not pressed.
-			// If pressed now, record a new key if there's space.
-			if(reading && free_slot != 0xff){
-				key_state* key = &key_states[free_slot];
-				key->p_key = p_key;
-				key->debounce = 0x1;
-				if (free_slot >= last_free_block_bgn)
-					last_free_block_bgn = free_slot + 1;
-			}
-		nextMatrixPos:;
+		}// forall cols
+	}// forall rows
+	// debounce the matrix readings
+	for(uint8_t w = 0; w < BITFIELD_WORDS; ++w){
+		bitfield_word_t all_time_active = ~0;
+		bitfield_word_t any_time_active = 0;
+		for(uint8_t i = 0; i < DEBOUNCE_LEN; ++i) {
+			all_time_active &= debounce_bitfields[i][w];
+			any_time_active |= debounce_bitfields[i][w];
 		}
+		debounced_on_bitfield[w] = ~debounced_bitfield[w] & all_time_active;
+		debounced_bitfield[w] = (debounced_bitfield[w] | all_time_active) & any_time_active;
 	}
+	// first mark for removal any keys from keystate which were released
+	for(uint8_t j = 0; j < KEYSTATE_COUNT; ++j){
+		key_state* key = &key_states[j];
+		if (key->p_key == NO_KEY) continue;
+		if (!get_bit(debounced_bitfield, key->p_key))
+			key->state = 0;
+	}
+	// then add any keys from debounced_on_bitfield (the new keypresses)
+	uint8_t free_slot = 0;
+	for(uint8_t w = 0; w < BITFIELD_WORDS; ++w){
+		bitfield_word_t debounced_on_word = debounced_on_bitfield[w];
+		if (0 == debounced_on_word) continue;
+		for(uint8_t b = 0; b < BITFIELD_WORD_BITS; ++b){
+			if (!(debounced_on_word & 1<<b)) continue;
+			logical_keycode p_key = w*BITFIELD_WORD_BITS + b;
+			// p_key just debounced up -> record it to the nearest free slot
+			while(free_slot < KEYSTATE_COUNT && key_states[free_slot].p_key != NO_KEY)
+				++free_slot;
+			if (free_slot >= KEYSTATE_COUNT) goto no_free_slot_to_record_a_new_key;
+			key_states[free_slot].p_key = p_key;
+			key_states[free_slot].state = 1;
+		}// forall bits in one bitfield word
+	}// forall bitfield words
+	no_free_slot_to_record_a_new_key:
 	// the new physical key state is recorded now -> check for layer changes first
 	for(uint8_t j = 0; j < KEYSTATE_COUNT; ++j){
 		key_state* key = &key_states[j];
@@ -229,15 +257,10 @@ void keystate_update(void){
 		hid_keycode h_key = config_get_definition(key->p_key);
 		if (is_hid_key_to_notify_about(h_key))
 			notify_about_key_change(layer_change, key);
-		if (key->prev_state && !key->state) {
+		if (key->prev_state && !key->state)
 			*key = empty_key_state;
-			if (j+1 == last_free_block_bgn) {
-				// we just freed the last used slot
-				last_free_block_bgn = j;
-				while (last_free_block_bgn>0 && key_states[last_free_block_bgn-1].p_key==NO_KEY)
-					--last_free_block_bgn;
-			}
-		}else key->prev_state = key->state;
+		else
+			key->prev_state = key->state;
 	}
 	prev_layer = layer;
 }

@@ -64,14 +64,11 @@ typedef struct _key_state {
 	unsigned char prev_state:1;
 	unsigned char state:1;
 	unsigned char hidden:1;
-	unsigned char debounce:6; // bit vector of last n physical reports: debounced state asserted when they're all the same
 } key_state;
 
 // constants
 
 #define KEYSTATE_COUNT 14 // maximum keys we track at once
-
-#define DEBOUNCE_MASK 0x07 // care about last 3 physical reports
 
 #define NO_KEY 0xFF
 
