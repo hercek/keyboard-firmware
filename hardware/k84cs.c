@@ -723,11 +723,13 @@ void set_all_leds_ex(uint8_t led_mask, uint16_t lux_val){
 	} else green_led_off();
 	while( i<3 ) ledMsg[i++] = ' ';
 	uint8_t add_msg = led_mask & 0xE0;
-	ledMsg[i++] = (LEDMASK_MACROS_ENABLED == add_msg) ? 'Q' : ' ';
+	ledMsg[i++] = LEDMASK_PROGRAMS_ENABLED == add_msg ? 'Q' :
+	              LEDMASK_MACROS_ENABLED   == add_msg ? 'q' : ' ';
 	// decode remap/macro state
 	switch ( add_msg ) {
 		case 0:
 		case LEDMASK_MACROS_ENABLED:
+		case LEDMASK_PROGRAMS_ENABLED:
 			if (get_2us_time() > 0) lux_val = get_2us_time();
 			strcpy(&ledMsg[i], get_lux_str(lux_val)); break;
 		case LEDMASK_PROGRAMMING_SRC:

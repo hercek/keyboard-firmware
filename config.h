@@ -53,7 +53,8 @@
 typedef struct _configuration_flags {
 	unsigned char key_sound_enabled:1;
 	unsigned char macros_enabled:1;
-	unsigned char packing:6;
+	unsigned char programs_enabled:1;
+	unsigned char packing:5;
 } configuration_flags;
 
 // returns eeprom address of logical_to_hid_map

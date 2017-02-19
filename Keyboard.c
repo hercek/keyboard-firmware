@@ -214,7 +214,12 @@ static void handle_state_normal(void){
 				}
 				case SPECIAL_HKEY_MACROS_ENABLE: {
 					configuration_flags flags = config_get_flags();
-					flags.macros_enabled = !flags.macros_enabled;
+					if (flags.programs_enabled)
+						flags.programs_enabled = flags.macros_enabled = 0;
+					else if (flags.macros_enabled)
+						flags.programs_enabled = 1;
+					else // macros/programs disabled
+						flags.macros_enabled = 1;
 					config_save_flags(flags);
 					buzzer_start_f(100, flags.macros_enabled ? BUZZER_ON_TONE : BUZZER_OFF_TONE);
 					current_state = STATE_WAITING;
@@ -309,7 +314,8 @@ static void handle_state_normal(void){
 		}// endif program key pressed
 	}// endif 2 or 3 keys pressed
 
-	if (!(config_get_flags().macros_enabled)) return;
+	configuration_flags config_flags = config_get_flags();
+	if (!(config_flags.macros_enabled||config_flags.programs_enabled)) return;
 	// otherwise, check macro/program triggers
 	bool valid = macro_idx_format_key(&macro_key, key_press_count);
 	if(!valid) return;
@@ -320,6 +326,7 @@ static void handle_state_normal(void){
 		switch(md.type){
 		case PROGRAM: {
 #if PROGRAM_SIZE > 0
+			if (!config_flags.programs_enabled) break;
 			if (!(keystate_is_key_hidden(macro_key.keys[0]))) {
 				for(uint8_t j = 0; j < MACRO_MAX_KEYS; ++j)
 					keystate_hide_key(macro_key.keys[j]);
@@ -330,6 +337,7 @@ static void handle_state_normal(void){
 		}
 		case MACRO: {
 #if MACROS_SIZE > 0
+			if (!config_flags.macros_enabled) break;
 			if(macros_start_playback(md.data)){
 				wait_end_key_press_count = key_press_count-1;
 				current_state = STATE_MACRO_PLAY;
@@ -562,11 +570,14 @@ static void ledstate_update(void){
 			LEDMask |= LEDMASK_MACRO_RECORD;
 		}
 		break;
-	default:
-		if (config_get_flags().macros_enabled)
+	default: {
+		configuration_flags config_flags = config_get_flags();
+		if (config_flags.programs_enabled)
+			LEDMask |= LEDMASK_PROGRAMS_ENABLED;
+		else if (config_flags.macros_enabled)
 			LEDMask |= LEDMASK_MACROS_ENABLED;
 		fillFromUsbReport = true;
-		break;
+		break; }
 	}
 
 	if (HARDWARE_VARIANT>=K80CS || fillFromUsbReport) {
