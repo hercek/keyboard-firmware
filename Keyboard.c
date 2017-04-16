@@ -163,11 +163,13 @@ void __attribute__((noreturn)) Keyboard_Main(void)
 	}
 }
 
-static logical_keycode select_main_trigger_key(macro_idx_key const * macro_key) {
-	for(uint8_t i = 0; i < MACRO_MAX_KEYS; ++i)
-		if (config_get_definition(macro_key->keys[i]) < HID_KEYBOARD_SC_LEFT_CONTROL)
-			return macro_key->keys[i]; // first non-modifier key is the main one
-	return macro_key->keys[0]; // ... or default to the first modifier key
+static logical_keycode select_main_trigger_key(macro_idx_key const * formated_macro_key) {
+	for(uint8_t i = 0; i < MACRO_MAX_KEYS; ++i) {
+		if (NO_KEY == formated_macro_key->keys[i]) break;
+		if (config_get_definition(formated_macro_key->keys[i]) < HID_KEYBOARD_SC_LEFT_CONTROL)
+			return formated_macro_key->keys[i]; // first non-modifier key is the main one
+	}
+	return formated_macro_key->keys[0]; // ... or default to the first modifier key
 }
 
 static void handle_state_normal(void){
