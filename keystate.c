@@ -195,7 +195,7 @@ void keystate_update(void){
 			// Note that only one matrix position should map to any given
 			// physical code: otherwise we won't register a keypress unless both
 			// are pressed: one position will be debouncing up and the other down.
-			logical_keycode p_key = storage_read_byte( CONSTANT_STORAGE,
+			logical_keycode const p_key = storage_read_byte( CONSTANT_STORAGE,
 				&matrix_to_logical_map[matrix_row][matrix_col] );
 			if (p_key != NO_KEY) { // this position in the matrix is used
 				if (matrix_read_column(matrix_col))
@@ -218,7 +218,7 @@ void keystate_update(void){
 	}
 	// first mark for removal any keys from keystate which were released
 	for(uint8_t j = 0; j < KEYSTATE_COUNT; ++j){
-		key_state* key = &key_states[j];
+		key_state* const key = &key_states[j];
 		if (key->p_key == NO_KEY) continue;
 		if (!get_bit(debounced_bitfield, key->p_key))
 			key->state = 0;
@@ -226,11 +226,11 @@ void keystate_update(void){
 	// then add any keys from debounced_on_bitfield (the new keypresses)
 	uint8_t free_slot = 0;
 	for(uint8_t w = 0; w < BITFIELD_WORDS; ++w){
-		bitfield_word_t debounced_on_word = debounced_on_bitfield[w];
+		bitfield_word_t const debounced_on_word = debounced_on_bitfield[w];
 		if (0 == debounced_on_word) continue;
 		for(uint8_t b = 0; b < BITFIELD_WORD_BITS; ++b){
 			if (!(debounced_on_word & 1<<b)) continue;
-			logical_keycode p_key = w*BITFIELD_WORD_BITS + b;
+			logical_keycode const p_key = w*BITFIELD_WORD_BITS + b;
 			// p_key just debounced up -> record it to the nearest free slot
 			while(free_slot < KEYSTATE_COUNT && key_states[free_slot].p_key != NO_KEY)
 				++free_slot;
@@ -242,19 +242,19 @@ void keystate_update(void){
 	no_free_slot_to_record_a_new_key:
 	// the new physical key state is recorded now -> check for layer changes first
 	for(uint8_t j = 0; j < KEYSTATE_COUNT; ++j){
-		key_state* key = &key_states[j];
+		key_state const* const key = &key_states[j];
 		if (key->p_key == NO_KEY) continue; // skip empty slot
-		hid_keycode h_key = config_get_definition(key->p_key);
+		hid_keycode const h_key = config_get_definition(key->p_key);
 		if (SPECIAL_HID_KEY_NOREMAP(h_key) && key->state != key->prev_state)
 			update_layer(h_key, key->state);
 	}
 	// the new active layer is decoded now -> send notifications about logical key changes
-	bool layer_change = keystate_get_layer_id() != keystate_get_prev_layer_id();
+	bool const layer_change = keystate_get_layer_id() != keystate_get_prev_layer_id();
 	for(uint8_t j = 0; j < KEYSTATE_COUNT; ++j){
-		key_state* key = &key_states[j];
+		key_state* const key = &key_states[j];
 		if (key->p_key == NO_KEY) continue; // skip empty slot
 		if (!layer_change && key->prev_state == key->state) continue; // skip slots without changes
-		hid_keycode h_key = config_get_definition(key->p_key);
+		hid_keycode const h_key = config_get_definition(key->p_key);
 		if (is_hid_key_to_notify_about(h_key))
 			notify_about_key_change(layer_change, key);
 		if (key->prev_state && !key->state)
