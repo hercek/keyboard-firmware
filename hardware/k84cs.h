@@ -75,13 +75,10 @@
 #define PROGRAM_COUNT              6
 #define NUM_KEY_MAPPING_INDICES    10 // this can be at most 10
 
-// if the keypad mode is selected, and a logical key greater than KEYPAD_LAYER_START
-// is read, add KEYPAD_LAYER_SIZE to look up the mapping.
-#define KEYPAD_LAYER_START 0
 #define KEYPAD_LAYER_SIZE  84
 
-//84 physical keys, 78 of which (all but keypad/program) have a separate keypad layer mapping
-#define NUM_LOGICAL_KEYS (KEYPAD_LAYER_START + (KEYPAD_LAYER_SIZE * 3))
+//84 physical keys, 78 of which (all but layer/program control) have a separate keypad layer mapping
+#define NUM_LOGICAL_KEYS (KEYPAD_LAYER_SIZE * 3)
 
 // Katy selects columns and reads rows. We're going to reverse the naming convention,
 // since our convention is that we select "rows" and read "columns".  We select
@@ -92,11 +89,7 @@
 #define MATRIX_COLS 6  // 5 rows on each side, right side direct, left side via shift register)
 #define MATRIX_ROWS 14 // 7 cols on each side
 
-// Logical keys we have: logical keys represent a key-position+keypad-layer combination.
-#define LOGICAL_KEY_KEYPAD LOGICAL_KEY_RROW1
-#define LOGICAL_KEY_PROGRAM LOGICAL_KEY_LROW1
-#define LOGICAL_KEY_LEFT_LAYER_SHIFT LOGICAL_KEY_TH_LL
-#define LOGICAL_KEY_RIGHT_LAYER_SHIFT LOGICAL_KEY_TH_RR
+// Logical keys we have: logical keys represent a sequetial key ID across all layers
 enum logical_keys {
 	LOGICAL_KEY_PRG,    // program key
 	LOGICAL_KEY_LaLck,  // layer lock key
