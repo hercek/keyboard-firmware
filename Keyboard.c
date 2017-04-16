@@ -77,7 +77,7 @@ static state current_state = STATE_NORMAL;
 // state to transition to when next action is complete:
 // used for STATE_WAITING, STATE_PRINTING and STATE_EEWRITE which might transition into multiple states
 static state next_state;
-uint8_t wait_end_key_press_count;
+static uint8_t wait_key_press_count;
 
 // Predeclarations
 static void handle_state_normal(void);
@@ -122,8 +122,8 @@ void __attribute__((noreturn)) Keyboard_Main(void)
 			handle_state_normal();
 			break;
 		case STATE_WAITING:
-			if(key_press_count <= wait_end_key_press_count){
-				wait_end_key_press_count = 0;
+			if( !key_press_count || (key_press_count!=wait_key_press_count && wait_key_press_count) ){
+				wait_key_press_count = 0;
 				current_state = next_state;
 				next_state = 0;
 			}
@@ -144,6 +144,7 @@ void __attribute__((noreturn)) Keyboard_Main(void)
 		case STATE_MACRO_RECORD:
 			handle_state_macro_record();
 			break;
+		case STATE_MERGING_MACRO_PLAY:
 		case STATE_MACRO_PLAY:
 			// macro playback is handled entirely by macros_fill_next_report()
 			break;
@@ -316,41 +317,48 @@ static void handle_state_normal(void){
 		}// endif program key pressed
 	}// endif 2 or 3 keys pressed
 
+	// try to find out wheather we should start a macro (or program)
 	configuration_flags config_flags = config_get_flags();
 	if (!(config_flags.macros_enabled||config_flags.programs_enabled)) return;
 	// otherwise, check macro/program triggers
-	bool valid = macro_idx_format_key(&macro_key, key_press_count);
-	if(!valid) return;
-
+	if (!macro_idx_format_key(&macro_key, key_press_count)) return;
+	bool multi_key_trigger = key_press_count > 1;
 	macro_idx_entry* h = macro_idx_lookup(&macro_key);
-	if(h){
-		macro_idx_entry_data md = macro_idx_get_data(h);
-		switch(md.type){
-		case PROGRAM: {
+	if (!h && multi_key_trigger) {
+		//try also one key trigger for mergable macros
+		macro_key.keys[0] = select_main_trigger_key(&macro_key); 
+		for(uint8_t j = 1; j < key_press_count; ++j)
+			macro_key.keys[j] = NO_KEY;
+		h = macro_idx_lookup(&macro_key);
+		multi_key_trigger = false;
+	}
+	if (!h) return;
+
+	// OK, we have a valid macro index entry in h
+	macro_idx_entry_data md = macro_idx_get_data(h);
+	switch(md.type){
+	case PROGRAM: {
 #if PROGRAM_SIZE > 0
-			if (!config_flags.programs_enabled) break;
-			if (!(keystate_is_key_hidden(macro_key.keys[0]))) {
-				for(uint8_t j = 0; j < MACRO_MAX_KEYS; ++j)
-					keystate_hide_key(macro_key.keys[j]);
-				vm_start(md.data, select_main_trigger_key(&macro_key));
-			}
-#endif
-			break;
+		if (!config_flags.programs_enabled) break;
+		if (!(keystate_is_key_hidden(macro_key.keys[0]))) {
+			for(uint8_t j = 0; j < key_press_count; ++j)
+				keystate_hide_key(macro_key.keys[j]);
+			vm_start(md.data, select_main_trigger_key(&macro_key));
 		}
-		case MACRO: {
+#endif
+		break; }
+	case MACRO: {
 #if MACROS_SIZE > 0
-			if (!config_flags.macros_enabled) break;
-			if(macros_start_playback(md.data)){
-				wait_end_key_press_count = key_press_count-1;
-				current_state = STATE_MACRO_PLAY;
-			}
-			else{
-				buzzer_start_f(200, BUZZER_FAILURE_TONE);
-			}
+		if (!config_flags.macros_enabled) break;
+		if(macros_start_playback(md.data)){
+			wait_key_press_count = key_press_count;
+			keystate_hide_key(select_main_trigger_key(&macro_key));
+			current_state = multi_key_trigger ? STATE_MACRO_PLAY : STATE_MERGING_MACRO_PLAY;
+		} else{
+			buzzer_start_f(200, BUZZER_FAILURE_TONE);
+		}
 #endif
-			break;
-		}
-		}
+		break; }
 	}
 }
 
@@ -489,11 +497,17 @@ void Fill_KeyboardReport(KeyboardReport_Data_t* KeyboardReport){
 		// They will also be recorded via the keystate change hook.
 		keystate_Fill_KeyboardReport(KeyboardReport);
 		return;
+	case STATE_MERGING_MACRO_PLAY:
+		keystate_Fill_KeyboardReport(KeyboardReport);
 	case STATE_MACRO_PLAY:
 		if(!macros_fill_next_report(KeyboardReport)){
 			current_state = STATE_WAITING;
 			next_state = STATE_NORMAL;
 		}
+		return;
+	case STATE_WAITING:
+		if (wait_key_press_count)
+			keystate_Fill_KeyboardReport(KeyboardReport);
 		return;
 	case STATE_PROGRAMMING_SRC:
 	case STATE_PROGRAMMING_DST:
@@ -515,6 +529,7 @@ void Fill_MouseReport(MouseReport_Data_t* MouseReport){
 		// TODO: If this report is different to the previous one, save it in the macro buffer.
 		return;
 	}
+	case STATE_MERGING_MACRO_PLAY:
 	case STATE_MACRO_PLAY:
 		// TODO: Fetch the next report from the macro buffer and replay it
 	case STATE_PRINTING:
