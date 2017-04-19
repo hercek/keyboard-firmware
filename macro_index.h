@@ -137,5 +137,7 @@ struct _macro_idx_entry {
  */
 #define MACRO_INDEX_SIZE (MACRO_INDEX_COUNT * sizeof(macro_idx_entry))
 
+/// Size of macro data header
+#define MACRO_DATA_HEADER_LEN 2
 
 #endif // __MACRO_INDEX_H

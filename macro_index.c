@@ -73,18 +73,44 @@ uint8_t* macro_idx_get_storage(){
 	return (uint8_t*) &macro_index[0];
 }
 
+static uint8_t get_next_macro_def_info_index(logical_keycode low_bound) {
+	if (low_bound == NO_KEY) return 0xff;
+	logical_keycode rv = 0xff;
+	logical_keycode rv_lkey = NO_KEY;
+	for (logical_keycode i = 0; ; ++i) {
+		logical_keycode const cur_lkey = storage_read_byte(CONSTANT_STORAGE, &macro_def_infos[i].lkey);
+		if (cur_lkey == NO_KEY) break;
+		if (cur_lkey > low_bound && cur_lkey < rv_lkey ) {
+			rv = i; rv_lkey = cur_lkey; }
+	}
+	return rv;
+}
+
 /**
  * Erases the macro index - to be called from config_reset_fully
  */
 void macro_idx_reset_defaults(){
-	macro_idx_entry tmp;
-	memset(tmp.keys, NO_KEY, MACRO_MAX_KEYS);
-	tmp.val = 0x0;
+	macro_idx_entry empty_entry;
+	memset(empty_entry.keys, NO_KEY, MACRO_MAX_KEYS);
+	empty_entry.val = 0x0;
+	macro_idx_entry tmp = empty_entry;
 
+	logical_keycode lkey = 0;
 	for(uint8_t i = 0; i < MACRO_INDEX_COUNT; ++i){
-		storage_wait_for_last_write_end(MACRO_INDEX_STORAGE);
-		storage_write(MACRO_INDEX_STORAGE, &macro_index[i], &tmp, sizeof(macro_idx_entry));
-		USB_KeepAlive(true);
+		uint8_t idx = get_next_macro_def_info_index(lkey);
+		if (idx == 0xff) {
+			lkey = NO_KEY;
+			storage_wait_for_last_write_end(MACRO_INDEX_STORAGE);
+			storage_write(MACRO_INDEX_STORAGE, &macro_index[i], &empty_entry, sizeof(macro_idx_entry));
+		}else{
+			lkey = storage_read_byte(CONSTANT_STORAGE, &macro_def_infos[idx].lkey);
+			tmp.keys[0] = lkey;
+			tmp.val = idx * (MACRO_DATA_HEADER_LEN + sizeof(macro_def_infos[0].hkeys));
+			// leave the top bit of tmp.val zero (i.e. we are pointing to a macro)
+			storage_wait_for_last_write_end(MACRO_INDEX_STORAGE);
+			storage_write(MACRO_INDEX_STORAGE, &macro_index[i], &tmp, sizeof(macro_idx_entry));
+		}
+		if (0 == i%10) USB_KeepAlive(true);
 	}
 }
 
@@ -168,7 +194,7 @@ void macro_idx_remove(macro_idx_entry* mi){
  * to the new (empty) entry, or NULL if full or error.
  */
 macro_idx_entry* macro_idx_create(macro_idx_key* key){
-	macro_idx_entry* r;
+	macro_idx_entry* r = NULL;
 	// macro index does not exist: move the index up from the end until we reach
 	// a key lower than us, then insert
 	if(storage_read_byte(MACRO_INDEX_STORAGE, &macro_index[MACRO_INDEX_COUNT - 1].keys[0]) != NO_KEY){
@@ -196,7 +222,7 @@ macro_idx_entry* macro_idx_create(macro_idx_key* key){
 			}
 		}
 	}
-
+	if (!r) return NULL;
 	// we now have a correctly positioned index cell at r: write in the key
 	storage_wait_for_last_write_end(MACRO_INDEX_STORAGE);
 	storage_write(MACRO_INDEX_STORAGE, r, key, sizeof(macro_idx_key)); // macro_idx_key is prefix to macro_idx

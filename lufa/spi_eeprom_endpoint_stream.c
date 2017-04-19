@@ -1,3 +1,4 @@
+#include <LUFA/Drivers/USB/USB.h>
 #include "storage/spi_eeprom.h"
 
 // spi_eeprom_write_step will only start a write when starting a page. If the

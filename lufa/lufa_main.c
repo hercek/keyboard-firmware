@@ -32,18 +32,13 @@
   this software.
 */
 
+#include "hardware.h"
 #include "Keyboard.h"
-
-#include <LUFA/Version.h>
-#include <LUFA/Drivers/USB/USB.h>
 #include <LUFA/Platform/Platform.h>
-
 #include "storage_stream.h"
-
 #include "usb_vendor_interface.h"
 #include "config.h"
 #include "macro.h"
-#include "macro_index.h"
 
 #define KEYBOARD_IN_EPADDR        (ENDPOINT_DIR_IN | 1)
 #define MOUSE_IN_EPADDR           (ENDPOINT_DIR_IN | 3)

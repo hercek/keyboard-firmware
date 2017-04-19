@@ -47,9 +47,6 @@
 #ifndef _DESCRIPTORS_H_
 #define _DESCRIPTORS_H_
 
-	/* Includes: */
-		#include <avr/pgmspace.h>
-
 #ifdef BUILD_FOR_LUFA
 		#include <LUFA/Drivers/USB/USB.h>
 		#include <LUFA/Drivers/USB/Class/Common/HIDClassCommon.h>
@@ -74,7 +71,7 @@
 			USB_Descriptor_Endpoint_t             HID2_ReportINEndpoint;
 		} USB_Descriptor_Configuration_t;
 
-		typedef struct
+		typedef struct _MouseReport_Data_t
 		{
 			uint8_t Button; /**< Button mask for currently pressed buttons in the mouse. */
 			int8_t  X; /**< Current delta X movement of the mouse. */
@@ -84,7 +81,7 @@
 
 		#define KEYBOARDREPORT_KEY_COUNT 6
 
-		typedef struct
+		typedef struct _KeyboardReport_Data_t
 		{
 			uint8_t Modifier; /**< Keyboard modifier byte, indicating pressed modifier keys (a combination of
 							   *   \c HID_KEYBOARD_MODIFIER_* masks).

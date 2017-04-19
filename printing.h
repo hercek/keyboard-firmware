@@ -48,7 +48,7 @@
 
 #include "Keyboard.h"
 #include "keystate.h"
-#include "storage.h"
+#include "hardware.h"
 
 #define CONST_MSG(x) ({ static const char __pgm_msg[] STORAGE(CONSTANT_STORAGE) = x; __pgm_msg; })
 

@@ -1,7 +1,6 @@
 #ifndef __STORAGE_STREAM_H
 #define __STORAGE_STREAM_H
 
-#include "storage.h"
 #include "eeext_endpoint_stream.h"
 #include "spi_eeprom_endpoint_stream.h"
 

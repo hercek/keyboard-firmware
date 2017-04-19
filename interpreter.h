@@ -49,6 +49,7 @@
 #include <stdint.h>
 
 #include "extrareport.h"
+#include "Descriptors.h"
 
 #ifndef DEBUG // not used by interpreter debug harness
 #include "keystate.h"

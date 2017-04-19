@@ -58,10 +58,11 @@
 #include <string.h>
 #include "keystate.h"
 #include "buzzer.h"
-#include "storage.h"
+#include "hardware.h"
 #include "config.h"
 #include "interpreter.h"
 #include "extrareport.h"
+#include "Keyboard.h"
 
 #endif
 

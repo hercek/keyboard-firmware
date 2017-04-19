@@ -103,6 +103,6 @@ bool macros_start_playback(uint16_t macro_offset);
 /**
  * Plays the next character, returns true there's more to replay, false if finished.
  */
-bool macros_fill_next_report(KeyboardReport_Data_t* report);
+bool macros_fill_next_report(struct _KeyboardReport_Data_t* report);
 
 #endif // __MACRO_H

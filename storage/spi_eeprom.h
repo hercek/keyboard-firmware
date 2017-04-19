@@ -46,9 +46,7 @@
 #ifndef __SPI_EEPROM_H
 #define __SPI_EEPROM_H
 
-#include "hardware.h"
 #include "storage.h"
-
 
 #define SPIMEM __attribute__((section(".spieeprom")))
 

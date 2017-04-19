@@ -46,7 +46,6 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
-#include "hardware.h"
 #include "keystate.h"
 
 // Configuration is saved in the eeprom

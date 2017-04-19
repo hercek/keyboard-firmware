@@ -44,10 +44,11 @@
 */
 
 #include "buzzer.h"
-#include "hardware.h"
+
+// Pull in this beast so that we can conditionally compile for AVR8/XMEGA.
+#include <LUFA/Common/Common.h>
 
 #if USE_BUZZER
-
 #define TIMER4_RESOLUTION 1023UL
 #define PLL_FREQ 48000000UL
 

@@ -59,6 +59,6 @@ void ExtraKeyboardReport_clear(ExtraKeyboardReport* r);
 void ExtraKeyboardReport_add(ExtraKeyboardReport* r, hid_keycode key);
 void ExtraKeyboardReport_remove(ExtraKeyboardReport* r, hid_keycode key);
 void ExtraKeyboardReport_toggle(ExtraKeyboardReport* r, hid_keycode key);
-void ExtraKeyboardReport_append(ExtraKeyboardReport* extra, KeyboardReport_Data_t* report);
+void ExtraKeyboardReport_append(ExtraKeyboardReport* extra, struct _KeyboardReport_Data_t* report);
 
 #endif // __EXTRAREPORT_H

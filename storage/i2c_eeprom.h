@@ -46,9 +46,7 @@
 #ifndef __I2C_EEPROM_H
 #define __I2C_EEPROM_H
 
-#include "hardware.h"
-
-//#include "twi.h"
+#include "storage.h"
 
 #define EEEXT __attribute__((section(".eeexternal")))
 

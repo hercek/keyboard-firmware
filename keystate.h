@@ -46,7 +46,10 @@
 #ifndef __KEYSTATE_H
 #define __KEYSTATE_H
 
-#include "Keyboard.h"
+#include <stdint.h>
+#include <stdbool.h>
+struct _KeyboardReport_Data_t;
+struct _MouseReport_Data_t;
 
 // types
 
@@ -142,9 +145,9 @@ bool keystate_check_any_key(uint8_t count, keycode_type ktype, ...);
  * output buffer keys. */
 void keystate_get_keys(logical_keycode* keys, keycode_type ktype);
 
-void keystate_Fill_KeyboardReport(KeyboardReport_Data_t* KeyboardReport);
+void keystate_Fill_KeyboardReport(struct _KeyboardReport_Data_t* KeyboardReport);
 
-void keystate_Fill_MouseReport(MouseReport_Data_t* MouseReport);
+void keystate_Fill_MouseReport(struct _MouseReport_Data_t* MouseReport);
 
 /**
  * Checks whether a key mapped to the argument keycode (or any key if

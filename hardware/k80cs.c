@@ -54,7 +54,7 @@
 
 //#define MATRIX_COLS 5  // 5 rows on each side, right side direct, left side via shift register)
 //#define MATRIX_ROWS 16 // 8 cols on each side
-const logical_keycode matrix_to_logical_map[MATRIX_ROWS][MATRIX_COLS] PROGMEM =
+const logical_keycode matrix_to_logical_map[MATRIX_ROWS][MATRIX_COLS] STORAGE(CONSTANT_STORAGE) =
 	// ROW 1               ROW 2               ROW 3               ROW 4               ROW 5
 	// Left Hand Side
 	// iData0 [in]         iData1 [in]         iData2 [in]         iData3 [in]         iData4 [in]
@@ -80,7 +80,7 @@ const logical_keycode matrix_to_logical_map[MATRIX_ROWS][MATRIX_COLS] PROGMEM =
 	};
 #undef KEY_NONE
 
-const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] PROGMEM = {
+const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] STORAGE(CONSTANT_STORAGE) = {
 	// non-keypad layer
 	SPECIAL_HID_KEY_PROGRAM,						   //	LOGICAL_KEY_LROW1, // left bottom row (outer)
 	SPECIAL_HID_KEY_LAYER_LOCK,						   //	LOGICAL_KEY_RROW1, // right bottom row (outer)

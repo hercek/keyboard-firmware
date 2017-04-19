@@ -45,6 +45,7 @@
 #define __K84CS_H
 
 #include "keystate.h"
+#include "storage.h"
 
 // Continue using the same USB VID/PID pair that's assigned to the hardware
 #define USB_VENDOR_ID  0x1d50 // Openmoko, Inc
@@ -198,12 +199,18 @@ enum logical_keys {
 #define SPECIAL_HKEY_WRITE_EEPROM  HID_KEYBOARD_SC_O
 #define SPECIAL_HKEY_TEST_LEDS     HID_KEYBOARD_SC_L
 
-extern const logical_keycode matrix_to_logical_map[MATRIX_ROWS][MATRIX_COLS] PROGMEM;
+extern const logical_keycode matrix_to_logical_map[MATRIX_ROWS][MATRIX_COLS] STORAGE(CONSTANT_STORAGE);
 
 /* For each key, maps an index position to a default HID key code. */
 /* stored in flash. */
-extern const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] PROGMEM;
+extern const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] STORAGE(CONSTANT_STORAGE);
 
+typedef struct _macro_def_info {
+	logical_keycode lkey;
+	hid_keycode hkeys[3];
+} macro_def_info;
+// possibly define this in hardware file if you want macro reset to intialize with them
+extern macro_def_info const macro_def_infos[] STORAGE(CONSTANT_STORAGE);
 
 //////////////////////////////////////////////////////////////////////////////////////
 // Katy board layout

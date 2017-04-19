@@ -132,6 +132,8 @@ void config_reset_defaults(void){
 	buzzer_start_f(200, 80); // finish at high to signify end
 }
 
+__attribute__((weak)) macro_def_info const STORAGE(CONSTANT_STORAGE) macro_def_infos[] = {{NO_KEY,{0}}};
+
 // reset the keyboard, including saved layouts
 void config_reset_fully(void){
 	buzzer_start_f(2000, 120); // start buzzing low
@@ -161,7 +163,6 @@ void config_reset_fully(void){
 	// Higher pitched buzz to signify full reset
 	buzzer_start_f(200, 60);
 }
-
 
 
 configuration_flags config_get_flags(void){

@@ -85,9 +85,21 @@ uint8_t* macros_get_storage(){
 }
 
 void macros_reset_defaults(){
-	volatile uint16_t zero = 0x0;
+	uint16_t const def_macro_data_len = MACRO_DATA_HEADER_LEN + sizeof(macro_def_infos[0].hkeys);
+	uint16_t i = 0;
+	for (; storage_read_byte(CONSTANT_STORAGE, &macro_def_infos[i].lkey) != NO_KEY; ++i) {
+		uint8_t tmp[def_macro_data_len];
+		macro_data* const tmp_macro_data = (macro_data*)tmp;
+		tmp_macro_data->length = sizeof(macro_def_infos[0].hkeys);
+		storage_read( CONSTANT_STORAGE, &macro_def_infos[i].hkeys[0], &tmp_macro_data->events[0],
+			sizeof(macro_def_infos[0].hkeys) );
+		storage_wait_for_last_write_end(MACROS_STORAGE);
+		if (sizeof(tmp) != storage_write(MACROS_STORAGE, macros+i*sizeof(tmp), &tmp, sizeof(tmp))) break;
+		if (0 == i%10) USB_KeepAlive(true);
+	}
+	i *= def_macro_data_len;
 	storage_wait_for_last_write_end(MACROS_STORAGE);
-	storage_write(MACROS_STORAGE, (uint8_t*)macros_end_offset, (uint8_t*)&zero, sizeof(uint16_t));
+	storage_write_short(MACROS_STORAGE, macros_end_offset, i);
 }
 
 static macro_data* macros_get_macro_pointer(uint16_t offset){
@@ -136,7 +148,7 @@ static bool delete_macro_data(macro_idx_entry* idx_entry){
 	// Read the length of the macro to be deleted
 	uint16_t entry_len;
 	macro_storage_read_var(entry_len, &entry->length);
-	entry_len += 2; // length header
+	entry_len += MACRO_DATA_HEADER_LEN;
 
 	uint16_t rest_offset = entry_offset + entry_len;
 	uint16_t rest_len = end_offset - rest_offset;
@@ -221,7 +233,7 @@ void macros_commit_macro(){
 		uint16_t end_offset;
 		storage_wait_for_last_write_end(MACROS_STORAGE);
 		macro_storage_read_var(end_offset, macros_end_offset);
-		end_offset += macro_len + 2; // length header + data
+		end_offset += macro_len + MACRO_DATA_HEADER_LEN;
 		macro_storage_write_var(macros_end_offset, end_offset);
 		buzzer_start_f(200, BUZZER_SUCCESS_TONE);
 	}
