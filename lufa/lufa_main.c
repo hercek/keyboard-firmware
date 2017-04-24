@@ -40,6 +40,11 @@
 #include "config.h"
 #include "macro.h"
 
+#if (ARCH == ARCH_AVR8)
+#include <avr/wdt.h>
+#include <avr/power.h>
+#endif
+
 #define KEYBOARD_IN_EPADDR        (ENDPOINT_DIR_IN | 1)
 #define MOUSE_IN_EPADDR           (ENDPOINT_DIR_IN | 3)
 
@@ -110,6 +115,8 @@ int main(void) {
 	Update_USBState(NOTREADY);
 
 	USB_Init();
+
+	sei();
 
 	// and enter the keyboard loop
 	Keyboard_Main();

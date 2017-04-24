@@ -77,11 +77,17 @@
 #define SAVED_MAPPING_STORAGE      spi_eeprom
 #define SAVED_MAPPING_COUNT        255          // 2-byte entries (maximum allowed value is 255)
 #define MACRO_INDEX_STORAGE        avr_eeprom
-#define MACRO_INDEX_COUNT          32           // 6-byte entries
+#define MACRO_INDEX_COUNT          64           // 6-byte entries
 #define MACROS_STORAGE             spi_eeprom
-#define MACROS_SIZE                1024
 #define PROGRAM_STORAGE            avr_eeprom
+#define MACROS_SIZE                1024
+#if  (ARCH == ARCH_AVR8)
+#define PROGRAM_SIZE               448
+#elif (ARCH == ARCH_XMEGA)
 #define PROGRAM_SIZE               1024
+#else
+#error "Unknown architecture."
+#endif
 #define PROGRAM_COUNT              6
 #define NUM_KEY_MAPPING_INDICES    10 // this can be at most 10
 

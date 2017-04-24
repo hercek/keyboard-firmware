@@ -21,3 +21,4 @@ compiler/dist
 *.bin
 .avr-gdbinit
 .avr-gdbinit.user
+*.k
