@@ -50,8 +50,6 @@ public:
   LiquidCrystal(Pin* rs, Pin* cs, Bus* data) { init(rs, 0, cs, data); }
   LiquidCrystal(Pin* rs, Pin* rw, Pin* cs, Bus* data) { init(rs, rw, cs, data); };
 
-  void init(Pin* rs, Pin* rw, Pin* cs, Bus* data);
-
   void begin(uint8_t cols, uint8_t rows, uint8_t charsize = LCD_5x8DOTS);
 
   void clear();
@@ -77,6 +75,8 @@ public:
 
   using Print::write;
 private:
+  void init(Pin* rs, Pin* rw, Pin* cs, Bus* data);
+
   void send(uint8_t, uint8_t);
   void pulseEnable();
 

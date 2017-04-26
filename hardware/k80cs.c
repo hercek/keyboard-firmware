@@ -338,7 +338,7 @@ static void photosensor_init(void) {
 	ADCA.CALL = read_calibration_byte(offsetof(NVM_PROD_SIGNATURES_t, ADCACAL0));
 	ADCA.CALH = read_calibration_byte(offsetof(NVM_PROD_SIGNATURES_t, ADCACAL1));
 	ADCA.CALH = read_calibration_byte(offsetof(NVM_PROD_SIGNATURES_t, ADCACAL1));
-	ADCA.PRESCALER = ADC_PRESCALER_DIV512_gc; // slow down to increas precision
+	ADCA.PRESCALER = ADC_PRESCALER_DIV32_gc; // slow down to increas precision
 	ADCA.REFCTRL = ADC_REFSEL_INTVCC_gc; // set ADC reference to Vcc/1.6
 	ADCA.CH0.CTRL = ADC_CH_INPUTMODE_SINGLEENDED_gc; // single-ended, no gain
 	ADCA.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN8_gc; //PB0 == ADC8 (a4u datasheet, page 58)
@@ -776,63 +776,69 @@ void set_all_leds_ex(uint8_t led_mask, int16_t lux_val){
 	if ( no_led_change ) led_mask = prev_led_mask;
 	if ( no_lux_change ) lux_val = prev_lux_val;
 	prev_led_mask = led_mask; prev_lux_val = lux_val;
-	// decode USB status
-	if ( (led_mask & 0xE0) == 0xE0 ) {
-		switch (led_mask) {
-			case LEDMASK_USB_NOTREADY:
-				lcd_print_position(0, 0, "Usb Wait"); break;
-			case LEDMASK_USB_ENUMERATING:
-				lcd_print_position(0, 0, "Usb Enum"); break;
-			case LEDMASK_USB_READY:
-				lcd_print_position(0, 0, "Usb OK  "); break;
-			case LEDMASK_USB_ERROR:
-				lcd_print_position(0, 0, "Usb Err "); break;
-			default:
-				lcd_print_position(0, 0, "BAD Msg!"); break;
+	uint8_t tag_msg = led_mask & 0xE0;
+	char ledMsg[5];
+	if ( !no_led_change ) {
+		// decode USB status
+		if ( (led_mask & 0xE0) == 0xE0 ) {
+			switch (led_mask) {
+				case LEDMASK_USB_NOTREADY:
+					lcd_print_position(0, 0, "Usb Wait"); break;
+				case LEDMASK_USB_ENUMERATING:
+					lcd_print_position(0, 0, "Usb Enum"); break;
+				case LEDMASK_USB_READY:
+					lcd_print_position(0, 0, "Usb OK  "); break;
+				case LEDMASK_USB_ERROR:
+					lcd_print_position(0, 0, "Usb Err "); break;
+				default:
+					lcd_print_position(0, 0, "BAD Msg!"); break;
+			}
+			return;
 		}
-		return;
-	}
-	// decode Layer
-	if (led_mask & LED_KEYPAD) {
-		lcd_print_position(0, 0, "Keypad  "); lit_blue_led(lux_val); }
-	else if (led_mask & LED_FUNCTION) {
-		lcd_print_position(0, 0, "Function"); lit_blue_led(lux_val); }
-	else {
-		lcd_print_position(0, 0, "Normal  "); blue_led_off(); }
-	// decode Lock LEDs
-	char ledMsg[9];
-	uint8_t i = 0;
-	if (led_mask & LED_CAPS) {
-		ledMsg[i++] = 'C'; lit_red_led(lux_val);
-	} else red_led_off();
-	if (led_mask & LED_NUM) {
-		ledMsg[i++] = 'N'; lit_yellow_led(lux_val);
-	} else yellow_led_off();
-	if (led_mask & LED_SCROLL) {
-		ledMsg[i++] = 'S'; lit_green_led(lux_val);
-	} else green_led_off();
-	while( i<3 ) ledMsg[i++] = ' ';
-	uint8_t add_msg = led_mask & 0xE0;
-	ledMsg[i++] = LEDMASK_PROGRAMS_ENABLED == add_msg ? 'Q' :
-	              LEDMASK_MACROS_ENABLED   == add_msg ? 'q' : ' ';
+		// decode Layer
+		if (led_mask & LED_KEYPAD) {
+			lcd_print_position(0, 0, "Keypad  "); lit_blue_led(lux_val); }
+		else if (led_mask & LED_FUNCTION) {
+			lcd_print_position(0, 0, "Function"); lit_blue_led(lux_val); }
+		else {
+			lcd_print_position(0, 0, "Normal  "); blue_led_off(); }
+		// decode Lock LEDs
+		uint8_t i = 0;
+		if (led_mask & LED_CAPS) {
+			ledMsg[i++] = 'C'; lit_red_led(lux_val);
+		} else red_led_off();
+		if (led_mask & LED_NUM) {
+			ledMsg[i++] = 'N'; lit_yellow_led(lux_val);
+		} else yellow_led_off();
+		if (led_mask & LED_SCROLL) {
+			ledMsg[i++] = 'S'; lit_green_led(lux_val);
+		} else green_led_off();
+		while( i<3 ) ledMsg[i++] = ' ';
+		ledMsg[i++] = LEDMASK_PROGRAMS_ENABLED == tag_msg ? 'Q' :
+		              LEDMASK_MACROS_ENABLED   == tag_msg ? 'q' : ' ';
+		ledMsg[i] = '\0';
+		lcd_print_position(1, 0, ledMsg);
+	} else { // if led changed
+		lcd_set_position(1, 4);
+	} // else led changed
 	// decode remap/macro state
-	switch ( add_msg ) {
+	switch ( tag_msg ) {
 		case 0:
 		case LEDMASK_MACROS_ENABLED:
 		case LEDMASK_PROGRAMS_ENABLED:
-			strcpy(&ledMsg[i], get_lux_str(lux_val)); break;
+			strcpy(ledMsg, get_lux_str(lux_val)); break;
 		case LEDMASK_PROGRAMMING_SRC:
-			strcpy(&ledMsg[i], "Src?"); break;
+			strcpy(ledMsg, "Src?"); break;
 		case LEDMASK_PROGRAMMING_DST:
-			strcpy(&ledMsg[i], "Dst?"); break;
+			strcpy(ledMsg, "Dst?"); break;
 		case LEDMASK_MACRO_TRIGGER:
-			strcpy(&ledMsg[i], "Trg?"); break;
+			strcpy(ledMsg, "Trg?"); break;
 		case LEDMASK_MACRO_RECORD:
-			strcpy(&ledMsg[i], "Rec?"); break;
+			strcpy(ledMsg, "Rec?"); break;
 		default:
-			strcpy(&ledMsg[i], "ERR!"); break;
+			strcpy(ledMsg, "ERR!"); break;
 	}
-	lcd_print_position(1, 0, ledMsg);
+	lcd_print(ledMsg);
 }
 
 void set_all_leds(uint8_t led_mask){ set_all_leds_ex(led_mask, -1); }

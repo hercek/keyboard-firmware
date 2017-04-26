@@ -65,7 +65,7 @@ void LiquidCrystal::begin(uint8_t cols, uint8_t lines, uint8_t dotsize) {
   // SEE PAGE 45/46 FOR INITIALIZATION SPECIFICATION!
   // According to datasheet, we need at least 40ms after power rises above 2.7V
   // (or 15ms after power rises above 4.5V) before sending commands.
-  _delay_us(80000);
+  _delay_us(40000);
   // Now we pull both RS and R/W low to begin commands
   _rs_pin->setLow();
   _cs_pin->setLow();
@@ -80,15 +80,14 @@ void LiquidCrystal::begin(uint8_t cols, uint8_t lines, uint8_t dotsize) {
 
     // we start in 8bit mode, try to set 4 bit mode
     _data_bus->write(0x03); // 4 bit write
-    _delay_us(4500); // wait min 4.1ms
+    _delay_us(4100);
 
     // second try
     _data_bus->write(0x03); // 4 bit write
-    _delay_us(4500); // wait min 4.1ms
+    _delay_us(100);
 
     // third go!
     _data_bus->write(0x03); // 4 bit write
-    _delay_us(150);
 
     // finally, set to 4-bit interface
     _data_bus->write(0x02); // 4 bit write
@@ -98,11 +97,11 @@ void LiquidCrystal::begin(uint8_t cols, uint8_t lines, uint8_t dotsize) {
 
     // Send function set command sequence
     command(LCD_FUNCTIONSET | _displayfunction);
-    _delay_us(4500);  // wait more than 4.1ms
+    _delay_us(4100);  // wait more than 4.1ms
 
     // second try
     command(LCD_FUNCTIONSET | _displayfunction);
-    _delay_us(150);
+    _delay_us(100);
 
     // third go
     command(LCD_FUNCTIONSET | _displayfunction);
@@ -129,20 +128,20 @@ void LiquidCrystal::begin(uint8_t cols, uint8_t lines, uint8_t dotsize) {
 void LiquidCrystal::clear()
 {
   command(LCD_CLEARDISPLAY);  // clear display, set cursor position to zero
-  _delay_us(2000);  // this command takes a long time!
+  _delay_us(1520);  // this command takes a long time!
 }
 
 void LiquidCrystal::home()
 {
   command(LCD_RETURNHOME);  // set cursor position to zero
-  _delay_us(2000);  // this command takes a long time!
+  _delay_us(1520);  // this command takes a long time!
 }
 
 void LiquidCrystal::setCursor(uint8_t col, uint8_t row)
 {
-  int row_offsets[] = { 0x00, 0x40, 0x14, 0x54 };
+  static uint8_t row_offsets[] = { 0x00, 0x40, 0x14, 0x54 };
   if ( row >= _numlines ) {
-    row = _numlines-1;    // we count rows starting w/0
+    return;
   }
 
   command(LCD_SETDDRAMADDR | (col + row_offsets[row]));
@@ -251,11 +250,9 @@ void LiquidCrystal::send(uint8_t value, uint8_t mode) {
 }
 
 void LiquidCrystal::pulseEnable(void) {
-  _cs_pin->setLow();
-  _delay_us(1);
   _cs_pin->setHigh();
   _delay_us(1);    // chip select pulse must be >450ns
   _cs_pin->setLow();
-  _delay_us(100);   // commands need > 37us to settle
+  _delay_us(38);   // commands need  38us to settle
 }
 

@@ -84,6 +84,10 @@ void lcd_print(const char* text) {
 	lcd.print(text);
 }
 
+void lcd_set_position(const uint8_t row, const uint8_t col) {
+	lcd.setCursor(col, row);
+}
+
 void lcd_print_position(const uint8_t row, const uint8_t col, const char* text) {
 	lcd.setCursor(col, row);
 	lcd_print(text);
