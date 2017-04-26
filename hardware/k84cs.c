@@ -462,12 +462,15 @@ static void photosensor_init(void) {
 	ADCA.CTRLA = ADC_ENABLE_bm;
 }
 
+static uint16_t sLast2usTime;
 void start_2us_timer(void) {
 	TCC0.CTRLFSET = TC_CMD_RESTART_gc;
 	TCC0.CTRLA = TC_CLKSEL_DIV64_gc;
 }
-void stop_2us_timer(void) { TCC0.CTRLA = TC_CLKSEL_OFF_gc; }
-inline uint16_t get_2us_time(void) { return TCC0.CNT; }
+void stop_2us_timer(void) {
+	TCC0.CTRLA = TC_CLKSEL_OFF_gc;
+	sLast2usTime = TCC0.CNT;
+}
 
 void set_all_leds_ex(uint8_t led_mask, uint16_t lux_val);
 
@@ -792,7 +795,7 @@ void set_all_leds_ex(uint8_t led_mask, uint16_t lux_val){
 		case 0:
 		case LEDMASK_MACROS_ENABLED:
 		case LEDMASK_PROGRAMS_ENABLED:
-			if (get_2us_time() > 0) lux_val = get_2us_time();
+			if (sLast2usTime > 0) lux_val = sLast2usTime;
 			strcpy(ledMsg, get_lux_str(lux_val)); break;
 		case LEDMASK_PROGRAMMING_SRC:
 			strcpy(ledMsg, "Src?"); break;
