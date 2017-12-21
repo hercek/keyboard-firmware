@@ -201,17 +201,8 @@ static void handle_state_normal(void){
 					current_state = STATE_WAITING;
 					next_state = STATE_PROGRAMMING_SRC;
 					return;
-				case SPECIAL_HKEY_REBOOT: {
-					uint8_t i = BUZZER_DEFAULT_TONE;
-					// cause watchdog reboot (into bootloader if progm is still pressed)
-					while(1){
-						// Beep until rebooted
-						buzzer_start_f(100, i);
-						i -= 10;
-						_delay_ms(100);
-						Update_Millis(100);
-					}
-				}
+				case SPECIAL_HKEY_REBOOT:
+					reboot_firmware();
 				case SPECIAL_HKEY_MACROS_ENABLE: {
 					configuration_flags flags = config_get_flags();
 					if (flags.programs_enabled)

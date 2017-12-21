@@ -292,4 +292,6 @@ bool run_photosensor(uint32_t cur_time_ms);
 void start_2us_timer(void);
 void stop_2us_timer(void);
 
+void reboot_firmware(void);
+
 #endif // __K84CS_H

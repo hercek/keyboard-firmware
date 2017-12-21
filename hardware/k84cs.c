@@ -831,3 +831,8 @@ void test_leds(void){
 		set_all_leds(0xf0); _delay_ms(1000);
 	}
 }
+
+void reboot_firmware(void) {
+	CCP = 0xD8;              // Configuration change protection: allow protected IO regiser write
+	RST.CTRL = RST_SWRST_bm; // Request software reset by writing to protected IO register
+}

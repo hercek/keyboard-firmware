@@ -47,6 +47,9 @@
 #include "../Lcd.h"
 #include "../printing.h"
 //#include "twi.h"
+#if (ARCH == ARCH_AVR8)
+#include <avr/wdt.h>
+#endif
 
 #define KEY_NONE NO_KEY
 // Because the matrix may not be tightly packed, we want a map from matrix
@@ -860,4 +863,24 @@ void test_leds(void){
 		set_all_leds(LEDMASK_MACRO_RECORD); _delay_ms(1000);
 		set_all_leds(0xf0); _delay_ms(1000);
 	}
+}
+
+void reboot_firmware(void) {
+#if (ARCH == ARCH_AVR8)
+	wdt_enable(WDTO_250MS);
+	uint8_t i = BUZZER_DEFAULT_TONE;
+	// cause watchdog reboot (into bootloader if progm is still pressed)
+	while(1){
+		// Beep until rebooted
+		buzzer_start_f(100, i);
+		i -= 10;
+		_delay_ms(100);
+		Update_Millis(100);
+	}
+#elif  (ARCH == ARCH_XMEGA)
+	CCP = 0xD8;              // Configuration change protection: allow protected IO regiser write
+	RST.CTRL = RST_SWRST_bm; // Request software reset by writing to protected IO register
+#else
+#  error "Unknown architecture."
+#endif
 }

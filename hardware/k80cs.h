@@ -375,4 +375,6 @@ void test_leds(void);
 #  error "Unknown architecture."
 #endif
 
+void reboot_firmware(void);
+
 #endif // __K80CS_H
