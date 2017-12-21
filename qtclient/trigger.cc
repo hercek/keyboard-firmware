@@ -244,7 +244,14 @@ QString Trigger::formatMacro(const QByteArray& macro) {
 			downKeys += *it;
 			formatted += "+";
 		}
-		formatted += HIDTables::nameUsage(*it);
+		char const* lbl = HIDTables::nameUsage(*it);
+		if (lbl[0] && lbl[1] == ' ' && lbl[2] && !lbl[3])
+			lbl += 2;
+		while (*lbl) {
+			if (*lbl != ' ')
+				formatted.append(*lbl);
+			++lbl;
+		}
 	}
 	return formatted;
 }

@@ -34,7 +34,7 @@ void LayoutWidget::paintEvent(QPaintEvent *ev) {
 
 		if (mMapping.length() != 0) {
 			QString keyLabel =
-				QString(HIDTables::nameUsage(mMapping[physicalKeycode])).replace('_', '\n');
+				QString(HIDTables::nameUsage(mMapping[physicalKeycode])).replace(' ', '\n');
 			paintScaledLabel(painter, keyLabel, keyRect);
 		}
 	}
