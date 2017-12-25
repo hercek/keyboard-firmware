@@ -16,10 +16,17 @@ LayoutView::LayoutView(LayoutPresenter *presenter)
 	, mLayoutWidget(new LayeredLayoutWidget)
 	, mKeySelectionView(NULL)
 {
+	QPushButton *saveToFileButton = new QPushButton(tr("Save to File"));
+	QPushButton *loadFromFileButton = new QPushButton(tr("Load from File"));
 	QPushButton *loadDefaultsButton = new QPushButton(tr("Load Defaults"));
 
+	QHBoxLayout *buttonLayout = new QHBoxLayout;
+	buttonLayout->addWidget(saveToFileButton,0);
+	buttonLayout->addWidget(loadFromFileButton,0);
+	buttonLayout->addWidget(loadDefaultsButton,0);
+
 	QGridLayout *layout = new QGridLayout;
-	layout->addWidget(loadDefaultsButton, 0, 1, 1, 1);
+	layout->addLayout(buttonLayout, 0, 1, 1, 1);
 	layout->addWidget(mLayoutWidget, 1, 0, 1, 3);
 	setLayout(layout);
 
@@ -28,6 +35,10 @@ LayoutView::LayoutView(LayoutPresenter *presenter)
 	connect(mLayoutWidget, SIGNAL(logicalKeyClicked(LogicalKeycode)),
 	        this, SLOT(handleLogicalKeyClicked(LogicalKeycode)));
 
+	connect(saveToFileButton, SIGNAL(clicked()),
+	        mPresenter, SLOT(saveToFile()));
+	connect(loadFromFileButton, SIGNAL(clicked()),
+	        mPresenter, SLOT(loadFromFile()));
 	connect(loadDefaultsButton, SIGNAL(clicked()),
 	        mPresenter, SLOT(loadDefaults()));
 }

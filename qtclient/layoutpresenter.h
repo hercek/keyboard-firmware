@@ -27,6 +27,8 @@ public:
 
 public slots:
 	void setModel(const QSharedPointer<KeyboardModel>& model);
+	void saveToFile();
+	void loadFromFile();
 	void loadDefaults();
 };
 

@@ -1,5 +1,7 @@
 #include <QApplication>
 #include <QDebug>
+#include <QFileDialog>
+#include <QMessageBox>
 
 #include "hidtables.h"
 #include "layoutpresenter.h"
@@ -64,6 +66,37 @@ void LayoutPresenter::setHIDUsage(LogicalKeycode logicalKey, HIDKeycode hidKey) 
 	}
 
 	// and update the view
+	mView->setMapping(*mapping);
+}
+
+void LayoutPresenter::saveToFile() {
+	QByteArray *mapping = mModel->getMapping();
+	QString fileName = QFileDialog::getSaveFileName(0,
+		"Specify file name to save Keybaord Remap into", "", "Remap File (*.rmp)");
+	if (fileName.isEmpty())
+		return;
+	if (!fileName.endsWith(".rmp"))
+		fileName += ".rmp";
+	QFile file(fileName);
+	if (file.open(QIODevice::WriteOnly) )
+		file.write(*mapping);
+}
+
+void LayoutPresenter::loadFromFile() {
+	QByteArray *mapping = mModel->getMapping();
+	QString fileName = QFileDialog::getOpenFileName(0,
+		"Select file name to load Keybaord Remap from", "", "Remap File (*.rmp)");
+	if (fileName.isEmpty())
+		return;
+	QFile file(fileName);
+	if ( !file.open(QIODevice::ReadOnly) )
+		return;
+	QByteArray blob = file.readAll();
+	if (mapping->size() != blob.size()) {
+		QMessageBox::warning(0, "KeyboardClient", "Incorrect file length.");
+		return;
+	}
+	*mapping = blob;
 	mView->setMapping(*mapping);
 }
 
