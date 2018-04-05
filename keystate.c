@@ -378,21 +378,31 @@ void keystate_Fill_KeyboardReport(KeyboardReport_Data_t* KeyboardReport){
 	 }
 }
 
+static inline void adjust_speed_and_report(bool moving, int8_t* speed, int8_t* reportVal) {
+	if (moving) {
+		*speed += *reportVal;
+		*reportVal = *speed;
+	} else *speed = 0;
+}
+
 void keystate_Fill_MouseReport(MouseReport_Data_t* MouseReport){
-	uint8_t const time_inc = 25;
-	static uint16_t cur_time = 0;
-	static uint16_t next_active_time = 0;
 	static uint8_t prev_button = 0;
+	static uint8_t cnt_move = 0;
+	static int8_t speed_x_move = 0;
+	static int8_t speed_y_move = 0;
+	static uint8_t cnt_wheel = 0;
+	static int8_t speed_x_wheel = 0;
+	static int8_t speed_y_wheel = 0;
 
-	// rate limit mouse reports
-	if (++cur_time < next_active_time) {
+	// rate limit mouse move reports
+	cnt_move = (cnt_move+1) % 25;
+	if (cnt_move != 1) {
 		MouseReport->Button = prev_button; return; }
-	next_active_time += time_inc;
 
-	bool moving = false;
-	// simple linear acceleration
-	uint16_t move_len = cur_time/time_inc;
-	if (move_len > 127) move_len = 127;
+	bool moving_x = false;
+	bool moving_y = false;
+	bool wheeling_x = false;
+	bool wheeling_y = false;
 
 	// check mouse key states
 	for(uint8_t i = 0; i < KEYSTATE_COUNT; ++i){
@@ -417,33 +427,37 @@ void keystate_Fill_MouseReport(MouseReport_Data_t* MouseReport){
 					break;
 
 				case SPECIAL_HID_KEY_MOUSE_FWD:
-					moving = true;
-					MouseReport->Y = -move_len;
+					moving_y = true;
+					MouseReport->Y += -1;
 					break;
 				case SPECIAL_HID_KEY_MOUSE_BACK:
-					moving = true;
-					MouseReport->Y = move_len;
+					moving_y = true;
+					MouseReport->Y += 1;
 					break;
 				case SPECIAL_HID_KEY_MOUSE_LEFT:
-					moving = true;
-					MouseReport->X = -move_len;
+					moving_x = true;
+					MouseReport->X += -1;
 					break;
 				case SPECIAL_HID_KEY_MOUSE_RIGHT:
-					moving = true;
-					MouseReport->X = move_len;
+					moving_x = true;
+					MouseReport->X += 1;
 					break;
 
 				case SPECIAL_HID_KEY_WHEEL_FWD:
-					MouseReport->VWheel = 1;
+					wheeling_y = true;
+					MouseReport->VWheel += 1;
 					break;
 				case SPECIAL_HID_KEY_WHEEL_BACK:
-					MouseReport->VWheel = -1;
+					wheeling_y = true;
+					MouseReport->VWheel += -1;
 					break;
 				case SPECIAL_HID_KEY_WHEEL_LEFT:
-					MouseReport->HWheel = -1;
+					wheeling_x = true;
+					MouseReport->HWheel += -1;
 					break;
 				case SPECIAL_HID_KEY_WHEEL_RIGHT:
-					MouseReport->HWheel = 1;
+					wheeling_x = true;
+					MouseReport->HWheel += 1;
 					break;
 				default:
 					break;
@@ -452,12 +466,20 @@ void keystate_Fill_MouseReport(MouseReport_Data_t* MouseReport){
 		}
 	}
 
-	// measure key press time for accelration only when moving
-	if(!moving) {
-		cur_time = 0;
-		next_active_time = time_inc;
-	}
 	prev_button = MouseReport->Button;
+
+	adjust_speed_and_report(moving_x, &speed_x_move, &MouseReport->X);
+	adjust_speed_and_report(moving_y, &speed_y_move, &MouseReport->Y);
+
+	// rate limit mouse wheel reports
+	cnt_wheel = (cnt_wheel+1) % 5;
+	if (cnt_wheel != 1) {
+		MouseReport->VWheel = 0;
+		MouseReport->HWheel = 0;
+		return; }
+
+	adjust_speed_and_report(wheeling_x, &speed_x_wheel, &MouseReport->HWheel);
+	adjust_speed_and_report(wheeling_y, &speed_y_wheel, &MouseReport->VWheel);
 }
 
 hid_keycode keystate_check_hid_key(hid_keycode key){
