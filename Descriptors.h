@@ -76,7 +76,8 @@
 			uint8_t Button; /**< Button mask for currently pressed buttons in the mouse. */
 			int8_t  X; /**< Current delta X movement of the mouse. */
 			int8_t  Y; /**< Current delta Y movement on the mouse. */
-			int8_t  Wheel;
+			int8_t  VWheel;
+			int8_t  HWheel;
 		} __attribute__((packed)) MouseReport_Data_t;
 
 		#define KEYBOARDREPORT_KEY_COUNT 6

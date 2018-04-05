@@ -150,7 +150,7 @@ enum logical_keys {
 	LOGICAL_KEY_IntK,
 	LOGICAL_KEY_LArr,
 	LOGICAL_KEY_RArr,
-	LOGICAL_KEY_VOL,
+	LOGICAL_KEY_MUTE,
 	LOGICAL_KEY_CAPS,
 	LOGICAL_KEY_PRINT,
 	// Right hand extra key well keys

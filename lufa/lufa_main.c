@@ -311,7 +311,8 @@ bool CALLBACK_HID_Device_CreateHIDReport(USB_ClassInfo_HID_Device_t* const HIDIn
 		MouseReport_Data_t* MouseReport = (MouseReport_Data_t*)ReportData;
 		Fill_MouseReport(MouseReport);
 		if ( lastMouseButtonStatus == MouseReport->Button &&
-				0 == MouseReport->X && 0 == MouseReport->Y && 0 == MouseReport->Wheel )
+				0 == MouseReport->X && 0 == MouseReport->Y &&
+				0 == MouseReport->VWheel && 0 == MouseReport->HWheel )
 			*ReportSize = 0;
 		else {
 			*ReportSize = sizeof(MouseReport_Data_t);

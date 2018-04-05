@@ -432,6 +432,19 @@ void keystate_Fill_MouseReport(MouseReport_Data_t* MouseReport){
 					moving = true;
 					MouseReport->X = move_len;
 					break;
+
+				case SPECIAL_HID_KEY_WHEEL_FWD:
+					MouseReport->VWheel = 1;
+					break;
+				case SPECIAL_HID_KEY_WHEEL_BACK:
+					MouseReport->VWheel = -1;
+					break;
+				case SPECIAL_HID_KEY_WHEEL_LEFT:
+					MouseReport->HWheel = -1;
+					break;
+				case SPECIAL_HID_KEY_WHEEL_RIGHT:
+					MouseReport->HWheel = 1;
+					break;
 				default:
 					break;
 				}

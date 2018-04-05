@@ -92,6 +92,10 @@ enum SPECIAL_HID_KEYS {
 	SPECIAL_HID_KEY_MOUSE_BACK,
 	SPECIAL_HID_KEY_MOUSE_LEFT,
 	SPECIAL_HID_KEY_MOUSE_RIGHT,
+	SPECIAL_HID_KEY_WHEEL_FWD,
+	SPECIAL_HID_KEY_WHEEL_BACK,
+	SPECIAL_HID_KEY_WHEEL_LEFT,
+	SPECIAL_HID_KEY_WHEEL_RIGHT,
 	// And the special non-remappable program and keypad keys
 	SPECIAL_HID_KEY_LAYER_LOCK = 0xFA,
 	SPECIAL_HID_KEY_KEYPAD_SHIFT,
@@ -102,7 +106,7 @@ enum SPECIAL_HID_KEYS {
 };
 
 #define SPECIAL_HID_KEYS_MOUSE_START SPECIAL_HID_KEY_MOUSE_BTN1
-#define SPECIAL_HID_KEYS_MOUSE_END SPECIAL_HID_KEY_MOUSE_RIGHT
+#define SPECIAL_HID_KEYS_MOUSE_END SPECIAL_HID_KEY_WHEEL_RIGHT
 
 // Program, keypad and layer shift keys are special: they can't be remapped using
 // onboard remapping since they themselves control the meaning of other keys.

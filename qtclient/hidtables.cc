@@ -53,7 +53,7 @@ static const char *usages[] = {
 	"+ =",                            // 0x2e
 	"{ [",                            // 0x2f
 	"} ]",                            // 0x30
-	"| \\",                             // 0x31
+	"| \\",                           // 0x31
 	"NonUS /~",                       // 0x32
 	": ;",                            // 0x33
 	"\" '",                           // 0x34
@@ -235,14 +235,11 @@ static const char *usages[] = {
 	"mouse down",                     //0xee
 	"mouse left",                     //0xef
 	"mouse right",                    //0xf0
-	"prog 1",                         //0xf1
-	"prog 2",                         //0xf2
-	"prog 3",                         //0xf3
-	"prog 4",                         //0xf4
-	"prog 5",                         //0xf5
-	"prog 6",                         //0xf6
-	"macro",                          //0xf7
-	"", "",                           // f8-f9 reserved
+	"wheel up",                       //0xf1
+	"wheel down",                     //0xf2
+	"wheel left",                     //0xf3
+	"wheel right",                    //0xf4
+	"", "", "", "", "",               // f5-f9 reserved
 	"layer lock",                     // 0xfa (not remappable interactively)
 	"keypad shift",                   // 0xfb (not remappable interactively)
 	"funct shift",                    // 0xfc (not remappable interactively)
