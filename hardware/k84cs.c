@@ -179,13 +179,13 @@ const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] STORAGE(CONSTANT_
 	SPECIAL_HID_KEY_FUNCTION_SHIFT,                      // LOGICAL_KEY_R_PALM
 	//---------------------------------------------- on-the-fly remapable
 	SPECIAL_HID_KEY_MOUSE_LEFT,                          // LOGICAL_KEY_A *
-	SPECIAL_HID_KEY_WHEEL_BACK,                          // LOGICAL_KEY_B *
+	SPECIAL_HID_KEY_MOUSE_BTN3,                          // LOGICAL_KEY_B *
 	HID_KEYBOARD_SC_C,                                   // LOGICAL_KEY_C
 	SPECIAL_HID_KEY_MOUSE_BACK,                          // LOGICAL_KEY_D *
-	SPECIAL_HID_KEY_MOUSE_BTN3,                          // LOGICAL_KEY_E *
+	SPECIAL_HID_KEY_WHEEL_BACK,                          // LOGICAL_KEY_E *
 	SPECIAL_HID_KEY_MOUSE_RIGHT,                         // LOGICAL_KEY_F *
-	SPECIAL_HID_KEY_WHEEL_FWD,                           // LOGICAL_KEY_G *
-	HID_KEYBOARD_SC_KEYPAD_SLASH,                        // LOGICAL_KEY_H *
+	SPECIAL_HID_KEY_MOUSE_BTN2,                          // LOGICAL_KEY_G *
+	HID_KEYBOARD_SC_KEYPAD_ASTERISK,                     // LOGICAL_KEY_H *
 	HID_KEYBOARD_SC_KEYPAD_8_AND_UP_ARROW,               // LOGICAL_KEY_I *
 	HID_KEYBOARD_SC_KEYPAD_4_AND_LEFT_ARROW,             // LOGICAL_KEY_J *
 	HID_KEYBOARD_SC_KEYPAD_5,                            // LOGICAL_KEY_K *
@@ -193,16 +193,16 @@ const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] STORAGE(CONSTANT_
 	HID_KEYBOARD_SC_KEYPAD_1_AND_END,                    // LOGICAL_KEY_M *
 	HID_KEYBOARD_SC_KEYPAD_0_AND_INSERT,                 // LOGICAL_KEY_N *
 	HID_KEYBOARD_SC_KEYPAD_9_AND_PAGE_UP,                // LOGICAL_KEY_O *
-	HID_KEYBOARD_SC_KEYPAD_PLUS,                         // LOGICAL_KEY_P *
-	SPECIAL_HID_KEY_MOUSE_BTN1,                          // LOGICAL_KEY_Q *
-	SPECIAL_HID_KEY_MOUSE_BTN4,                          // LOGICAL_KEY_R *
+	HID_KEYBOARD_SC_KEYPAD_MINUS,                        // LOGICAL_KEY_P *
+	SPECIAL_HID_KEY_WHEEL_LEFT,                          // LOGICAL_KEY_Q *
+	HID_KEYBOARD_SC_SCROLL_LOCK,                         // LOGICAL_KEY_R *
 	SPECIAL_HID_KEY_MOUSE_FWD,                           // LOGICAL_KEY_S *
-	SPECIAL_HID_KEY_MOUSE_BTN5,                          // LOGICAL_KEY_T *
+	SPECIAL_HID_KEY_MOUSE_BTN1,                          // LOGICAL_KEY_T *
 	HID_KEYBOARD_SC_KEYPAD_7_AND_HOME,                   // LOGICAL_KEY_U *
 	HID_KEYBOARD_SC_V,                                   // LOGICAL_KEY_V
-	SPECIAL_HID_KEY_MOUSE_BTN2,                          // LOGICAL_KEY_W *
+	SPECIAL_HID_KEY_WHEEL_FWD,                           // LOGICAL_KEY_W *
 	HID_KEYBOARD_SC_X,                                   // LOGICAL_KEY_X
-	HID_KEYBOARD_SC_KEYPAD_ASTERISK,                     // LOGICAL_KEY_Y *
+	HID_KEYBOARD_SC_KEYPAD_SLASH,                        // LOGICAL_KEY_Y *
 	HID_KEYBOARD_SC_VOLUME_UP,                           // LOGICAL_KEY_Z *
 	HID_KEYBOARD_SC_F1,                                  // LOGICAL_KEY_1 *
 	HID_KEYBOARD_SC_F2,                                  // LOGICAL_KEY_2 *
@@ -214,7 +214,7 @@ const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] STORAGE(CONSTANT_
 	HID_KEYBOARD_SC_F8,                                  // LOGICAL_KEY_8 *
 	HID_KEYBOARD_SC_F9,                                  // LOGICAL_KEY_9 *
 	HID_KEYBOARD_SC_F10,                                 // LOGICAL_KEY_0 *
-	HID_KEYBOARD_SC_KEYPAD_MINUS,                        // LOGICAL_KEY_SEMICOL *
+	HID_KEYBOARD_SC_KEYPAD_PLUS,                         // LOGICAL_KEY_SEMICOL *
 	HID_KEYBOARD_SC_KEYPAD_2_AND_DOWN_ARROW,             // LOGICAL_KEY_COMMA *
 	HID_KEYBOARD_SC_KEYPAD_3_AND_PAGE_DOWN,              // LOGICAL_KEY_PERIOD *
 	HID_KEYBOARD_SC_KEYPAD_ENTER,                        // LOGICAL_KEY_SLASH *
@@ -228,8 +228,8 @@ const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] STORAGE(CONSTANT_
 	HID_KEYBOARD_SC_LEFT_ARROW,                          // LOGICAL_KEY_LArr
 	HID_KEYBOARD_SC_RIGHT_ARROW,                         // LOGICAL_KEY_RArr
 	SPECIAL_HID_KEY_WHEEL_RIGHT,                         // LOGICAL_KEY_MUTE *
-	SPECIAL_HID_KEY_WHEEL_LEFT,                          // LOGICAL_KEY_CAPS *
-	HID_KEYBOARD_SC_SCROLL_LOCK,                         // LOGICAL_KEY_PRINT *
+	SPECIAL_HID_KEY_MOUSE_BTN4,                          // LOGICAL_KEY_CAPS *
+	SPECIAL_HID_KEY_MOUSE_BTN5,                          // LOGICAL_KEY_PRINT *
 	// Right hand extra keys
 	HID_KEYBOARD_SC_F12,                                 // LOGICAL_KEY_MINUS *
 	SPECIAL_HID_KEY_MOUSE_BTN1,                          // LOGICAL_KEY_BSLASH *
@@ -270,13 +270,13 @@ const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] STORAGE(CONSTANT_
 	SPECIAL_HID_KEY_FUNCTION_SHIFT,                      // LOGICAL_KEY_R_PALM
 	//---------------------------------------------- on-the-fly remapable
 	SPECIAL_HID_KEY_MOUSE_LEFT,                          // LOGICAL_KEY_A *
-	SPECIAL_HID_KEY_WHEEL_BACK,                          // LOGICAL_KEY_B *
+	SPECIAL_HID_KEY_MOUSE_BTN3,                          // LOGICAL_KEY_B *
 	HID_KEYBOARD_SC_C,                                   // LOGICAL_KEY_C
 	SPECIAL_HID_KEY_MOUSE_BACK,                          // LOGICAL_KEY_D *
-	SPECIAL_HID_KEY_MOUSE_BTN3,                          // LOGICAL_KEY_E *
+	SPECIAL_HID_KEY_WHEEL_BACK,                          // LOGICAL_KEY_E *
 	SPECIAL_HID_KEY_MOUSE_RIGHT,                         // LOGICAL_KEY_F *
-	SPECIAL_HID_KEY_WHEEL_FWD,                           // LOGICAL_KEY_G *
-	HID_KEYBOARD_SC_KEYPAD_SLASH,                        // LOGICAL_KEY_H *
+	SPECIAL_HID_KEY_MOUSE_BTN2,                          // LOGICAL_KEY_G *
+	HID_KEYBOARD_SC_KEYPAD_ASTERISK,                     // LOGICAL_KEY_H *
 	HID_KEYBOARD_SC_KEYPAD_8_AND_UP_ARROW,               // LOGICAL_KEY_I *
 	HID_KEYBOARD_SC_KEYPAD_4_AND_LEFT_ARROW,             // LOGICAL_KEY_J *
 	HID_KEYBOARD_SC_KEYPAD_5,                            // LOGICAL_KEY_K *
@@ -284,16 +284,16 @@ const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] STORAGE(CONSTANT_
 	HID_KEYBOARD_SC_KEYPAD_1_AND_END,                    // LOGICAL_KEY_M *
 	HID_KEYBOARD_SC_KEYPAD_0_AND_INSERT,                 // LOGICAL_KEY_N *
 	HID_KEYBOARD_SC_KEYPAD_9_AND_PAGE_UP,                // LOGICAL_KEY_O *
-	HID_KEYBOARD_SC_KEYPAD_PLUS,                         // LOGICAL_KEY_P *
-	SPECIAL_HID_KEY_MOUSE_BTN1,                          // LOGICAL_KEY_Q *
-	SPECIAL_HID_KEY_MOUSE_BTN4,                          // LOGICAL_KEY_R *
+	HID_KEYBOARD_SC_KEYPAD_MINUS,                        // LOGICAL_KEY_P *
+	SPECIAL_HID_KEY_WHEEL_LEFT,                          // LOGICAL_KEY_Q *
+	HID_KEYBOARD_SC_SCROLL_LOCK,                         // LOGICAL_KEY_R *
 	SPECIAL_HID_KEY_MOUSE_FWD,                           // LOGICAL_KEY_S *
-	SPECIAL_HID_KEY_MOUSE_BTN5,                          // LOGICAL_KEY_T *
+	SPECIAL_HID_KEY_MOUSE_BTN1,                          // LOGICAL_KEY_T *
 	HID_KEYBOARD_SC_KEYPAD_7_AND_HOME,                   // LOGICAL_KEY_U *
 	HID_KEYBOARD_SC_V,                                   // LOGICAL_KEY_V
-	SPECIAL_HID_KEY_MOUSE_BTN2,                          // LOGICAL_KEY_W *
+	SPECIAL_HID_KEY_WHEEL_FWD,                           // LOGICAL_KEY_W *
 	HID_KEYBOARD_SC_X,                                   // LOGICAL_KEY_X
-	HID_KEYBOARD_SC_KEYPAD_ASTERISK,                     // LOGICAL_KEY_Y *
+	HID_KEYBOARD_SC_KEYPAD_SLASH,                        // LOGICAL_KEY_Y *
 	HID_KEYBOARD_SC_VOLUME_UP,                           // LOGICAL_KEY_Z *
 	HID_KEYBOARD_SC_F1,                                  // LOGICAL_KEY_1 *
 	HID_KEYBOARD_SC_F2,                                  // LOGICAL_KEY_2 *
@@ -305,7 +305,7 @@ const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] STORAGE(CONSTANT_
 	HID_KEYBOARD_SC_F8,                                  // LOGICAL_KEY_8 *
 	HID_KEYBOARD_SC_F9,                                  // LOGICAL_KEY_9 *
 	HID_KEYBOARD_SC_F10,                                 // LOGICAL_KEY_0 *
-	HID_KEYBOARD_SC_KEYPAD_MINUS,                        // LOGICAL_KEY_SEMICOL *
+	HID_KEYBOARD_SC_KEYPAD_PLUS,                         // LOGICAL_KEY_SEMICOL *
 	HID_KEYBOARD_SC_KEYPAD_2_AND_DOWN_ARROW,             // LOGICAL_KEY_COMMA *
 	HID_KEYBOARD_SC_KEYPAD_3_AND_PAGE_DOWN,              // LOGICAL_KEY_PERIOD *
 	HID_KEYBOARD_SC_KEYPAD_ENTER,                        // LOGICAL_KEY_SLASH *
@@ -319,8 +319,8 @@ const hid_keycode logical_to_hid_map_default[NUM_LOGICAL_KEYS] STORAGE(CONSTANT_
 	HID_KEYBOARD_SC_LEFT_ARROW,                          // LOGICAL_KEY_LArr
 	HID_KEYBOARD_SC_RIGHT_ARROW,                         // LOGICAL_KEY_RArr
 	SPECIAL_HID_KEY_WHEEL_RIGHT,                         // LOGICAL_KEY_MUTE *
-	SPECIAL_HID_KEY_WHEEL_LEFT,                          // LOGICAL_KEY_CAPS *
-	HID_KEYBOARD_SC_SCROLL_LOCK,                         // LOGICAL_KEY_PRINT *
+	SPECIAL_HID_KEY_MOUSE_BTN4,                          // LOGICAL_KEY_CAPS *
+	SPECIAL_HID_KEY_MOUSE_BTN5,                          // LOGICAL_KEY_PRINT *
 	// Right hand extra keys
 	HID_KEYBOARD_SC_F12,                                 // LOGICAL_KEY_MINUS *
 	SPECIAL_HID_KEY_MOUSE_BTN1,                          // LOGICAL_KEY_BSLASH *
