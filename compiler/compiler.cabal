@@ -4,7 +4,7 @@ cabal-version: >= 1.2
 build-type:    Simple
 
 executable keyc
-  main-is: main.hs
+  main-is: Main.hs
   build-depends: base, containers, bytestring,
                  mtl, fgl, parsec
 
@@ -14,3 +14,9 @@ test-suite spec
   hs-source-dirs: . tests
   main-is: Spec.hs
   build-depends: base, containers, bytestring, mtl, fgl, parsec, hspec
+
+library
+  exposed-modules: LibKeyc, Parser, TypedAST, BlockIR, Indexes, Output, Errors, BasicTypes, ErrorState
+
+  build-depends: base, containers, bytestring,
+                 mtl, fgl, parsec

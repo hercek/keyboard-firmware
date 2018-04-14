@@ -79,6 +79,7 @@ SOURCES += \
 	devicemock.cc \
 
 mac {
+	QT_CONFIG -= no-pkg-config
 	CONFIG += link_pkgconfig
 	PKGCONFIG += libusb-1.0
 }
@@ -93,10 +94,15 @@ freebsd-* {
 }
 
 win32 {
-	INCLUDEPATH += c:\\lib\\libusbx-1.0.14-win\\include\\libusbx-1.0
-	LIBS += -Lc:\\lib\\libusbx-1.0.14-win\\MS32\\static -llibusb-1.0
+	INCLUDEPATH += c:\\libusb\\include\\libusb-1.0
+	LIBS += -Lc:\\libusb\\MS64\\static -llibusb-1.0
 }
 
 contains(USE_MOCK, 1) {
 	DEFINES += USE_MOCK
+}
+
+contains(USE_COMPILER, 1) {
+	DEFINES += USE_COMPILER
+	include(compiler.pri)
 }

@@ -2,8 +2,15 @@
 #include "keyboardpresenter.h"
 #include "libusb.h"
 
+#ifdef USE_COMPILER
+#include <HsFFI.h>
+#endif
+
 int main(int argc, char **argv) {
-#if defined(Q_OS_WIN)
+	#ifdef USE_COMPILER
+		hs_init(&argc, &argv);
+	#endif
+	#if defined(Q_OS_WIN)
 	{
 	HMODULE hModule = GetModuleHandleW(NULL);
 	WCHAR path[MAX_PATH];
@@ -14,7 +21,7 @@ int main(int argc, char **argv) {
 	pluginDir += "\\plugins";
 	QCoreApplication::addLibraryPath(pluginDir);
 	}
-#endif
+	#endif
 
 	QApplication app(argc, argv);
 
@@ -27,5 +34,8 @@ int main(int argc, char **argv) {
 	}
 
 	libusb_exit(NULL);
+	#ifdef USE_COMPILER
+		hs_exit();
+	#endif
 	return 0;
 }
