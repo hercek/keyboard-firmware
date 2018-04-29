@@ -73,6 +73,13 @@ bool config_load_layout(uint8_t num);
 configuration_flags config_get_flags(void);
 void config_save_flags(configuration_flags state);
 
+uint8_t config_get_debounce_len(void);
+void config_save_debounce_len(uint8_t x);
+uint8_t config_get_mouse_div(void);
+void config_save_mouse_div(uint8_t x);
+uint8_t config_get_wheel_div(void);
+void config_save_wheel_div(uint8_t x);
+
 uint8_t* config_get_programs(void);
 
 struct _program;

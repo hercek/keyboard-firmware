@@ -313,6 +313,12 @@ static void serial_eeprom_init(void) {
 	spi_eeprom_enable_write_everywhere();
 }
 
+void set_all_leds_ex(uint8_t led_mask, uint16_t lux_val);
+static uint16_t sNumberToShowOnLcd;
+void set_number_to_show_on_lcd(uint16_t x) {
+	sNumberToShowOnLcd = x;
+	if (x) set_all_leds_ex(LEDMASK_NOP, x);
+}
 
 #if (ARCH == ARCH_XMEGA)
 
@@ -356,7 +362,6 @@ enum photosensor_state {
 	PHOTOSENSOR_RUNNING
 };
 
-void set_all_leds_ex(uint8_t led_mask, int16_t lux_val);
 inline uint16_t get_photoDrv_voltage_code( float u ) {
 	return (uint16_t)( u * 4096.0f / 3.3f );
 }
@@ -426,7 +431,7 @@ bool run_photosensor(uint32_t cur_time_ms) {
 			}
 			adc_average /= adc_rv_array_size;
 			//int16_t lux_val = (int16_t)(adc_average*0.54945055f - 100.0f); // lux estimate from spec
-			int16_t lux_val = adc_average - 182; // use raw value (remove only the ADC zero shift)
+			uint16_t lux_val = adc_average<182 ? 0 : adc_average-182; // use raw value (remove only the ADC zero shift)
 			set_all_leds_ex(LEDMASK_NOP, lux_val);
 #ifdef KATY_DEBUG
 			sprintf(adc_string, "%d %d\n", lux_val, adc_max-adc_min);
@@ -770,11 +775,11 @@ char const * get_lux_str(int16_t l) {
 	return rv;
 }
 
-void set_all_leds_ex(uint8_t led_mask, int16_t lux_val){
+void set_all_leds_ex(uint8_t led_mask, uint16_t lux_val){
 	static uint8_t prev_led_mask = 0;
 	static int16_t prev_lux_val = 0;
 	bool no_led_change = led_mask == prev_led_mask || led_mask == LEDMASK_NOP;
-	bool no_lux_change = lux_val == prev_lux_val || lux_val < 0;
+	bool no_lux_change = lux_val == prev_lux_val || lux_val == 0xFFFF;
 	if ( no_led_change && no_lux_change ) return;
 	if ( no_led_change ) led_mask = prev_led_mask;
 	if ( no_lux_change ) lux_val = prev_lux_val;
@@ -829,6 +834,7 @@ void set_all_leds_ex(uint8_t led_mask, int16_t lux_val){
 		case 0:
 		case LEDMASK_MACROS_ENABLED:
 		case LEDMASK_PROGRAMS_ENABLED:
+			if (sNumberToShowOnLcd > 0) lux_val = sNumberToShowOnLcd;
 			strcpy(ledMsg, get_lux_str(lux_val)); break;
 		case LEDMASK_PROGRAMMING_SRC:
 			strcpy(ledMsg, "Src?"); break;
@@ -844,7 +850,7 @@ void set_all_leds_ex(uint8_t led_mask, int16_t lux_val){
 	lcd_print(ledMsg);
 }
 
-void set_all_leds(uint8_t led_mask){ set_all_leds_ex(led_mask, -1); }
+void set_all_leds(uint8_t led_mask){ set_all_leds_ex(led_mask, 0xFFFF); }
 
 void test_leds(void){
 	for(int8_t i = 0; i < 2; ++i){

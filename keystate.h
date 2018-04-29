@@ -71,7 +71,11 @@ typedef struct _key_state {
 
 // constants
 
-#define KEYSTATE_COUNT 14 // maximum keys we track at once
+// Care about last 8 physical reports at most when debouncing.
+// The actual debounce length is set in config.
+#define MAX_DEBOUNCE_LEN 8
+// Maximum number of keys we track at once.
+#define KEYSTATE_COUNT 14
 
 #define NO_KEY 0xFF
 

@@ -72,7 +72,7 @@
 #define MACROS_STORAGE             spi_eeprom
 #define MACROS_SIZE                3586
 #define PROGRAM_STORAGE            avr_eeprom
-#define PROGRAM_SIZE               1024
+#define PROGRAM_SIZE               1023
 #define PROGRAM_COUNT              6
 #define NUM_KEY_MAPPING_INDICES    10 // this can be at most 10
 
@@ -198,6 +198,12 @@ enum logical_keys {
 #define SPECIAL_HKEY_READ_EEPROM   HID_KEYBOARD_SC_I
 #define SPECIAL_HKEY_WRITE_EEPROM  HID_KEYBOARD_SC_O
 #define SPECIAL_HKEY_TEST_LEDS     HID_KEYBOARD_SC_L
+#define SPECIAL_HKEY_DEBOUNCE_UP   HID_KEYBOARD_SC_TAB
+#define SPECIAL_HKEY_DEBOUNCE_DW   HID_KEYBOARD_SC_ESCAPE
+#define SPECIAL_HKEY_MOUSE_DIV_UP  HID_KEYBOARD_SC_T
+#define SPECIAL_HKEY_MOUSE_DIV_DW  HID_KEYBOARD_SC_G
+#define SPECIAL_HKEY_WHEEL_DIV_UP  HID_KEYBOARD_SC_CAPS_LOCK
+#define SPECIAL_HKEY_WHEEL_DIV_DW  HID_KEYBOARD_SC_MUTE
 
 extern const logical_keycode matrix_to_logical_map[MATRIX_ROWS][MATRIX_COLS] STORAGE(CONSTANT_STORAGE);
 
@@ -291,6 +297,7 @@ bool run_photosensor(uint32_t cur_time_ms);
 
 void start_2us_timer(void);
 void stop_2us_timer(void);
+void set_number_to_show_on_lcd(uint16_t x);
 
 void reboot_firmware(void);
 

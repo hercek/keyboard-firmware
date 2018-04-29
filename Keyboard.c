@@ -76,7 +76,11 @@ static state current_state = STATE_NORMAL;
 // state to transition to when next action is complete:
 // used for STATE_WAITING, STATE_PRINTING and STATE_EEWRITE which might transition into multiple states
 static state next_state;
-static uint8_t wait_key_press_count;
+static uint8_t wait_key_press_count = 0;
+static bool in_prg_chord_with_lcd_info = false;
+static uint8_t new_debounce_len = 0;
+static uint8_t new_mouse_div = 0;
+static uint8_t new_wheel_div = 0;
 
 // Predeclarations
 static void handle_state_normal(void);
@@ -114,6 +118,22 @@ void __attribute__((noreturn)) Keyboard_Main(void)
 		if (run_photosensor(uptimems())) {
 			next_state = current_state; current_state = STATE_PRINTING; }
 
+		if (in_prg_chord_with_lcd_info && !key_press_count) {
+			in_prg_chord_with_lcd_info = false;
+			if (new_debounce_len) {
+				if (new_debounce_len!=config_get_debounce_len())
+					config_save_debounce_len(new_debounce_len);
+				new_debounce_len=0; }
+			if (new_mouse_div) {
+				if (new_mouse_div!=config_get_mouse_div())
+					config_save_mouse_div(new_mouse_div);
+				new_mouse_div=0; }
+			if (new_wheel_div) {
+				if (new_wheel_div!=config_get_wheel_div())
+					config_save_wheel_div(new_wheel_div);
+				new_wheel_div=0; }
+			set_number_to_show_on_lcd(0);
+		}
 		switch(current_state){
 		case STATE_NORMAL:
 			handle_state_normal();
@@ -217,6 +237,11 @@ static void handle_state_normal(void){
 					next_state = STATE_NORMAL;
 					return;
 				}
+				case SPECIAL_HKEY_RESET_CONFIG:
+					config_reset_defaults();
+					current_state = STATE_WAITING;
+					next_state = STATE_NORMAL;
+					return;
 #if USE_BUZZER
 				case SPECIAL_HKEY_TOGGLE_BUZZER: {
 					configuration_flags flags = config_get_flags();
@@ -229,8 +254,44 @@ static void handle_state_normal(void){
 					return;
 				}
 #endif
-				case SPECIAL_HKEY_RESET_CONFIG:
-					config_reset_defaults();
+				case SPECIAL_HKEY_DEBOUNCE_UP:
+					if (!in_prg_chord_with_lcd_info) new_debounce_len = config_get_debounce_len();
+					else if (!new_debounce_len) return; // we are not setting up debounce length
+					else if (new_debounce_len<MAX_DEBOUNCE_LEN) ++new_debounce_len;
+					set_number_to_show_on_lcd(new_debounce_len);
+					goto setupNumberFinish;
+				case SPECIAL_HKEY_DEBOUNCE_DW:
+					if (!in_prg_chord_with_lcd_info) new_debounce_len = config_get_debounce_len();
+					else if (!new_debounce_len) return; // we are not setting up debounce length
+					else if (new_debounce_len>2) --new_debounce_len;
+					set_number_to_show_on_lcd(new_debounce_len);
+					goto setupNumberFinish;
+				case SPECIAL_HKEY_MOUSE_DIV_UP:
+					if (!in_prg_chord_with_lcd_info) new_mouse_div = config_get_mouse_div();
+					else if (!new_mouse_div) return; // we are not setting up mouse speed divisor
+					else if (new_mouse_div<254) ++new_mouse_div;
+					set_number_to_show_on_lcd(new_mouse_div);
+					goto setupNumberFinish;
+				case SPECIAL_HKEY_MOUSE_DIV_DW:
+					if (!in_prg_chord_with_lcd_info) new_mouse_div = config_get_mouse_div();
+					else if (!new_mouse_div) return; // we are not setting up mouse speed divisor
+					else if (new_mouse_div>1) --new_mouse_div;
+					set_number_to_show_on_lcd(new_mouse_div);
+					goto setupNumberFinish;
+				case SPECIAL_HKEY_WHEEL_DIV_UP:
+					if (!in_prg_chord_with_lcd_info) new_wheel_div = config_get_wheel_div();
+					else if (!new_wheel_div) return; // we are not setting up wheel speed divisor
+					else if (new_wheel_div<254) ++new_wheel_div;
+					set_number_to_show_on_lcd(new_wheel_div);
+					goto setupNumberFinish;
+				case SPECIAL_HKEY_WHEEL_DIV_DW:
+					if (!in_prg_chord_with_lcd_info) new_wheel_div = config_get_wheel_div();
+					else if (!new_wheel_div) return; // we are not setting up wheel speed divisor
+					else if (new_wheel_div>1) --new_wheel_div;
+					set_number_to_show_on_lcd(new_wheel_div);
+				setupNumberFinish:
+					in_prg_chord_with_lcd_info = true;
+					wait_key_press_count = 2;
 					current_state = STATE_WAITING;
 					next_state = STATE_NORMAL;
 					return;

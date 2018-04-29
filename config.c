@@ -61,11 +61,14 @@
 #include <util/delay.h>
 
 // Eeprom sentinel value - if this is not set at startup, re-initialize the eeprom.
-#define EEPROM_SENTINEL 43
+#define EEPROM_SENTINEL 44
 uint8_t eeprom_sentinel_byte STORAGE(MAPPING_STORAGE);
 
 // Persistent configuration (e.g. sound enabled)
 configuration_flags eeprom_flags STORAGE(MAPPING_STORAGE);
+uint8_t debounce_len STORAGE(MAPPING_STORAGE);
+uint8_t mouse_div STORAGE(MAPPING_STORAGE);
+uint8_t wheel_div STORAGE(MAPPING_STORAGE);
 
 // Key configuration is stored in eeprom. If the sentinel is not valid, initialize from the defaults.
 hid_keycode logical_to_hid_map[NUM_LOGICAL_KEYS] STORAGE(MAPPING_STORAGE);
@@ -140,6 +143,14 @@ void config_reset_fully(void){
 	// reset configuration flags
 	storage_write_byte(MAPPING_STORAGE, (uint8_t*)&eeprom_flags, 0x0);
 
+	// reset config bytes
+	storage_wait_for_last_write_end(MAPPING_STORAGE);
+	storage_write_byte(MAPPING_STORAGE, &debounce_len, 3);
+	storage_wait_for_last_write_end(MAPPING_STORAGE);
+	storage_write_byte(MAPPING_STORAGE, &mouse_div, 25);
+	storage_wait_for_last_write_end(MAPPING_STORAGE);
+	storage_write_byte(MAPPING_STORAGE, &wheel_div, 4);
+
 	// reset key mapping index
 	storage_wait_for_last_write_end(SAVED_MAPPING_STORAGE);
 	storage_memset(SAVED_MAPPING_STORAGE, (uint8_t*)saved_key_mapping_indices, NO_KEY, sizeof(saved_key_mapping_indices));
@@ -181,6 +192,21 @@ void config_save_flags(configuration_flags state){
 	r.s = state;
 	storage_write_byte(MAPPING_STORAGE, (uint8_t*)&eeprom_flags, r.b);
 }
+
+uint8_t config_get_debounce_len(void) {
+	return storage_read_byte(MAPPING_STORAGE, &debounce_len); }
+void config_save_debounce_len(uint8_t x) {
+	storage_write_byte(MAPPING_STORAGE, &debounce_len, x); }
+
+uint8_t config_get_mouse_div(void) {
+	return storage_read_byte(MAPPING_STORAGE, &mouse_div); }
+void config_save_mouse_div(uint8_t x) {
+	storage_write_byte(MAPPING_STORAGE, &mouse_div, x); }
+
+uint8_t config_get_wheel_div(void) {
+	return storage_read_byte(MAPPING_STORAGE, &wheel_div); }
+void config_save_wheel_div(uint8_t x) {
+	storage_write_byte(MAPPING_STORAGE, &wheel_div, x); }
 
 
 static const char MSG_NO_LAYOUT[] PROGMEM = "No layout";

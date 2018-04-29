@@ -70,13 +70,12 @@ typedef struct _layer_state_t {
 
 layer_t prev_layer, layer;
 
-#define DEBOUNCE_LEN 3 // care about last 3 physical reports when debouncing
 // keystate bitfields are adressed by the physical keycode
 typedef uint8_t bitfield_word_t;
 #define BITFIELD_WORD_BITS (8*sizeof(bitfield_word_t))
 #define BITFIELD_WORDS ((KEYPAD_LAYER_SIZE+BITFIELD_WORD_BITS-1)/BITFIELD_WORD_BITS)
 static uint8_t active_debounce_index; // currently active index into debounce_bitfields
-static uint8_t debounce_bitfields[DEBOUNCE_LEN][BITFIELD_WORDS]; // debouncing information
+static uint8_t debounce_bitfields[MAX_DEBOUNCE_LEN][BITFIELD_WORDS]; // debouncing information
 static uint8_t debounced_on_bitfield[BITFIELD_WORDS]; // which keys changed from off->on
 static uint8_t debounced_bitfield[BITFIELD_WORDS]; // which keys are in active state
 
@@ -182,7 +181,8 @@ static void update_layer(hid_keycode key, uint8_t state){
 }
 
 void keystate_update(void){
-	active_debounce_index = (active_debounce_index+1) % DEBOUNCE_LEN;
+	uint8_t const debounce_len = config_get_debounce_len();
+	active_debounce_index = (active_debounce_index+1) % debounce_len;
 	for(uint8_t w = 0; w < BITFIELD_WORDS; ++w)
 		debounce_bitfields[active_debounce_index][w] = 0;
 	// for each entry in the matrix
@@ -207,7 +207,7 @@ void keystate_update(void){
 	for(uint8_t w = 0; w < BITFIELD_WORDS; ++w){
 		bitfield_word_t all_time_active = ~0;
 		bitfield_word_t any_time_active = 0;
-		for(uint8_t i = 0; i < DEBOUNCE_LEN; ++i) {
+		for(uint8_t i = 0; i < debounce_len; ++i) {
 			all_time_active &= debounce_bitfields[i][w];
 			any_time_active |= debounce_bitfields[i][w];
 		}
@@ -395,7 +395,7 @@ void keystate_Fill_MouseReport(MouseReport_Data_t* MouseReport){
 	static int8_t speed_y_wheel = 0;
 
 	// rate limit mouse move reports
-	cnt_move = (cnt_move+1) % 25;
+	cnt_move = (cnt_move+1) % config_get_mouse_div();
 	if (cnt_move != 1) {
 		MouseReport->Button = prev_button; return; }
 
@@ -472,7 +472,7 @@ void keystate_Fill_MouseReport(MouseReport_Data_t* MouseReport){
 	adjust_speed_and_report(moving_y, &speed_y_move, &MouseReport->Y);
 
 	// rate limit mouse wheel reports
-	cnt_wheel = (cnt_wheel+1) % 5;
+	cnt_wheel = (cnt_wheel+1) % config_get_wheel_div();
 	if (cnt_wheel != 1) {
 		MouseReport->VWheel = 0;
 		MouseReport->HWheel = 0;

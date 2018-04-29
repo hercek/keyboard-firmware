@@ -209,6 +209,12 @@ enum logical_keys {
 #define SPECIAL_HKEY_READ_EEPROM   HID_KEYBOARD_SC_I
 #define SPECIAL_HKEY_WRITE_EEPROM  HID_KEYBOARD_SC_O
 #define SPECIAL_HKEY_TEST_LEDS     HID_KEYBOARD_SC_L
+#define SPECIAL_HKEY_DEBOUNCE_UP   HID_KEYBOARD_SC_TAB
+#define SPECIAL_HKEY_DEBOUNCE_DW   HID_KEYBOARD_SC_ESCAPE
+#define SPECIAL_HKEY_MOUSE_DIV_UP  HID_KEYBOARD_SC_T
+#define SPECIAL_HKEY_MOUSE_DIV_DW  HID_KEYBOARD_SC_G
+#define SPECIAL_HKEY_WHEEL_DIV_UP  HID_KEYBOARD_SC_CAPS_LOCK
+#define SPECIAL_HKEY_WHEEL_DIV_DW  HID_KEYBOARD_SC_VOLUME_DOWN
 
 extern const logical_keycode matrix_to_logical_map[MATRIX_ROWS][MATRIX_COLS] STORAGE(CONSTANT_STORAGE);
 
@@ -374,6 +380,8 @@ void test_leds(void);
 #else
 #  error "Unknown architecture."
 #endif
+
+void set_number_to_show_on_lcd(uint16_t x);
 
 void reboot_firmware(void);
 

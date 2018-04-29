@@ -462,14 +462,18 @@ static void photosensor_init(void) {
 	ADCA.CTRLA = ADC_ENABLE_bm;
 }
 
-static uint16_t sLast2usTime;
+static uint16_t sNumberToShowOnLcd;
 void start_2us_timer(void) {
 	TCC0.CTRLFSET = TC_CMD_RESTART_gc;
 	TCC0.CTRLA = TC_CLKSEL_DIV64_gc;
 }
 void stop_2us_timer(void) {
 	TCC0.CTRLA = TC_CLKSEL_OFF_gc;
-	sLast2usTime = TCC0.CNT;
+	sNumberToShowOnLcd = TCC0.CNT;
+}
+void set_number_to_show_on_lcd(uint16_t x) {
+	sNumberToShowOnLcd = x;
+	if (x) set_all_leds_ex(LEDMASK_NOP, x);
 }
 
 void set_all_leds_ex(uint8_t led_mask, uint16_t lux_val);
@@ -514,7 +518,7 @@ bool run_photosensor(uint32_t cur_time_ms) {
 		}
 		adc_average /= adc_rv_array_size;
 		//uint16_t lux_val = (uint16_t)(adc_average*0.54945055f - 100.0f); // lux estimate from spec
-		uint16_t lux_val = adc_average - 182; // use raw value (remove only the ADC zero shift)
+		uint16_t lux_val = adc_average<182 ? 0 : adc_average-182; // use raw value (remove only the ADC zero shift)
 		set_all_leds_ex(LEDMASK_NOP, lux_val);
 #ifdef KATY_DEBUG
 		sprintf(adc_string, "%d %d\t", lux_val, adc_max-adc_min);
@@ -795,7 +799,7 @@ void set_all_leds_ex(uint8_t led_mask, uint16_t lux_val){
 		case 0:
 		case LEDMASK_MACROS_ENABLED:
 		case LEDMASK_PROGRAMS_ENABLED:
-			if (sLast2usTime > 0) lux_val = sLast2usTime;
+			if (sNumberToShowOnLcd > 0) lux_val = sNumberToShowOnLcd;
 			strcpy(ledMsg, get_lux_str(lux_val)); break;
 		case LEDMASK_PROGRAMMING_SRC:
 			strcpy(ledMsg, "Src?"); break;
