@@ -119,6 +119,7 @@ enum SPECIAL_HID_KEYS {
 // fields
 
 extern uint8_t key_press_count;
+extern uint16_t key_press_counter;
 
 void keystate_init(void);
 

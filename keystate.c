@@ -61,6 +61,7 @@ static key_state const empty_key_state =  {NO_KEY,0};
 static keystate_change_hook keystate_change_hook_fn;
 
 uint8_t key_press_count;
+uint16_t key_press_counter;
 
 typedef struct _layer_state_t {
 	unsigned char base:1;      // force base/normal level
@@ -229,6 +230,7 @@ void keystate_update(void){
 		for(uint8_t b = 0; b < BITFIELD_WORD_BITS; ++b){
 			if (!(debounced_on_word & 1<<b)) continue;
 			logical_keycode const p_key = w*BITFIELD_WORD_BITS + b;
+			++key_press_counter; // just count all the key presses
 			// p_key just debounced up -> record it to the nearest free slot
 			while(free_slot < KEYSTATE_COUNT && key_states[free_slot].p_key != NO_KEY)
 				++free_slot;

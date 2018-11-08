@@ -471,12 +471,13 @@ void stop_2us_timer(void) {
 	TCC0.CTRLA = TC_CLKSEL_OFF_gc;
 	sNumberToShowOnLcd = TCC0.CNT;
 }
+
+void set_all_leds_ex(uint8_t led_mask, uint16_t lux_val);
+
 void set_number_to_show_on_lcd(uint16_t x) {
 	sNumberToShowOnLcd = x;
 	if (x) set_all_leds_ex(LEDMASK_NOP, x);
 }
-
-void set_all_leds_ex(uint8_t led_mask, uint16_t lux_val);
 
 bool run_photosensor(uint32_t cur_time_ms) {
 	static uint32_t next_step_time_ms = 500;
