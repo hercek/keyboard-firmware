@@ -188,6 +188,7 @@ bool macros_start_macro(macro_idx_key* key){
 		// There's already an entry for this key in the index: delete
 		// the old macro data if necessary and re-use this slot
 		if(!delete_macro_data(entry)) goto err;
+		storage_wait_for_last_write_end(MACROS_STORAGE);
 	}
 	else{
 		entry = macro_idx_create(key);
