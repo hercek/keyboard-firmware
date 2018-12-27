@@ -30,7 +30,6 @@ public:
 	virtual uint8_t getLayoutID() override;
 	virtual uint8_t getMappingSize() override;
 	virtual uint8_t getNumPrograms() override;
-	virtual uint16_t getProgramSpaceRaw()  override;
 	virtual uint16_t getProgramSpace()  override;
 	virtual uint16_t getMacroIndexSize()  override;
 	virtual uint16_t getMacroStorageSize()  override;
@@ -54,7 +53,7 @@ class DeviceMock : public Device {
 	const uint8_t mLayoutID;
 	const uint8_t mMappingSize;
 	const uint8_t mNumPrograms;
-	const uint16_t mRawProgramSpace;
+	const uint16_t mProgramSpace;
 	const uint16_t mMacroIndexSize;
 	const uint16_t mMacroStorageSize;
 	const uint8_t mMacroMaxKeys;
@@ -72,7 +71,7 @@ DeviceMock(const QString& name,
 		   uint8_t layoutID,
 		   uint8_t mappingSize,
 		   uint8_t numPrograms,
-		   uint16_t rawProgramSpace,
+		   uint16_t programSpace,
 		   uint16_t macroIndexSize,
 		   uint16_t macroStorageSize,
 		   uint8_t macroMaxKeys,
@@ -81,7 +80,7 @@ DeviceMock(const QString& name,
 		mLayoutID(layoutID),
 		mMappingSize(mappingSize),
 		mNumPrograms(numPrograms),
-		mRawProgramSpace(rawProgramSpace),
+		mProgramSpace(programSpace),
 		mMacroIndexSize(macroIndexSize),
 		mMacroStorageSize(macroStorageSize),
 		mMacroMaxKeys(macroMaxKeys),

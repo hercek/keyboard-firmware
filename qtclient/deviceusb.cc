@@ -114,7 +114,7 @@ QByteArray DeviceSessionUSB::getDefaultMapping() {
 }
 
 QByteArray DeviceSessionUSB::getPrograms() {
-	QByteArray programs(getProgramSpaceRaw(), 0);
+	QByteArray programs(getProgramSpace(), 0);
 	if ( programs.size() > 0 )
 		doVendorRequest(READ_PROGRAMS, Read, programs);
 	return programs;

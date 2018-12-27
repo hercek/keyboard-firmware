@@ -21,7 +21,6 @@ public:
 	virtual uint8_t getLayoutID() = 0;
 	virtual uint8_t getMappingSize() = 0;
 	virtual uint8_t getNumPrograms() = 0;
-	virtual uint16_t getProgramSpaceRaw()  = 0;
 	virtual uint16_t getProgramSpace()  = 0;
 	virtual uint16_t getMacroIndexSize()  = 0;
 	virtual uint16_t getMacroStorageSize()  = 0;

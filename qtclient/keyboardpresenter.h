@@ -35,6 +35,8 @@ class KeyboardPresenter : public QObject {
 
 	QList<QPair<QString, QWidget*> > createSubviewList();
 
+	void getConfigData(QByteArray& mapping, QByteArray& programs, QPair<QByteArray,QByteArray>& macros);
+
 public:
 	KeyboardPresenter();
 	~KeyboardPresenter();
@@ -49,6 +51,8 @@ public slots:
 	void updateDeviceListAction();
 	void uploadAction();
 	void downloadAction();
+	void saveToFileAction();
+	void loadFromFileAction();
 };
 
 #endif

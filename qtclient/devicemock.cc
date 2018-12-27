@@ -93,11 +93,8 @@ uint8_t DeviceSessionMock::getMappingSize() {
 uint8_t DeviceSessionMock::getNumPrograms() {
 	return mDevice->mNumPrograms;
 }
-uint16_t DeviceSessionMock::getProgramSpaceRaw()  {
-	return mDevice->mRawProgramSpace;
-}
 uint16_t DeviceSessionMock::getProgramSpace()  {
-	return getProgramSpaceRaw() - 4 * getNumPrograms();
+	return mDevice->mProgramSpace;
 }
 uint16_t DeviceSessionMock::getMacroIndexSize()  {
 	return mDevice->mMacroIndexSize;
@@ -141,7 +138,7 @@ void DeviceSessionMock::reset() {
 void DeviceSessionMock::resetFully() {
 	mDevice->mMacroStorage = QByteArray(mDevice->mMacroStorageSize, 0x00);
 
-	mDevice->mPrograms = QByteArray(mDevice->mRawProgramSpace, 0x00);
+	mDevice->mPrograms = QByteArray(mDevice->mProgramSpace, 0x00);
 	mDevice->mPrograms[0] = 0xff;
 
 	mDevice->mMacroIndex = QByteArray(mDevice->mMacroIndexSize, 0x00);

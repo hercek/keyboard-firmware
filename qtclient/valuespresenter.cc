@@ -22,7 +22,6 @@ void ValuesPresenter::setModel(QSharedPointer<KeyboardModel> model) {
 	mView->showValues(mModel->getLayoutID(),
 	                  mModel->getMappingSize(),
 	                  mModel->getNumPrograms(),
-	                  mModel->getProgramSpaceRaw(),
 	                  mModel->getProgramSpace(),
 	                  mModel->getMacroIndexSize(),
 	                  mModel->getMacroStorageSize());

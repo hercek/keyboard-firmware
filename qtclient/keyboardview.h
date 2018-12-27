@@ -25,6 +25,8 @@ class KeyboardView : public QMainWindow {
 	QAction *mRefreshAction;
 	QAction *mDownloadAction;
 	QAction *mUploadAction;
+	QAction *mSaveToFileAction;
+	QAction *mLoadFromFileAction;
 
 	QStackedWidget *mSelectionStack;
 	QStackedWidget *mSubviewStack;

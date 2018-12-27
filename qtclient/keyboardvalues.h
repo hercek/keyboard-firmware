@@ -18,7 +18,6 @@ class KeyboardValues : public QWidget {
 	Display *layoutID;
 	Display *mappingSize;
 	Display *numPrograms;
-	Display *programSpaceRaw;
 	Display *programSpace;
 	Display *macroIndexSize;
 	Display *macroStorageSize;
@@ -31,7 +30,6 @@ public:
 	void showValues(uint8_t layoutID,
 	                uint8_t mappingSize,
 	                uint8_t numPrograms,
-	                uint16_t programSpaceRaw,
 	                uint16_t programSpace,
 	                uint16_t macroIndexSize,
 	                uint16_t macroStorageSize);

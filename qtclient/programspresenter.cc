@@ -23,7 +23,8 @@ ProgramsPresenter::~ProgramsPresenter() {
 
 void ProgramsPresenter::setModel(const QSharedPointer<KeyboardModel>& model) {
 	mKeyboardModel = model;
-	mView->setPrograms(model->getPrograms(), model->getProgramSpace());
+	uint16_t availableProgramSpace = model->getProgramSpace()- 4*model->getNumPrograms();
+	mView->setPrograms(model->getPrograms(), availableProgramSpace);
 }
 
 void ProgramsPresenter::setProgram(int program, QByteArray newContents) {

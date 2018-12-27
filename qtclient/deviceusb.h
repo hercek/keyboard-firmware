@@ -57,12 +57,8 @@ public:
 		return doSimpleVendorRequest<uint8_t>(READ_NUM_PROGRAMS, Read);
 	}
 
-	uint16_t getProgramSpaceRaw() {
-		return doSimpleVendorRequest<uint16_t>(READ_PROGRAMS_SIZE, Read);
-	}
-
 	uint16_t getProgramSpace() {
-		return getProgramSpaceRaw() - getNumPrograms() * 4;
+		return doSimpleVendorRequest<uint16_t>(READ_PROGRAMS_SIZE, Read);
 	}
 
 	uint16_t getMacroIndexSize() {

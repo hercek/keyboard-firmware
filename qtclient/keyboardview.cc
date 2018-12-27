@@ -31,12 +31,16 @@ KeyboardView::KeyboardView(KeyboardPresenter *p,
 	mRefreshAction = new QAction(tr("Refresh"), this);
 	mDownloadAction = new QAction(tr("Download"), this);
 	mUploadAction = new QAction(tr("Upload"), this);
+	mSaveToFileAction = new QAction(tr("Save to File"), this);
+	mLoadFromFileAction = new QAction(tr("Load from File"), this);
 
 	mKeyboardSelection = new QComboBox;
 	toolBar->addWidget(mKeyboardSelection);
 	toolBar->addAction(mRefreshAction);
 	toolBar->addAction(mDownloadAction);
 	toolBar->addAction(mUploadAction);
+	toolBar->addAction(mSaveToFileAction);
+	toolBar->addAction(mLoadFromFileAction);
 
 	QStackedWidget *selectionStack =
 	    mSelectionStack = new QStackedWidget;
@@ -90,6 +94,12 @@ KeyboardView::KeyboardView(KeyboardPresenter *p,
 
 	connect(mUploadAction, SIGNAL(triggered()),
 	        mPresenter, SLOT(uploadAction()));
+
+	connect(mSaveToFileAction, SIGNAL(triggered()),
+	        mPresenter, SLOT(saveToFileAction()));
+
+	connect(mLoadFromFileAction, SIGNAL(triggered()),
+	        mPresenter, SLOT(loadFromFileAction()));
 
 	layout()->activate();
 }

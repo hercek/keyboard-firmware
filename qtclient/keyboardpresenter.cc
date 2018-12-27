@@ -1,5 +1,7 @@
 #include <iostream>
 #include <QDebug>
+#include <QMessageBox>
+#include <QFileDialog>
 #include "keyboardpresenter.h"
 #include "keyboardcomm.h"
 #include "keyboardmodel.h"
@@ -102,15 +104,27 @@ void KeyboardPresenter::downloadAction() {
 }
 
 
-
 void KeyboardPresenter::uploadAction() {
 	if (!mCurrentDevice) return;
+	{ // check that the model (possibly loaded from file) corresponds to the connected keyboard
+		QSharedPointer<DeviceSession> curKbSession(mCurrentDevice->newSession());
+		if ( curKbSession->getLayoutID() != mKeyboardModel->getLayoutID() ||
+		     curKbSession->getMappingSize() != mKeyboardModel->getMappingSize() ||
+		     curKbSession->getNumPrograms() != mKeyboardModel->getNumPrograms() ||
+		     curKbSession->getMacroMaxKeys() != mKeyboardModel->getKeysPerTrigger() ||
+		     curKbSession->getProgramSpace() != mKeyboardModel->getProgramSpace() ||
+		     curKbSession->getMacroIndexSize() != mKeyboardModel->getMacroIndexSize() ||
+		     curKbSession->getMacroStorageSize() != mKeyboardModel->getMacroStorageSize() ) {
+			QMessageBox::warning(0, "KeyboardClient",
+				"Advanced parameter mismatch between the selected keyboard and the keyboard config loaded in this client.");
+			return; }
+	}
 
 	QByteArray mapping = *mKeyboardModel->getMapping();
 	QByteArray programs =
 		Program::encodePrograms(*mKeyboardModel->getPrograms(),
 								mKeyboardModel->getNumPrograms(),
-								mKeyboardModel->getProgramSpaceRaw());
+								mKeyboardModel->getProgramSpace());
 
 	QPair<QByteArray, QByteArray> encodedMacros =
 		Trigger::encodeTriggers(*mKeyboardModel->getTriggers(),
@@ -147,4 +161,36 @@ void KeyboardPresenter::uploadAction() {
 	catch (DeviceError& e) {
 		qDebug() << "DeviceError uploading: " << e.what();
 	}
+}
+
+
+void KeyboardPresenter::saveToFileAction() {
+	QString fileName = QFileDialog::getSaveFileName(0,
+		"Specify file name to save Keybaord Config into", "", "Keyboard Config File (*.kbc)");
+	if (fileName.isEmpty()) return;
+	if (!fileName.endsWith(".kbc")) fileName += ".kbc";
+	QFile file(fileName);
+	if (!file.open(QIODevice::WriteOnly) ) {
+		QMessageBox::warning(0, "KeyboardClient", "Cannot open the file for writing."); return; }
+	QDataStream out(&file);
+	out << *mKeyboardModel;
+}
+
+
+void KeyboardPresenter::loadFromFileAction() {
+	QString fileName = QFileDialog::getOpenFileName(0,
+		"Select file name to load Keybaord Coffing from", "", "Keybaord Config File (*.kbc)");
+	if (fileName.isEmpty()) return;
+	QFile file(fileName);
+	if ( !file.open(QIODevice::ReadOnly) ) {
+		QMessageBox::warning(0, "KeyboardClient", "Cannot open the file for reading."); return; }
+
+	QDataStream in(&file);
+	QSharedPointer<KeyboardModel> newKeyboardModel(new KeyboardModel);
+	in >> *newKeyboardModel;
+	if (in.status() != QDataStream::Ok || newKeyboardModel->getLayoutID() == 0) {
+		QMessageBox::warning(0, "KeyboardClient", "The file is corrupted."); return; }
+
+	mKeyboardModel = newKeyboardModel;
+	emit modelChanged(mKeyboardModel);
 }

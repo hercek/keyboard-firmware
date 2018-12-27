@@ -26,9 +26,6 @@ KeyboardValues::KeyboardValues(ValuesPresenter *presenter, QWidget *parent)
 	layout->addRow(new QLabel("Num Programs"),
 	               numPrograms = newDisplay());
 
-	layout->addRow(new QLabel("Program Space (raw)"),
-	               programSpaceRaw = newDisplay());
-
 	layout->addRow(new QLabel("Program Space"),
 	               programSpace = newDisplay());
 
@@ -51,7 +48,6 @@ KeyboardValues::KeyboardValues(ValuesPresenter *presenter, QWidget *parent)
 void KeyboardValues::showValues(uint8_t layoutID,
                                 uint8_t mappingSize,
                                 uint8_t numPrograms,
-                                uint16_t programSpaceRaw,
                                 uint16_t programSpace,
                                 uint16_t macroIndexSize,
                                 uint16_t macroStorageSize)
@@ -59,7 +55,6 @@ void KeyboardValues::showValues(uint8_t layoutID,
 	this->layoutID->setText(QString::number(layoutID));
 	this->mappingSize->setText(QString::number(mappingSize));
 	this->numPrograms->setText(QString::number(numPrograms));
-	this->programSpaceRaw->setText(QString::number(programSpaceRaw));
 	this->programSpace->setText(QString::number(programSpace));
 	this->macroIndexSize->setText(QString::number(macroIndexSize));
 	this->macroStorageSize->setText(QString::number(macroStorageSize));
