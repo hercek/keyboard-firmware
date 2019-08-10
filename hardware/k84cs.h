@@ -298,6 +298,7 @@ bool run_photosensor(uint32_t cur_time_ms);
 void start_2us_timer(void);
 void stop_2us_timer(void);
 void set_number_to_show_on_lcd(uint16_t x);
+void clear_number_to_show_on_lcd(void);
 
 void reboot_firmware(void);
 

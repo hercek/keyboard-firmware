@@ -382,6 +382,7 @@ void test_leds(void);
 #endif
 
 void set_number_to_show_on_lcd(uint16_t x);
+void clear_number_to_show_on_lcd(void);
 
 void reboot_firmware(void);
 

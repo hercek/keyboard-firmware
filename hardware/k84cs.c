@@ -462,6 +462,7 @@ static void photosensor_init(void) {
 	ADCA.CTRLA = ADC_ENABLE_bm;
 }
 
+static uint16_t sLuxValToShowOnLcd;
 static uint16_t sNumberToShowOnLcd;
 void start_2us_timer(void) {
 	TCC0.CTRLFSET = TC_CMD_RESTART_gc;
@@ -471,13 +472,12 @@ void stop_2us_timer(void) {
 	TCC0.CTRLA = TC_CLKSEL_OFF_gc;
 	sNumberToShowOnLcd = TCC0.CNT;
 }
-
-void set_all_leds_ex(uint8_t led_mask, uint16_t lux_val);
-
 void set_number_to_show_on_lcd(uint16_t x) {
 	sNumberToShowOnLcd = x;
-	if (x) set_all_leds_ex(LEDMASK_NOP, x);
+	set_all_leds(LEDMASK_NOP); // refresh LCD
 }
+void clear_number_to_show_on_lcd(void) {
+	set_number_to_show_on_lcd(0xffff); };
 
 bool run_photosensor(uint32_t cur_time_ms) {
 	static uint32_t next_step_time_ms = 500;
@@ -520,7 +520,8 @@ bool run_photosensor(uint32_t cur_time_ms) {
 		adc_average /= adc_rv_array_size;
 		//uint16_t lux_val = (uint16_t)(adc_average*0.54945055f - 100.0f); // lux estimate from spec
 		uint16_t lux_val = adc_average<182 ? 0 : adc_average-182; // use raw value (remove only the ADC zero shift)
-		set_all_leds_ex(LEDMASK_NOP, lux_val);
+		sLuxValToShowOnLcd = lux_val;
+		set_all_leds(LEDMASK_NOP); // refresh LCD
 #ifdef KATY_DEBUG
 		sprintf(adc_string, "%d %d\t", lux_val, adc_max-adc_min);
 		printing_set_buffer(adc_string, sram);
@@ -741,67 +742,73 @@ char const * get_lux_str(int16_t l) {
 	return rv;
 }
 
-void set_all_leds_ex(uint8_t led_mask, uint16_t lux_val){
+void set_all_leds(uint8_t led_mask){
 	static uint8_t prev_led_mask = 0;
 	static int16_t prev_lux_val = 0;
-	bool no_led_change = led_mask == prev_led_mask || led_mask == LEDMASK_NOP;
-	bool no_lux_change = lux_val == prev_lux_val || lux_val == 0xFFFF;
-	if ( no_led_change && no_lux_change ) return;
-	if ( no_led_change ) led_mask = prev_led_mask;
-	if ( no_lux_change ) lux_val = prev_lux_val;
-	prev_led_mask = led_mask; prev_lux_val = lux_val;
+	static int16_t prev_num_val = 0;
+	bool led_changed = led_mask != prev_led_mask && led_mask != LEDMASK_NOP;
+	bool lux_changed = sLuxValToShowOnLcd != prev_lux_val;
+	bool num_changed = sNumberToShowOnLcd != prev_num_val;
+	if ( !led_changed && !lux_changed && !num_changed ) return;
+	if ( led_changed ) prev_led_mask = led_mask;
+	else led_mask = prev_led_mask;
+	if ( lux_changed ) prev_lux_val = sLuxValToShowOnLcd;
+	if ( num_changed ) prev_num_val = sNumberToShowOnLcd;
 	uint8_t tag_msg = led_mask & 0xE0;
 	char ledMsg[5];
-	if ( !no_led_change ) {
-		// decode USB status
-		if ( (led_mask & 0xE0) == 0xE0 ) {
-			switch (led_mask) {
-				case LEDMASK_USB_NOTREADY:
-					lcd_print_position(0, 0, "Usb Wait"); break;
-				case LEDMASK_USB_ENUMERATING:
-					lcd_print_position(0, 0, "Usb Enum"); break;
-				case LEDMASK_USB_READY:
-					lcd_print_position(0, 0, "Usb OK  "); break;
-				case LEDMASK_USB_ERROR:
-					lcd_print_position(0, 0, "Usb Err "); break;
-				default:
-					lcd_print_position(0, 0, "BAD Msg!"); break;
-			}
-			return;
+	// decode USB status
+	if ( led_changed && (led_mask & 0xE0) == 0xE0 ) {
+		switch (led_mask) {
+			case LEDMASK_USB_NOTREADY:
+				lcd_print_position(0, 0, "Usb Wait"); break;
+			case LEDMASK_USB_ENUMERATING:
+				lcd_print_position(0, 0, "Usb Enum"); break;
+			case LEDMASK_USB_READY:
+				lcd_print_position(0, 0, "Usb OK  "); break;
+			case LEDMASK_USB_ERROR:
+				lcd_print_position(0, 0, "Usb Err "); break;
+			default:
+				lcd_print_position(0, 0, "BAD Msg!"); break;
 		}
+		return;
+	}
+	if ( led_changed || lux_changed ) {
 		// decode Layer
+		char const* layerName;
 		if (led_mask & LED_KEYPAD) {
-			lcd_print_position(0, 0, "Keypad  "); lit_blue_led(lux_val); }
+			layerName = "Keypad  "; lit_blue_led(sLuxValToShowOnLcd); }
 		else if (led_mask & LED_FUNCTION) {
-			lcd_print_position(0, 0, "Function"); lit_blue_led(lux_val); }
+			layerName = "Function"; lit_blue_led(sLuxValToShowOnLcd); }
 		else {
-			lcd_print_position(0, 0, "Normal  "); blue_led_off(); }
+			layerName = "Normal  "; blue_led_off(); }
+		if (led_changed) lcd_print_position(0, 0, layerName);
 		// decode Lock LEDs
 		uint8_t i = 0;
 		if (led_mask & LED_CAPS) {
-			ledMsg[i++] = 'C'; lit_red_led(lux_val);
+			ledMsg[i++] = 'C'; lit_red_led(sLuxValToShowOnLcd);
 		} else red_led_off();
 		if (led_mask & LED_NUM) {
-			ledMsg[i++] = 'N'; lit_yellow_led(lux_val);
+			ledMsg[i++] = 'N'; lit_yellow_led(sLuxValToShowOnLcd);
 		} else yellow_led_off();
 		if (led_mask & LED_SCROLL) {
-			ledMsg[i++] = 'S'; lit_green_led(lux_val);
+			ledMsg[i++] = 'S'; lit_green_led(sLuxValToShowOnLcd);
 		} else green_led_off();
 		while( i<3 ) ledMsg[i++] = ' ';
 		ledMsg[i++] = LEDMASK_PROGRAMS_ENABLED == tag_msg ? 'Q' :
 		              LEDMASK_MACROS_ENABLED   == tag_msg ? 'q' : ' ';
 		ledMsg[i] = '\0';
-		lcd_print_position(1, 0, ledMsg);
-	} else { // if led changed
-		lcd_set_position(1, 4);
-	} // else led changed
+		if (led_changed) lcd_print_position(1, 0, ledMsg);
+	}
+	if ( !led_changed ) lcd_set_position(1, 4);
 	// decode remap/macro state
 	switch ( tag_msg ) {
 		case 0:
 		case LEDMASK_MACROS_ENABLED:
 		case LEDMASK_PROGRAMS_ENABLED:
-			if (sNumberToShowOnLcd > 0) lux_val = sNumberToShowOnLcd;
-			strcpy(ledMsg, get_lux_str(lux_val)); break;
+			if (sNumberToShowOnLcd != 0xffff)
+				strcpy(ledMsg, get_lux_str(sNumberToShowOnLcd));
+			else strcpy(ledMsg, get_lux_str(sLuxValToShowOnLcd));
+			break;
 		case LEDMASK_PROGRAMMING_SRC:
 			strcpy(ledMsg, "Src?"); break;
 		case LEDMASK_PROGRAMMING_DST:
@@ -815,8 +822,6 @@ void set_all_leds_ex(uint8_t led_mask, uint16_t lux_val){
 	}
 	lcd_print(ledMsg);
 }
-
-void set_all_leds(uint8_t led_mask){ set_all_leds_ex(led_mask, 0xFFFF); }
 
 void test_leds(void){
 	for(int8_t i = 0; i < 2; ++i){

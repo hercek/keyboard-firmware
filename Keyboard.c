@@ -102,7 +102,7 @@ void __attribute__((noreturn)) Keyboard_Main(void)
 	// Low pitched buzz on startup
 	//buzzer_start_f(200, 200);
 
-	uint16_t prev_key_ress_counter = 0;
+	uint16_t prev_key_press_counter = 0;
 	uint32_t lcd_number_expire_time = ~0u;
 	bool update_keys = false;
 
@@ -121,12 +121,12 @@ void __attribute__((noreturn)) Keyboard_Main(void)
 			next_state = current_state; current_state = STATE_PRINTING; }
 
 		if (!in_prg_chord_with_lcd_info) {
-			if (prev_key_ress_counter != key_press_counter) {
+			if (prev_key_press_counter != key_press_counter) {
 				set_number_to_show_on_lcd(key_press_counter);
 				lcd_number_expire_time = uptimems() + 2000;
-				prev_key_ress_counter = key_press_counter;
+				prev_key_press_counter = key_press_counter;
 			}else if (uptimems() >= lcd_number_expire_time) {
-				set_number_to_show_on_lcd(0);
+				clear_number_to_show_on_lcd();
 				lcd_number_expire_time = ~0u;
 			}//if
 		} else if (!key_press_count) {
@@ -143,7 +143,7 @@ void __attribute__((noreturn)) Keyboard_Main(void)
 				if (new_wheel_div!=config_get_wheel_div())
 					config_save_wheel_div(new_wheel_div);
 				new_wheel_div=0; }
-			set_number_to_show_on_lcd(0);
+			clear_number_to_show_on_lcd();
 		}
 		switch(current_state){
 		case STATE_NORMAL:
